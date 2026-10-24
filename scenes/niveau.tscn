@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/niveau.gd" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/cachette.tscn" id="6_cachette"]
 [ext_resource type="PackedScene" path="res://scenes/objet.tscn" id="7_objet"]
 [ext_resource type="PackedScene" path="res://scenes/sortie.tscn" id="8_sortie"]
+[ext_resource type="PackedScene" path="res://scenes/brouillard.tscn" id="9_brouillard"]
 
 [node name="Niveau" type="Node2D"]
 script = ExtResource("1_niveau")
@@ -146,5 +147,9 @@ patrouille = Vector2(800, 0)
 position = Vector2(1500, 350)
 type = 1
 patrouille = Vector2(550, 0)
+
+[node name="Brouillard" parent="." instance=ExtResource("9_brouillard")]
+
+[node name="Nuit" type="CanvasModulate" parent="."]
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]

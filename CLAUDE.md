@@ -12,7 +12,7 @@ Boucle : BASE (construire, rescapés qui travaillent) -> CARTE (choisir un lieu 
 Version 1 visée plus tard : 1 héros, 5 à 8 lieux, 3 types de zombies, ~10 armes/objets, ~10 rescapés. Solo, hors ligne.
 Hors périmètre définitif : multijoueur, construction libre, monde ouvert, comptes, réseau, pub, achats.
 
-## Lot 1 : périmètre (en cours)
+## Lot 1 : périmètre (terminé, en test)
 Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la fin :
 - Écran titre (Jouer), écran de fin (Victoire / Retour à la base) avec Rejouer.
 - Un niveau : murs, 3 cachettes (cartons, congélateur), 4 à 6 objets, une sortie.
@@ -20,7 +20,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - 2 zombies : lent+résistant, rapide+fragile. Patrouille, détection vue (cône) + bruit, poursuite, abandon. Héros plus rapide qu'eux.
 - PV du héros, dégâts au contact. Mort => "Retour à la base", perte aléatoire de la moitié des objets. Pas de base : on affiche l'inventaire.
 - Ambiance : CanvasModulate sombre, PointLight2D lampe torche, léger brouillard.
-- Pas d'assets externes, pas de son.
+- Pas d'assets externes, pas de son. EXCEPTION décidée par le père avant l'étape f : 5 sons MP3 fournis par lui (`sons/`).
 
 Étapes : (a) projet + héros au joystick + build, (b) zombie qui poursuit, (c) attaque et PV,
 (d) cachettes et détection, (e) objets, sortie, écrans, (f) ambiance lumineuse.
@@ -77,6 +77,12 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Enchaînement : Titre -> Niveau -> Fin (Victoire / Retour à la base) -> Rejouer -> Niveau. L'autoload `Partie` garde le résultat et l'inventaire.
 - Sauvegarde : `user://sauvegarde.json` = `{"version": 1, "inventaire": {type: nombre}}`, cumulée sur toutes les parties, affichée sur l'écran de fin.
 - Écrans titre/fin : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée).
+- Sons (fournis par le père, rangés dans `sons/` car `docs/` est ignoré par Godot) : cri `zombie_gros` / `zombie_maigre` quand un zombie voit le héros (passage en POURSUITE, au plus un cri toutes les `ZOMBIE_DELAI_CRI` s) ; `taper1..3` au hasard quand la batte touche un zombie. Sons spatialisés (AudioStreamPlayer2D, écouteur = caméra). Volume global : `Reglages.SONS_VOLUME`.
+- Zombie battu : il reste invisible jusqu'à la fin du son de coup, puis il est enlevé.
+- Nuit : `CanvasModulate` (`Palette.NUIT`) dans le niveau ; le HUD (CanvasLayer 10) n'est pas assombri.
+- Lampe : deux PointLight2D sur le héros, `Halo` (dégradé rond, autour de lui) et `Lampe` (cône dessiné par code dans `_texture_faisceau`, aucune image). Le faisceau suit la dernière direction du joystick (8 directions). Dans une cachette, la lampe s'éteint (le halo reste).
+- Brouillard : scène `Brouillard` (z_index 2), nappes de cercles transparents qui dérivent ; épaisseur réglable (`BROUILLARD_OPACITE`).
+- Caché : le héros n'est plus rendu invisible (sinon ses lumières s'éteignent) ; il ne se dessine simplement pas.
 - Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
 
 ## Journal des lots
@@ -85,6 +91,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Lot 1 / étape (c) : bouton Frapper (batte, délai entre deux coups), cœurs du héros, dégâts au contact, recul, zombie sonné puis battu.
 - Lot 1 / étape (d) : 3 cachettes (2 cartons, 1 congélateur) + bouton Cacher/Sortir, vue en cône bloquée par les murs, bruit des pas et des coups, recherche puis retour.
 - Lot 1 / étape (e) : 5 objets à ramasser + compteur, sortie, écran titre, écran de fin (Victoire / Retour à la base avec perte de la moitié des objets), Rejouer, sauvegarde de l'inventaire.
+- Lot 1 / étape (f) : nuit (CanvasModulate), lampe torche (halo + faisceau qui suit la direction), brouillard, sons des zombies (cri quand ils te voient) et des coups de batte.
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.

@@ -1,6 +1,18 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/heros.gd" id="1_heros"]
+
+[sub_resource type="Gradient" id="Gradient_halo"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_halo"]
+gradient = SubResource("Gradient_halo")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pieds"]
 radius = 14.0
@@ -19,3 +31,13 @@ shape = SubResource("CircleShape2D_pieds")
 position = Vector2(0, -40)
 position_smoothing_enabled = true
 position_smoothing_speed = 6.0
+
+[node name="Halo" type="PointLight2D" parent="."]
+position = Vector2(0, -30)
+energy = 0.6
+texture = SubResource("GradientTexture2D_halo")
+texture_scale = 2.2
+
+[node name="Lampe" type="PointLight2D" parent="."]
+position = Vector2(30, -50)
+energy = 0.9

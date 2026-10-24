@@ -11,6 +11,9 @@ enum Type { LENT, RAPIDE }
 enum Etat { PATROUILLE, POURSUITE, CHERCHE, RETOUR }
 
 const MASQUE_DECOR := 1   # couche physique des murs et cachettes (bloquent la vue)
+const SON_CRI_GROS := preload("res://sons/zombie_gros.mp3")
+const SON_CRI_MAIGRE := preload("res://sons/zombie_maigre.mp3")
+const SONS_COUP := [preload("res://sons/taper1.mp3"), preload("res://sons/taper2.mp3"), preload("res://sons/taper3.mp3")]
 
 @export var type := Type.LENT
 ## Point de patrouille, relatif à la position de départ : il fait l'aller-retour.
@@ -32,6 +35,7 @@ var _etourdi := 0.0
 var _delai_coup := 0.0
 var _flash := 0.0
 var _disparition := 0.0   # > 0 : le zombie est battu et disparaît
+var _delai_cri := 0.0     # évite qu'il crie en boucle
 
 
 ## detectable = faux quand le héros est caché ou K.O.
@@ -54,6 +58,9 @@ func _ready() -> void:
 	_pv = Reglages.ZOMBIE_LENT_PV if type == Type.LENT else Reglages.ZOMBIE_RAPIDE_PV
 	if patrouille != Vector2.ZERO:
 		_regard = patrouille.normalized()
+	$Cri.stream = SON_CRI_GROS if type == Type.LENT else SON_CRI_MAIGRE
+	$Cri.volume_db = Reglages.SONS_VOLUME
+	$Coup.volume_db = Reglages.SONS_VOLUME
 	# Le cône est dessiné sur un enfant placé sous les personnages et le décor
 	$Cone.draw.connect(_dessiner_cone)
 
@@ -63,6 +70,8 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 	if _disparition > 0.0:
 		return
 	_pv -= degats
+	$Coup.stream = SONS_COUP.pick_random()
+	$Coup.play()
 	_recul = depuis.direction_to(global_position) * Reglages.ZOMBIE_RECUL
 	_etourdi = Reglages.ZOMBIE_ETOURDI
 	_flash = 0.15
@@ -114,17 +123,23 @@ func _physics_process(delta: float) -> void:
 		_disparition -= delta
 		queue_redraw()
 		$Cone.visible = false
-		if _disparition <= 0.0:
+		# On attend la fin du son de coup avant de l'enlever
+		if _disparition <= 0.0 and not $Coup.playing:
 			queue_free()
 		return
 	_etourdi = maxf(_etourdi - delta, 0.0)
 	_delai_coup = maxf(_delai_coup - delta, 0.0)
+	_delai_cri = maxf(_delai_cri - delta, 0.0)
 
 	var voit := _voit_heros()
 	if voit:
 		_point_recherche = _position_heros
 		if _etat != Etat.POURSUITE:
 			_changer_etat(Etat.POURSUITE)
+			# Il t'a vu : il pousse son cri
+			if _delai_cri == 0.0:
+				_delai_cri = Reglages.ZOMBIE_DELAI_CRI
+				$Cri.play()
 
 	var cible := global_position
 	match _etat:
@@ -183,7 +198,7 @@ func _draw() -> void:
 	modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
 	if _disparition > 0.0:
 		# Il bascule en arrière et s'efface
-		var avance := 1.0 - _disparition / 0.6
+		var avance := minf(1.0 - _disparition / 0.6, 1.0)
 		modulate.a = 1.0 - avance
 		draw_set_transform(Vector2.ZERO, -s * avance * PI / 2.0, Vector2(1.25, 1.25) * (1.0 - avance * 0.3))
 	else:

@@ -20,10 +20,12 @@ const CONGELATEUR := Color("6a7ca0")      # congélateur
 const CONGELATEUR_FACE := Color("4e5c79")
 const BROUILLARD := Color("4c5576")
 const OMBRE := Color(0.05, 0.04, 0.09, 0.45)
+const NUIT := Color(0.32, 0.33, 0.52)     # assombrit tout le niveau (CanvasModulate)
 
 # Lampe torche
 const LAMPE := Color("f8e989")
 const LAMPE_DOUCE := Color("d7c884")
+const LAMPE_FAISCEAU := Color("ffcc4a")   # couleur de la lumière de la lampe (plus saturée : la lumière s'additionne)
 
 # Héros
 const HEROS_VESTE := Color("2e2838")

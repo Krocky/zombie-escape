@@ -21,10 +21,36 @@ var _recharge_attaque := 0.0
 var _coup := 0.0   # temps restant de l'animation de coup de batte
 var _cache := false
 var _temps_pas := 0.0
+var _regard := Vector2.RIGHT   # direction de la lampe torche (8 directions)
 
 
 func _ready() -> void:
 	pv_change.emit.call_deferred(_pv, Reglages.HEROS_PV)
+	$Lampe.texture = _texture_faisceau()
+	$Lampe.color = Palette.LAMPE_FAISCEAU
+	$Halo.color = Palette.LAMPE_DOUCE
+	$Lampe.texture_scale = Reglages.LAMPE_PORTEE / 256.0
+	# La pointe du cône (bord gauche de l'image) doit être sur la main
+	$Lampe.offset = Vector2(128.0 * $Lampe.texture_scale, 0)
+
+
+## Faisceau de lampe torche en cône, dessiné pixel par pixel (pas d'image externe).
+## La pointe du cône est au bord gauche de l'image, le faisceau part vers la droite.
+func _texture_faisceau() -> ImageTexture:
+	var taille := 256
+	var image := Image.create(taille, taille, false, Image.FORMAT_LA8)
+	var demi_angle := deg_to_rad(Reglages.LAMPE_ANGLE / 2.0)
+	for y in taille:
+		for x in taille:
+			var p := Vector2(x, y - taille / 2.0)
+			var d := p.length() / taille
+			var angle := absf(p.angle())
+			var force := 0.0
+			if d <= 1.0 and angle <= demi_angle:
+				# Plus doux sur les bords du cône et au bout du faisceau
+				force = (1.0 - pow(d, 2.0)) * clampf((demi_angle - angle) / (demi_angle * 0.4), 0.0, 1.0)
+			image.set_pixel(x, y, Color(1, 1, 1, force))
+	return ImageTexture.create_from_image(image)
 
 
 ## Appelé par le niveau quand le joystick bouge.
@@ -45,13 +71,14 @@ func attaquer() -> void:
 ## Appelé par le niveau : le héros entre dans une cachette (invisible, immobile, silencieux).
 func se_cacher() -> void:
 	_cache = true
-	visible = false
+	$Lampe.enabled = false   # lampe éteinte dans la cachette
 	collision_layer = 0
+	queue_redraw()
 
 
 func sortir_cachette() -> void:
 	_cache = false
-	visible = true
+	$Lampe.enabled = true
 	collision_layer = 2
 
 
@@ -93,6 +120,11 @@ func _physics_process(delta: float) -> void:
 	if absf(direction.x) > 0.1:
 		_regarde_gauche = direction.x < 0.0
 	if direction != Vector2.ZERO:
+		_regard = direction
+	# La lampe suit la direction du héros, depuis sa main
+	$Lampe.rotation = lerp_angle($Lampe.rotation, _regard.angle(), minf(12.0 * delta, 1.0))
+	$Lampe.position = Vector2(-30 if _regarde_gauche else 30, -50)
+	if direction != Vector2.ZERO:
 		_temps += delta
 	else:
 		_temps = 0.0
@@ -100,6 +132,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if _cache:
+		return   # dans la cachette : la cachette dessine ses yeux
 	var s := -1.0 if _regarde_gauche else 1.0  # sens du regard
 	var pas := sin(_temps * 14.0) * 4.0         # balancement des jambes
 	var rebond := absf(sin(_temps * 14.0)) * 2.0

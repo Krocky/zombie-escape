@@ -16,6 +16,7 @@ var _cachette_occupee: Node2D = null
 
 
 func _ready() -> void:
+	$Nuit.color = Palette.NUIT
 	$HUD.deplacement.connect(_heros.definir_direction)
 	$HUD.attaque.connect(_heros.attaquer)
 	_heros.attaque.connect(_sur_attaque)

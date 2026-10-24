@@ -9,6 +9,13 @@ const HEROS_PV := 5                   # nombre de cœurs du héros
 const HEROS_INVULNERABLE := 1.0       # secondes où il ne prend plus de coup après avoir été touché
 const HEROS_RECUL := 400.0            # force du recul quand un zombie le touche
 
+# --- Lampe torche ---
+const LAMPE_PORTEE := 520.0           # longueur du faisceau
+const LAMPE_ANGLE := 50.0             # largeur du faisceau, en degrés
+
+# --- Ambiance ---
+const BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
+
 # --- Bruit (les zombies entendent jusqu'à cette distance) ---
 const BRUIT_PAS := 130.0              # bruit des pas quand le héros marche
 const BRUIT_ATTAQUE := 450.0          # bruit d'un coup de batte
@@ -50,3 +57,7 @@ const ZOMBIE_PORTEE_CONTACT := 45.0       # distance à laquelle il te touche
 const ZOMBIE_DELAI_DEGATS := 1.0          # secondes entre deux coups du même zombie
 const ZOMBIE_RECUL := 350.0               # force du recul quand tu le frappes
 const ZOMBIE_ETOURDI := 0.4               # secondes où il est sonné après un coup
+const ZOMBIE_DELAI_CRI := 6.0             # secondes minimum entre deux cris du même zombie
+
+# --- Sons ---
+const SONS_VOLUME := 0.0                  # volume en décibels : -6 = moins fort, +6 = plus fort
