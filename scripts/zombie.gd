@@ -54,6 +54,8 @@ var _corps_rotation := 0.0
 var _corps_echelle := Vector2.ONE
 var _vue := Node2D.new()   # dans le calque Vue du niveau
 var _haut_icone := -120.0  # au-dessus de la tête : « ! », « ? », étoiles
+var _impact := 0.0         # temps restant de la gerbe d'étincelles du coup de batte
+const DUREE_IMPACT := 0.3
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
 @onready var _yeux: Node2D = $Yeux   # enfant de _vue
@@ -116,6 +118,7 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 	_recul = depuis.direction_to(global_position) * Reglages.ZOMBIE_RECUL
 	_etourdi = Reglages.ZOMBIE_ETOURDI
 	_flash = 0.15
+	_impact = DUREE_IMPACT
 	_point_recherche = depuis
 	_regard = global_position.direction_to(depuis)
 	_changer_etat(Etat.POURSUITE)
@@ -161,6 +164,7 @@ func _voit_heros() -> bool:
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(_flash - delta, 0.0)
+	_impact = maxf(_impact - delta, 0.0)
 	if _battu:
 		_disparition = maxf(_disparition - delta, 0.0)
 		_suivre()
@@ -332,6 +336,20 @@ func _dessiner_visage(t: Vector2, s: float) -> void:
 	_yeux_sens = s
 
 
+## Gerbe d'étincelles et rayons blancs au point d'impact de la batte.
+func _dessiner_impact() -> void:
+	if _impact <= 0.0:
+		return
+	_yeux.draw_set_transform(Vector2.ZERO)
+	var avance := 1.0 - _impact / DUREE_IMPACT
+	var centre := Vector2(0, _haut_icone * 0.55)
+	for i in 8:
+		var direction := Vector2.from_angle(TAU * i / 8.0 + 0.4)
+		var debut := centre + direction * (10.0 + 40.0 * avance)
+		_yeux.draw_line(debut, debut + direction * 16.0 * (1.0 - avance), Palette.LAMPE * Color(1, 1, 1, 1.0 - avance), 4.0)
+	_yeux.draw_circle(centre, 18.0 * (1.0 - avance), Color(1, 1, 1, 0.6 * (1.0 - avance)))
+
+
 ## « ! », « ? » ou étoiles au-dessus de la tête : sur le calque sans ombre, lisibles dans le noir.
 func _dessiner_icone() -> void:
 	_yeux.draw_set_transform(Vector2.ZERO)
@@ -346,6 +364,7 @@ func _dessiner_icone() -> void:
 ## Grands yeux jaunes qui brillent dans le noir (matériau sans ombre) : calque d'yeux de l'image,
 ## ou yeux dessinés en code.
 func _dessiner_yeux() -> void:
+	_dessiner_impact()
 	if _battu:
 		return
 	_dessiner_icone()

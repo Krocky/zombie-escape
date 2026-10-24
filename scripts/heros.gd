@@ -13,6 +13,8 @@ signal bruit(origine: Vector2, rayon: float)
 const DUREE_COUP := 0.2
 const ECHELLE := 0.5            # images à 2x : taille à l'écran
 const CADENCE_MARCHE := 7.0     # poses par seconde
+const DUREE_FONDU := 0.25       # entrée / sortie de cachette
+const DUREE_SECOUSSE := 0.35    # tremblement de l'écran quand il est touché
 ## Poses (images regardant à droite, retournées pour la gauche) : immobile, puis cycle de marche.
 const POSES := {
 	"face": ["profil_1", ["profil_2", "profil_1", "profil_3", "profil_1"]],
@@ -30,6 +32,8 @@ var _cache := false
 var _temps_pas := 0.0
 var _regard := Vector2.RIGHT   # direction du regard et de la lampe (monde, 8 directions)
 var _vue := Node2D.new()       # dans le calque Vue du niveau
+var _fondu := 1.0              # 1 = visible, 0 = dans la cachette (animation)
+var _secousse := 0.0
 
 @onready var _lampe: PointLight2D = $Lampe
 @onready var _halo: PointLight2D = $Halo
@@ -126,6 +130,7 @@ func recevoir_degats(degats: int, depuis: Vector2) -> void:
 	_invulnerable = Reglages.HEROS_INVULNERABLE
 	_recul = depuis.direction_to(global_position) * Reglages.HEROS_RECUL
 	pv_change.emit(_pv, Reglages.HEROS_PV)
+	_secousse = DUREE_SECOUSSE
 	if _pv == 0:
 		_direction = Vector2.ZERO
 		mort.emit()
@@ -145,6 +150,8 @@ func _physics_process(delta: float) -> void:
 	_invulnerable = maxf(_invulnerable - delta, 0.0)
 	_recharge_attaque = maxf(_recharge_attaque - delta, 0.0)
 	_coup = maxf(_coup - delta, 0.0)
+	_secousse = maxf(_secousse - delta, 0.0)
+	_fondu = move_toward(_fondu, 0.0 if _cache else 1.0, delta / DUREE_FONDU)
 	var direction := _direction if _pv > 0 and not _cache else Vector2.ZERO
 	# Bruit des pas, à intervalles réguliers quand il marche
 	_temps_pas -= delta
@@ -168,6 +175,9 @@ func _suivre() -> void:
 	var regard := Iso.direction_ecran(_regard)
 	# La caméra regarde un peu en avant, du côté où il va
 	_camera.global_position = _vue.position + Vector2(0, -50) + regard * Reglages.CAMERA_AVANCE
+	# Tremblement quand il est touché (décalage de la caméra, de plus en plus faible)
+	var force := 12.0 * _secousse / DUREE_SECOUSSE
+	_camera.offset = Vector2(randf_range(-force, force), randf_range(-force, force)) if _secousse > 0.0 else Vector2.ZERO
 	var nom := _pose()
 	var main := Vector2(regard.x * 30.0, -60.0)
 	if Images.existe(nom):
@@ -191,12 +201,12 @@ func _pose() -> String:
 
 
 func _dessiner() -> void:
-	if _cache:
+	if _fondu <= 0.0:
 		return   # dans la cachette : la cachette dessine ses yeux
 	var v := _vue
 	var s := -1.0 if Iso.direction_ecran(_regard).x < 0.0 else 1.0  # sens du regard à l'écran
-	# Clignote quand il vient d'être touché
-	v.modulate.a = 0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0
+	# Clignote quand il vient d'être touché ; s'efface en entrant dans une cachette
+	v.modulate.a = (0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0) * _fondu
 	Dessin.ombre(v, Rect2(-30, -10, 60, 20))
 	var base := Transform2D.IDENTITY
 	if _pv <= 0:

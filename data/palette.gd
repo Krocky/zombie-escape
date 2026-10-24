@@ -59,4 +59,5 @@ const UI_FOND := Color(0.08, 0.07, 0.13, 0.55)
 const UI_BORD := Color("8a93b8")
 const UI_TEXTE := Color("e8e4f0")
 const COEUR := Color("e0566b")
+const DEGATS := Color(0.85, 0.08, 0.12, 0.75)   # bords rouges quand le héros est touché
 const SORTIE := Color("7ed38f")            # panneau et lumière de la sortie

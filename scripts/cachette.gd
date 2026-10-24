@@ -15,6 +15,7 @@ var _vue := Node2D.new()      # dans le calque Vue (trié en profondeur)
 var _sol := Node2D.new()      # dans le calque du sol (ombre)
 var _dessus := Node2D.new()   # par-dessus la cachette : les yeux du héros caché
 var _haut_dessus := Vector2.ZERO   # milieu du dessus, à l'écran
+var _secousse := 0.0
 
 
 ## Distance entre un point et le bord de la cachette (0 si dedans).
@@ -26,6 +27,7 @@ func distance_a(point: Vector2) -> float:
 
 func occuper(occupee: bool) -> void:
 	_occupee = occupee
+	_secousse = 0.3
 	_dessus.queue_redraw()
 
 
@@ -68,6 +70,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# La cachette tremble un instant (de côté seulement : le tri en profondeur ne bouge pas)
+	if _secousse > 0.0:
+		_secousse = maxf(_secousse - delta, 0.0)
+		_vue.position.x = sin(_secousse * 70.0) * 4.0 * _secousse / 0.3
 	if _occupee:
 		_temps += delta
 		_dessus.queue_redraw()

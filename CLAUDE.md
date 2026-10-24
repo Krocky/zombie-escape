@@ -118,6 +118,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Faisceau : bord net, cœur plus fort, texture calculée une seule fois (`static var`). Halo réduit. Vignettage : scène `Vignette` (CanvasLayer 5, sous le HUD), une texture dégradée étirée, ne capte pas les doigts.
 - Brume : une texture dégradée unique, nappes aplaties, graine fixe ; deux couches (scène `Brouillard`) : `BrumeSol` sous les personnages, claire (`Palette.BRUME_CLAIRE`) et non assombrie par la nuit (`lumineuse`), et `Brouillard` par-dessus, légère. `force` multiplie `Reglages.BROUILLARD_OPACITE`.
 - « ! », « ? » et étoiles des zombies : sur le calque `Yeux` (sans ombre), lisibles dans le noir. Panneau SORTIE aussi sans ombre.
+- Retours de jeu (refonte lot 6), sans changer le gameplay : objets qui pulsent + scintillement (étoile, calque sans ombre, toutes les 2,6 s : repère discret, la lueur reste visible seulement à la lampe) + gerbe d'étoiles au ramassage ; bords rouges (HUD, `Palette.DEGATS`) et tremblement de caméra quand le héros est touché ; flash blanc + étincelles au coup de batte (calque `Yeux` du zombie) ; fondu du héros (0,25 s) et tremblement de la cachette en entrant / sortant ; lumière de la sortie qui respire. La porte reste toujours ouverte (porte à cadenas V2 non utilisée : ce serait un changement de gameplay).
 - Caméra : regarde en avant du héros de `Reglages.CAMERA_AVANCE` pixels dans la direction du regard.
 - Lune : une PointLight2D bleue (`Palette.LUNE`) au sol sous chaque fenêtre du mur du fond. Total : 6 lumières (halo, lampe, sortie, 3 lunes).
 - `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott).
@@ -143,6 +144,7 @@ Lots (plan révisé après les planches V2) : 1 volumes 3/4 (remplacé par l'iso
 - Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
 - Refonte / lot 2 : faisceau net et chaud, halo réduit, vignettage, brume au ras du sol, lumière de lune sous les fenêtres, yeux des zombies qui brillent dans le noir, compteur d'ips.
 - Refonte / lot 3 : planches V2 détourées en 7 atlas (86 images : 12 poses du héros, 23 de zombies + yeux, 6 dalles, 4 murs, 15 décors, 8 objets, 2 portes).
+- Refonte / lot 6 : objets qui pulsent et scintillent, gerbe au ramassage, bords rouges + tremblement aux dégâts, étincelles au coup de batte, fondu dans les cachettes, sortie qui respire.
 - Refonte / lot 5 : brume claire au sol, icônes des zombies et panneau SORTIE lisibles dans le noir, caméra qui regarde en avant.
 - Refonte / lot 4 : passage en isométrique (affichage seul), décor, sol, débris, murs à fenêtres, porte de sortie verte, héros et zombies en images V2 animées, tests adaptés (pas de physique, joystick projeté).
 

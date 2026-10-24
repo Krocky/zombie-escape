@@ -9,6 +9,9 @@ const EPAISSEUR := 80.0    # épaisseur du mur du fond
 var _vue := Node2D.new()
 var _devant := Node2D.new()   # panneau « SORTIE », par-dessus la porte
 var _hauteur := 140.0         # hauteur de la porte à l'écran
+var _temps := 0.0
+
+@onready var _lumiere: PointLight2D = $Lumiere
 
 
 ## Nœuds d'affichage, placés par le niveau.
@@ -17,7 +20,7 @@ func visuels() -> Dictionary:
 
 
 func _ready() -> void:
-	var lumiere: PointLight2D = $Lumiere
+	var lumiere := _lumiere
 	lumiere.color = Palette.SORTIE
 	_vue.y_sort_enabled = true
 	if Images.existe("porte_ouverte"):
@@ -43,6 +46,12 @@ func _ready() -> void:
 	_devant.material = sans_ombre
 	_devant.draw.connect(_dessiner_panneau)
 	_vue.add_child(_devant)
+
+
+func _process(delta: float) -> void:
+	# La lumière verte respire doucement : on la repère de loin
+	_temps += delta
+	_lumiere.energy = 0.9 + 0.25 * sin(_temps * 2.2)
 
 
 func _dessiner_panneau() -> void:
