@@ -6,6 +6,8 @@ extends CharacterBody2D
 signal attaque(origine: Vector2, sens: Vector2)
 signal pv_change(pv: int, pv_max: int)
 signal mort
+## Le héros fait du bruit (pas, coups) : le niveau prévient les zombies.
+signal bruit(origine: Vector2, rayon: float)
 
 const DUREE_COUP := 0.2
 
@@ -17,6 +19,8 @@ var _recul := Vector2.ZERO
 var _invulnerable := 0.0
 var _recharge_attaque := 0.0
 var _coup := 0.0   # temps restant de l'animation de coup de batte
+var _cache := false
+var _temps_pas := 0.0
 
 
 func _ready() -> void:
@@ -30,16 +34,30 @@ func definir_direction(direction: Vector2) -> void:
 
 ## Appelé par le niveau quand on appuie sur Frapper.
 func attaquer() -> void:
-	if _pv <= 0 or _recharge_attaque > 0.0:
+	if _pv <= 0 or _cache or _recharge_attaque > 0.0:
 		return
 	_recharge_attaque = Reglages.ATTAQUE_DELAI
 	_coup = DUREE_COUP
 	attaque.emit(global_position, Vector2(-1 if _regarde_gauche else 1, 0))
+	bruit.emit(global_position, Reglages.BRUIT_ATTAQUE)
+
+
+## Appelé par le niveau : le héros entre dans une cachette (invisible, immobile, silencieux).
+func se_cacher() -> void:
+	_cache = true
+	visible = false
+	collision_layer = 0
+
+
+func sortir_cachette() -> void:
+	_cache = false
+	visible = true
+	collision_layer = 2
 
 
 ## Appelé par le niveau quand un zombie touche le héros.
 func recevoir_degats(degats: int, depuis: Vector2) -> void:
-	if _pv <= 0 or _invulnerable > 0.0:
+	if _pv <= 0 or _cache or _invulnerable > 0.0:
 		return
 	_pv = maxi(_pv - degats, 0)
 	_invulnerable = Reglages.HEROS_INVULNERABLE
@@ -63,13 +81,18 @@ func _physics_process(delta: float) -> void:
 	_invulnerable = maxf(_invulnerable - delta, 0.0)
 	_recharge_attaque = maxf(_recharge_attaque - delta, 0.0)
 	_coup = maxf(_coup - delta, 0.0)
-	var direction := _direction if _pv > 0 else Vector2.ZERO
+	var direction := _direction if _pv > 0 and not _cache else Vector2.ZERO
+	# Bruit des pas, à intervalles réguliers quand il marche
+	_temps_pas -= delta
+	if direction != Vector2.ZERO and _temps_pas <= 0.0:
+		_temps_pas = 0.4
+		bruit.emit(global_position, Reglages.BRUIT_PAS)
 	velocity = direction * Reglages.HEROS_VITESSE + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
-	if absf(_direction.x) > 0.1:
-		_regarde_gauche = _direction.x < 0.0
-	if _direction != Vector2.ZERO:
+	if absf(direction.x) > 0.1:
+		_regarde_gauche = direction.x < 0.0
+	if direction != Vector2.ZERO:
 		_temps += delta
 	else:
 		_temps = 0.0

@@ -6,9 +6,14 @@
 radius = 16.0
 
 [node name="Zombie" type="CharacterBody2D" groups=["zombies"]]
+collision_layer = 4
+collision_mask = 7
 motion_mode = 1
 script = ExtResource("1_zombie")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -8)
 shape = SubResource("CircleShape2D_pieds")
+
+[node name="Cone" type="Node2D" parent="."]
+z_index = -1

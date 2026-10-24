@@ -9,6 +9,13 @@ const HEROS_PV := 5                   # nombre de cœurs du héros
 const HEROS_INVULNERABLE := 1.0       # secondes où il ne prend plus de coup après avoir été touché
 const HEROS_RECUL := 400.0            # force du recul quand un zombie le touche
 
+# --- Bruit (les zombies entendent jusqu'à cette distance) ---
+const BRUIT_PAS := 130.0              # bruit des pas quand le héros marche
+const BRUIT_ATTAQUE := 450.0          # bruit d'un coup de batte
+
+# --- Cachettes ---
+const CACHETTE_PORTEE := 70.0         # distance pour pouvoir se cacher
+
 # --- Attaque du héros (batte) ---
 const ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 const ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche
@@ -30,9 +37,11 @@ const ZOMBIE_RAPIDE_PV := 2
 const ZOMBIE_RAPIDE_DEGATS := 1
 
 # --- Tous les zombies ---
-const ZOMBIE_DISTANCE_DETECTION := 350.0   # à cette distance, le zombie te repère
-const ZOMBIE_DISTANCE_ABANDON := 600.0     # plus loin que ça, il commence à t'oublier
-const ZOMBIE_DELAI_ABANDON := 2.0          # secondes loin de lui avant qu'il abandonne
+const ZOMBIE_VUE_DISTANCE := 380.0             # jusqu'où il voit quand il se promène
+const ZOMBIE_VUE_DISTANCE_POURSUITE := 600.0   # jusqu'où il voit quand il te poursuit
+const ZOMBIE_VUE_ANGLE := 100.0                # largeur du cône de vue, en degrés
+const ZOMBIE_DELAI_ABANDON := 2.0              # secondes sans te voir avant de te chercher
+const ZOMBIE_DELAI_RECHERCHE := 3.0            # secondes à te chercher avant de repartir
 const ZOMBIE_PORTEE_CONTACT := 45.0       # distance à laquelle il te touche
 const ZOMBIE_DELAI_DEGATS := 1.0          # secondes entre deux coups du même zombie
 const ZOMBIE_RECUL := 350.0               # force du recul quand tu le frappes

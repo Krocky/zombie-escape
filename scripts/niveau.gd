@@ -6,6 +6,8 @@ const CARREAU := 80.0
 
 
 var _heros_mort := false
+var _cachette_proche: Node2D = null
+var _cachette_occupee: Node2D = null
 
 @onready var _heros := $Monde/Heros
 
@@ -16,6 +18,8 @@ func _ready() -> void:
 	_heros.attaque.connect(_sur_attaque)
 	_heros.pv_change.connect($HUD.afficher_pv)
 	_heros.mort.connect(_sur_mort)
+	_heros.bruit.connect(_sur_bruit)
+	$HUD.cacher.connect(_sur_cacher)
 	_heros.regler_limites_camera(Rect2(Vector2.ZERO, TAILLE))
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.touche_heros.connect(_heros.recevoir_degats)
@@ -23,9 +27,35 @@ func _ready() -> void:
 
 func _physics_process(_delta: float) -> void:
 	# Chaque zombie connaît la position du héros (il décide lui-même s'il le voit).
-	var position_heros: Vector2 = Vector2.INF if _heros_mort else _heros.global_position
+	var detectable := not _heros_mort and _cachette_occupee == null
 	for zombie in get_tree().get_nodes_in_group("zombies"):
-		zombie.connaitre_position_heros(position_heros)
+		zombie.connaitre_heros(_heros.global_position, detectable)
+	# Cachette la plus proche, à portée
+	_cachette_proche = null
+	if not _heros_mort:
+		var meilleure := Reglages.CACHETTE_PORTEE
+		for cachette in get_tree().get_nodes_in_group("cachettes"):
+			var d: float = cachette.distance_a(_heros.global_position)
+			if d <= meilleure:
+				meilleure = d
+				_cachette_proche = cachette
+	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
+
+
+func _sur_cacher() -> void:
+	if _cachette_occupee:
+		_cachette_occupee.occuper(false)
+		_cachette_occupee = null
+		_heros.sortir_cachette()
+	elif _cachette_proche and not _heros_mort:
+		_cachette_occupee = _cachette_proche
+		_cachette_occupee.occuper(true)
+		_heros.se_cacher()
+
+
+func _sur_bruit(origine: Vector2, rayon: float) -> void:
+	for zombie in get_tree().get_nodes_in_group("zombies"):
+		zombie.entendre(origine, rayon)
 
 
 ## La batte touche les zombies proches, devant le héros (ou juste au-dessus/en dessous).

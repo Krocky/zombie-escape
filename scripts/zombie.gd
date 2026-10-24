@@ -1,13 +1,16 @@
 extends CharacterBody2D
-## Un zombie : il patrouille, poursuit le héros s'il le repère, puis abandonne.
-## Le niveau lui donne la position du héros (connaitre_position_heros).
+## Un zombie : il patrouille, voit le héros dans son cône de vue, entend le bruit,
+## poursuit, cherche là où il l'a perdu, puis retourne patrouiller.
+## Le niveau lui donne la position du héros (connaitre_heros) et les bruits (entendre).
 ## Origine = aux pieds (tri par Y).
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
 
 enum Type { LENT, RAPIDE }
-enum Etat { PATROUILLE, POURSUITE, RETOUR }
+enum Etat { PATROUILLE, POURSUITE, CHERCHE, RETOUR }
+
+const MASQUE_DECOR := 1   # couche physique des murs et cachettes (bloquent la vue)
 
 @export var type := Type.LENT
 ## Point de patrouille, relatif à la position de départ : il fait l'aller-retour.
@@ -16,9 +19,12 @@ enum Etat { PATROUILLE, POURSUITE, RETOUR }
 var _etat := Etat.PATROUILLE
 var _depart := Vector2.ZERO
 var _vers_bout := true
-var _position_heros := Vector2.INF
-var _temps_loin := 0.0
-var _regarde_gauche := false
+var _position_heros := Vector2.ZERO
+var _heros_detectable := false
+var _point_recherche := Vector2.ZERO   # là où il a vu ou entendu le héros pour la dernière fois
+var _temps_sans_voir := 0.0
+var _temps_recherche := 0.0
+var _regard := Vector2.RIGHT           # direction du regard (cône de vue)
 var _temps := 0.0
 var _pv := 1
 var _recul := Vector2.ZERO
@@ -28,13 +34,28 @@ var _flash := 0.0
 var _disparition := 0.0   # > 0 : le zombie est battu et disparaît
 
 
-func connaitre_position_heros(position_heros: Vector2) -> void:
+## detectable = faux quand le héros est caché ou K.O.
+func connaitre_heros(position_heros: Vector2, detectable: bool) -> void:
 	_position_heros = position_heros
+	_heros_detectable = detectable
+
+
+## Un bruit a été fait en « origine » ; il porte jusqu'à « rayon ».
+func entendre(origine: Vector2, rayon: float) -> void:
+	if _disparition > 0.0 or _etat == Etat.POURSUITE:
+		return
+	if global_position.distance_to(origine) <= rayon:
+		_point_recherche = origine
+		_changer_etat(Etat.CHERCHE)
 
 
 func _ready() -> void:
 	_depart = global_position
 	_pv = Reglages.ZOMBIE_LENT_PV if type == Type.LENT else Reglages.ZOMBIE_RAPIDE_PV
+	if patrouille != Vector2.ZERO:
+		_regard = patrouille.normalized()
+	# Le cône est dessiné sur un enfant placé sous les personnages et le décor
+	$Cone.draw.connect(_dessiner_cone)
 
 
 ## Appelé par le niveau quand la batte du héros le touche.
@@ -45,6 +66,8 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 	_recul = depuis.direction_to(global_position) * Reglages.ZOMBIE_RECUL
 	_etourdi = Reglages.ZOMBIE_ETOURDI
 	_flash = 0.15
+	_point_recherche = depuis
+	_regard = global_position.direction_to(depuis)
 	_changer_etat(Etat.POURSUITE)
 	if _pv <= 0:
 		# Battu : il tombe et disparaît en fumée (pas de gore)
@@ -58,9 +81,31 @@ func _degats() -> int:
 
 
 func _vitesse() -> float:
+	var poursuite := _etat == Etat.POURSUITE or _etat == Etat.CHERCHE
 	if type == Type.LENT:
-		return Reglages.ZOMBIE_LENT_VITESSE if _etat == Etat.POURSUITE else Reglages.ZOMBIE_LENT_VITESSE_PATROUILLE
-	return Reglages.ZOMBIE_RAPIDE_VITESSE if _etat == Etat.POURSUITE else Reglages.ZOMBIE_RAPIDE_VITESSE_PATROUILLE
+		return Reglages.ZOMBIE_LENT_VITESSE if poursuite else Reglages.ZOMBIE_LENT_VITESSE_PATROUILLE
+	return Reglages.ZOMBIE_RAPIDE_VITESSE if poursuite else Reglages.ZOMBIE_RAPIDE_VITESSE_PATROUILLE
+
+
+func _portee_vue() -> float:
+	return Reglages.ZOMBIE_VUE_DISTANCE_POURSUITE if _etat == Etat.POURSUITE else Reglages.ZOMBIE_VUE_DISTANCE
+
+
+## Le zombie voit-il le héros ? Dans le cône, assez près, et pas caché derrière un mur.
+func _voit_heros() -> bool:
+	if not _heros_detectable:
+		return false
+	var vers_heros := _position_heros - global_position
+	var distance := vers_heros.length()
+	if distance > _portee_vue():
+		return false
+	var dans_cone := distance < Reglages.ZOMBIE_PORTEE_CONTACT * 1.5 \
+		or rad_to_deg(absf(_regard.angle_to(vers_heros))) <= Reglages.ZOMBIE_VUE_ANGLE / 2.0
+	if not dans_cone:
+		return false
+	var rayon := PhysicsRayQueryParameters2D.create(
+		global_position + Vector2(0, -8), _position_heros + Vector2(0, -8), MASQUE_DECOR, [get_rid()])
+	return get_world_2d().direct_space_state.intersect_ray(rayon).is_empty()
 
 
 func _physics_process(delta: float) -> void:
@@ -68,32 +113,47 @@ func _physics_process(delta: float) -> void:
 	if _disparition > 0.0:
 		_disparition -= delta
 		queue_redraw()
+		$Cone.visible = false
 		if _disparition <= 0.0:
 			queue_free()
 		return
 	_etourdi = maxf(_etourdi - delta, 0.0)
 	_delai_coup = maxf(_delai_coup - delta, 0.0)
-	var distance_heros := global_position.distance_to(_position_heros)
+
+	var voit := _voit_heros()
+	if voit:
+		_point_recherche = _position_heros
+		if _etat != Etat.POURSUITE:
+			_changer_etat(Etat.POURSUITE)
+
 	var cible := global_position
 	match _etat:
-		Etat.PATROUILLE, Etat.RETOUR:
-			if distance_heros < Reglages.ZOMBIE_DISTANCE_DETECTION:
-				_changer_etat(Etat.POURSUITE)
-			elif _etat == Etat.RETOUR:
-				cible = _depart
-				if global_position.distance_to(_depart) < 10.0:
-					_changer_etat(Etat.PATROUILLE)
-			else:
-				cible = _depart + patrouille if _vers_bout else _depart
-				if global_position.distance_to(cible) < 10.0:
-					_vers_bout = not _vers_bout
+		Etat.PATROUILLE:
+			cible = _depart + patrouille if _vers_bout else _depart
+			if global_position.distance_to(cible) < 10.0:
+				_vers_bout = not _vers_bout
 		Etat.POURSUITE:
-			cible = _position_heros
-			_temps_loin = _temps_loin + delta if distance_heros > Reglages.ZOMBIE_DISTANCE_ABANDON else 0.0
-			if _temps_loin > Reglages.ZOMBIE_DELAI_ABANDON:
+			# Il fonce vers le héros, ou vers l'endroit où il l'a vu pour la dernière fois
+			cible = _point_recherche
+			_temps_sans_voir = 0.0 if voit else _temps_sans_voir + delta
+			if not voit and (_temps_sans_voir > Reglages.ZOMBIE_DELAI_ABANDON or global_position.distance_to(cible) < 10.0):
+				_changer_etat(Etat.CHERCHE)
+		Etat.CHERCHE:
+			# Il va voir, puis regarde autour de lui un moment
+			cible = _point_recherche
+			if global_position.distance_to(cible) < 10.0 or get_slide_collision_count() > 0 and velocity.length() < 5.0:
+				cible = global_position
+				_temps_recherche += delta
+				_regard = _regard.rotated(sin(_temps_recherche * 2.0) * 2.5 * delta)
+			if _temps_recherche > Reglages.ZOMBIE_DELAI_RECHERCHE:
 				_changer_etat(Etat.RETOUR)
+		Etat.RETOUR:
+			cible = _depart
+			if global_position.distance_to(_depart) < 10.0:
+				_changer_etat(Etat.PATROUILLE)
 
-	if _etat == Etat.POURSUITE and distance_heros < Reglages.ZOMBIE_PORTEE_CONTACT and _delai_coup == 0.0 and _etourdi == 0.0:
+	if voit and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT \
+			and _delai_coup == 0.0 and _etourdi == 0.0:
 		_delai_coup = Reglages.ZOMBIE_DELAI_DEGATS
 		touche_heros.emit(_degats(), global_position)
 
@@ -103,19 +163,21 @@ func _physics_process(delta: float) -> void:
 	velocity = direction * _vitesse() + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
-	if absf(direction.x) > 0.1:
-		_regarde_gauche = direction.x < 0.0
+	if direction != Vector2.ZERO:
+		_regard = _regard.slerp(direction, minf(8.0 * delta, 1.0)).normalized()
 	_temps += delta * (2.0 if _etat == Etat.POURSUITE else 1.0)
 	queue_redraw()
+	$Cone.queue_redraw()
 
 
 func _changer_etat(nouvel_etat: Etat) -> void:
 	_etat = nouvel_etat
-	_temps_loin = 0.0
+	_temps_sans_voir = 0.0
+	_temps_recherche = 0.0
 
 
 func _draw() -> void:
-	var s := -1.0 if _regarde_gauche else 1.0
+	var s := -1.0 if _regard.x < 0.0 else 1.0
 	var pas := sin(_temps * 8.0) * 4.0
 	var tangue := sin(_temps * 4.0) * 2.0
 	modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
@@ -135,6 +197,8 @@ func _draw() -> void:
 		_dessiner_etoiles(Vector2(0, -116 if type == Type.LENT else -110))
 	elif _etat == Etat.POURSUITE and _disparition <= 0.0:
 		_dessiner_alerte(Vector2(0, -116 if type == Type.LENT else -110))
+	elif _etat == Etat.CHERCHE and _disparition <= 0.0:
+		_dessiner_question(Vector2(0, -116 if type == Type.LENT else -110))
 
 
 func _dessiner_gros(s: float, pas: float, tangue: float) -> void:
@@ -192,3 +256,21 @@ func _dessiner_etoiles(p: Vector2) -> void:
 		var c := p + Vector2(cos(a) * 18.0, sin(a) * 6.0 - 6.0)
 		draw_circle(c, 7.0, Palette.CONTOUR)
 		draw_circle(c, 5.0, Palette.LAMPE)
+
+
+func _dessiner_cone() -> void:
+	# Cône de vue dessiné au sol (repère pour le joueur), sans tenir compte des murs
+	var demi := deg_to_rad(Reglages.ZOMBIE_VUE_ANGLE / 2.0)
+	var points := PackedVector2Array([Vector2.ZERO])
+	for i in 13:
+		var a := _regard.angle() - demi + 2.0 * demi * i / 12.0
+		points.append(Vector2(cos(a), sin(a)) * _portee_vue())
+	var couleur := Palette.ZOMBIE_VUE_ALERTE if _etat == Etat.POURSUITE else Palette.ZOMBIE_VUE
+	$Cone.draw_colored_polygon(points, couleur)
+
+
+func _dessiner_question(p: Vector2) -> void:
+	# Point d'interrogation : le zombie te cherche
+	var police := ThemeDB.fallback_font
+	draw_string_outline(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, 8, Palette.CONTOUR)
+	draw_string(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Palette.LAMPE)

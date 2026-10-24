@@ -3,7 +3,10 @@ extends Control
 
 signal appuye
 
-@export var texte := "Bouton"
+@export var texte := "Bouton":
+	set(valeur):
+		texte = valeur
+		queue_redraw()
 @export var couleur := Color.WHITE
 ## Un bouton inactif est grisé et ne réagit pas.
 @export var actif := true:

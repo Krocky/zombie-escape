@@ -60,18 +60,26 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Les obstacles (murs, étagères, caisses) partagent une seule scène `Mur` avec un `style`.
 - Orientation : capteur libre (portrait + paysage), au lieu du « paysage forcé » du brief initial. Pour revenir au paysage seul : `window/handheld/orientation=4` dans project.godot.
 - Zombies : une seule scène `Zombie` avec un `type` (LENT / RAPIDE) et un aller-retour de patrouille (`patrouille`, relatif au départ).
-- Étape (b) : détection par simple distance (sera remplacée par vue en cône + bruit à l'étape d). Pas de recherche de chemin : le zombie fonce tout droit et glisse le long des obstacles (les étagères aident à le semer).
+- Pas de recherche de chemin : le zombie fonce tout droit et glisse le long des obstacles (les étagères aident à le semer).
 - Boutons d'action : scène `BoutonTactile` maison (gère plusieurs doigts) ; un `Button` Godot ne réagit qu'au premier doigt, donc pas pendant qu'on tient le joystick.
 - Attaque : le héros émet `attaque` ; le niveau touche les zombies à portée, devant le héros (ou au-dessus / en dessous). Le coup repousse et sonne le zombie (étoiles).
 - Contact : le zombie émet `touche_heros` ; le niveau appelle `recevoir_degats` sur le héros (recul + clignotement d'invulnérabilité).
 - Zombie battu : il bascule et s'efface (pas de gore).
 - Étape (c) provisoire : à la mort du héros, le niveau recommence au bout de 2 s (l'écran « Retour à la base » arrive à l'étape e).
-- Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame ; aucun zombie ne connaît le nœud du héros.
+- Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame, avec `detectable` (faux si caché ou K.O.) ; aucun zombie ne connaît le nœud du héros.
+- Vue : cône (angle + distance, plus loin en poursuite) et ligne de vue bloquée par le décor (rayon physique, couche 1). Tout près (contact x1,5), il te sent même de dos.
+- Cône de vue dessiné au sol (repère pour l'enfant), sans découpe par les murs. Il est sur l'enfant `Cone` (z_index -1) ; `Monde` a z_index 1 pour passer au-dessus du sol.
+- Bruit : le héros émet `bruit` (pas toutes les 0,4 s en marchant, coup de batte) ; un zombie qui entend va voir (« ? ») mais ne poursuit que s'il voit.
+- États du zombie : PATROUILLE -> POURSUITE (« ! ») -> CHERCHE (« ? », au dernier endroit vu/entendu) -> RETOUR -> PATROUILLE.
+- Cachettes : se cacher marche toujours, même sous les yeux d'un zombie (choix « enfant »). Caché : invisible, immobile, silencieux, ne peut pas frapper, pas de dégâts. On sort uniquement avec le bouton (Sortir).
+- Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
 - Lot 1 / étape (b) : orientation portrait + paysage ; zombies lent (gros) et rapide (maigre), patrouille, poursuite avec « ! », abandon puis retour au point de départ.
 - Lot 1 / étape (c) : bouton Frapper (batte, délai entre deux coups), cœurs du héros, dégâts au contact, recul, zombie sonné puis battu.
+- Lot 1 / étape (d) : 3 cachettes (2 cartons, 1 congélateur) + bouton Cacher/Sortir, vue en cône bloquée par les murs, bruit des pas et des coups, recherche puis retour.
 
 ## Idées lot 2
-- (vide pour l'instant)
+- Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.
+- Cône de vue découpé par les murs.

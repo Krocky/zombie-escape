@@ -39,6 +39,8 @@ const ZOMBIE_PEAU_OMBRE := Color("718f79")
 const ZOMBIE_TSHIRT := Color("5a5266")
 const ZOMBIE_PANTALON := Color("2c3044")
 const ZOMBIE_YEUX := Color("f2e6a0")
+const ZOMBIE_VUE := Color(0.56, 0.69, 0.54, 0.13)          # cône de vue calme
+const ZOMBIE_VUE_ALERTE := Color(0.88, 0.34, 0.42, 0.16)   # cône de vue en poursuite
 
 # Interface
 const UI_FOND := Color(0.08, 0.07, 0.13, 0.55)
