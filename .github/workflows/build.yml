@@ -77,7 +77,7 @@ jobs:
           MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           tag="build-${{ github.run_number }}"
-          gh release create "$tag" "build/zombie-escape.apk#zombie-escape-$tag.apk" \
+          gh release create "$tag" build/zombie-escape.apk \
             --target "$GITHUB_SHA" \
             --title "Zombie Escape $tag" \
-            --notes "APK debug du commit ${GITHUB_SHA::7} : $MESSAGE"
+            --notes "APK debug du commit ${GITHUB_SHA::7} : ${MESSAGE%%$'\n'*}"
