@@ -3,6 +3,10 @@ extends Node2D
 ## Le niveau détecte quand le héros l'atteint. Origine = au sol, devant la porte.
 
 
+func _ready() -> void:
+	$Lumiere.color = Palette.SORTIE
+
+
 func _draw() -> void:
 	# Lumière verte au sol devant la porte
 	Dessin.ellipse(self, Vector2(0, -6), Vector2(70, 20), Palette.SORTIE * Color(1, 1, 1, 0.25), false)

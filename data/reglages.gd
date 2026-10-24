@@ -14,6 +14,7 @@ const LAMPE_PORTEE := 520.0           # longueur du faisceau
 const LAMPE_ANGLE := 50.0             # largeur du faisceau, en degrés
 
 # --- Ambiance ---
+const NUIT_CLARTE := 1.0              # 1 = normal, 0.5 = deux fois plus sombre, 2 = deux fois plus clair
 const BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
 
 # --- Bruit (les zombies entendent jusqu'à cette distance) ---
@@ -60,4 +61,4 @@ const ZOMBIE_ETOURDI := 0.4               # secondes où il est sonné après un
 const ZOMBIE_DELAI_CRI := 6.0             # secondes minimum entre deux cris du même zombie
 
 # --- Sons ---
-const SONS_VOLUME := 0.0                  # volume en décibels : -6 = moins fort, +6 = plus fort
+const SONS_VOLUME := -6.0                 # volume en décibels : -6 = moins fort, +6 = plus fort

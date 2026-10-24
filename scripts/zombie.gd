@@ -34,7 +34,8 @@ var _recul := Vector2.ZERO
 var _etourdi := 0.0
 var _delai_coup := 0.0
 var _flash := 0.0
-var _disparition := 0.0   # > 0 : le zombie est battu et disparaît
+var _battu := false        # vrai pour toujours dès qu'il n'a plus de PV
+var _disparition := 0.0   # temps restant de l'animation où il bascule et s'efface
 var _delai_cri := 0.0     # évite qu'il crie en boucle
 
 
@@ -46,7 +47,7 @@ func connaitre_heros(position_heros: Vector2, detectable: bool) -> void:
 
 ## Un bruit a été fait en « origine » ; il porte jusqu'à « rayon ».
 func entendre(origine: Vector2, rayon: float) -> void:
-	if _disparition > 0.0 or _etat == Etat.POURSUITE:
+	if _battu or _etat == Etat.POURSUITE:
 		return
 	if global_position.distance_to(origine) <= rayon:
 		_point_recherche = origine
@@ -67,7 +68,7 @@ func _ready() -> void:
 
 ## Appelé par le niveau quand la batte du héros le touche.
 func recevoir_coup(degats: int, depuis: Vector2) -> void:
-	if _disparition > 0.0:
+	if _battu:
 		return
 	_pv -= degats
 	$Coup.stream = SONS_COUP.pick_random()
@@ -80,6 +81,7 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 	_changer_etat(Etat.POURSUITE)
 	if _pv <= 0:
 		# Battu : il tombe et disparaît en fumée (pas de gore)
+		_battu = true
 		_disparition = 0.6
 		remove_from_group("zombies")
 		$CollisionShape2D.set_deferred("disabled", true)
@@ -119,12 +121,12 @@ func _voit_heros() -> bool:
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(_flash - delta, 0.0)
-	if _disparition > 0.0:
-		_disparition -= delta
+	if _battu:
+		_disparition = maxf(_disparition - delta, 0.0)
 		queue_redraw()
 		$Cone.visible = false
-		# On attend la fin du son de coup avant de l'enlever
-		if _disparition <= 0.0 and not $Coup.playing:
+		# Il ne bouge plus jamais ; on attend la fin du son de coup avant de l'enlever
+		if _disparition == 0.0 and not $Coup.playing:
 			queue_free()
 		return
 	_etourdi = maxf(_etourdi - delta, 0.0)
@@ -196,9 +198,9 @@ func _draw() -> void:
 	var pas := sin(_temps * 8.0) * 4.0
 	var tangue := sin(_temps * 4.0) * 2.0
 	modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
-	if _disparition > 0.0:
+	if _battu:
 		# Il bascule en arrière et s'efface
-		var avance := minf(1.0 - _disparition / 0.6, 1.0)
+		var avance := 1.0 - _disparition / 0.6
 		modulate.a = 1.0 - avance
 		draw_set_transform(Vector2.ZERO, -s * avance * PI / 2.0, Vector2(1.25, 1.25) * (1.0 - avance * 0.3))
 	else:
@@ -208,11 +210,11 @@ func _draw() -> void:
 		_dessiner_gros(s, pas, tangue)
 	else:
 		_dessiner_maigre(s, pas, tangue)
-	if _etourdi > 0.0 and _disparition <= 0.0:
+	if _etourdi > 0.0 and not _battu:
 		_dessiner_etoiles(Vector2(0, -116 if type == Type.LENT else -110))
-	elif _etat == Etat.POURSUITE and _disparition <= 0.0:
+	elif _etat == Etat.POURSUITE and not _battu:
 		_dessiner_alerte(Vector2(0, -116 if type == Type.LENT else -110))
-	elif _etat == Etat.CHERCHE and _disparition <= 0.0:
+	elif _etat == Etat.CHERCHE and not _battu:
 		_dessiner_question(Vector2(0, -116 if type == Type.LENT else -110))
 
 
