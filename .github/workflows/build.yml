@@ -1,0 +1,83 @@
+name: Build APK Android
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.4.1
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Installer Godot et le modele d'export Android
+        run: |
+          cd "$RUNNER_TEMP"
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          curl -sSL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q templates.tpz templates/android_debug.apk templates/version.txt
+          dest="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dest"
+          mv templates/* "$dest/"
+          echo "GODOT=$RUNNER_TEMP/godot" >> "$GITHUB_ENV"
+
+      - name: Configurer le SDK Android pour Godot
+        run: |
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.4.tres" <<TRES
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          TRES
+          sed -i 's/^ *//' "$HOME/.config/godot/editor_settings-4.4.tres"
+          cat "$HOME/.config/godot/editor_settings-4.4.tres"
+
+      - name: Numero de version
+        run: sed -i "s/^version\/code=.*/version\/code=${{ github.run_number }}/; s/^version\/name=.*/version\/name=\"0.1.${{ github.run_number }}\"/" export_presets.cfg
+
+      - name: Importer le projet
+        run: $GODOT --headless --import
+
+      - name: Exporter l'APK debug
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ github.workspace }}/android/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build
+          $GODOT --headless --export-debug "Android" build/zombie-escape.apk
+          test -s build/zombie-escape.apk
+          ls -la build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zombie-escape-${{ github.run_number }}
+          path: build/zombie-escape.apk
+
+      - name: Publier la release (main uniquement)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          tag="build-${{ github.run_number }}"
+          gh release create "$tag" "build/zombie-escape.apk#zombie-escape-$tag.apk" \
+            --target "$GITHUB_SHA" \
+            --title "Zombie Escape $tag" \
+            --notes "APK debug du commit ${GITHUB_SHA::7} : $MESSAGE"

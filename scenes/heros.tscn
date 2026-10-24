@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/heros.gd" id="1_heros"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pieds"]
+radius = 14.0
+
+[node name="Heros" type="CharacterBody2D"]
+motion_mode = 1
+script = ExtResource("1_heros")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("CircleShape2D_pieds")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(0, -40)
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0

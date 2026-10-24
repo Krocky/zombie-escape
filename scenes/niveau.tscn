@@ -1,0 +1,101 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/niveau.gd" id="1_niveau"]
+[ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
+[ext_resource type="PackedScene" path="res://scenes/heros.tscn" id="3_heros"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
+
+[node name="Niveau" type="Node2D"]
+script = ExtResource("1_niveau")
+
+[node name="Monde" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="MurHaut" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1200, 160)
+taille = Vector2(2400, 80)
+hauteur = 120.0
+style = 0
+
+[node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1200, 1600)
+taille = Vector2(2400, 40)
+hauteur = 30.0
+style = 0
+
+[node name="MurGauche" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(20, 1560)
+taille = Vector2(40, 1400)
+hauteur = 30.0
+style = 0
+
+[node name="MurDroit" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(2380, 1560)
+taille = Vector2(40, 1400)
+hauteur = 30.0
+style = 0
+
+[node name="Etagere1" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(650, 560)
+taille = Vector2(560, 50)
+hauteur = 80.0
+style = 1
+
+[node name="Etagere2" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1550, 560)
+taille = Vector2(560, 50)
+hauteur = 80.0
+style = 1
+
+[node name="Etagere3" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(650, 940)
+taille = Vector2(560, 50)
+hauteur = 80.0
+style = 1
+
+[node name="Etagere4" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1550, 940)
+taille = Vector2(560, 50)
+hauteur = 80.0
+style = 1
+
+[node name="Etagere5" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(2150, 760)
+taille = Vector2(50, 400)
+hauteur = 80.0
+style = 1
+
+[node name="Caisse1" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(300, 1300)
+taille = Vector2(90, 60)
+hauteur = 70.0
+style = 2
+
+[node name="Caisse2" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(400, 1330)
+taille = Vector2(90, 60)
+hauteur = 70.0
+style = 2
+
+[node name="Caisse3" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1150, 1250)
+taille = Vector2(90, 60)
+hauteur = 70.0
+style = 2
+
+[node name="Caisse4" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1900, 1350)
+taille = Vector2(90, 60)
+hauteur = 70.0
+style = 2
+
+[node name="Caisse5" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1100, 330)
+taille = Vector2(90, 60)
+hauteur = 70.0
+style = 2
+
+[node name="Heros" parent="Monde" instance=ExtResource("3_heros")]
+position = Vector2(1200, 1450)
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
