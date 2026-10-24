@@ -36,7 +36,12 @@ func _ready() -> void:
 
 ## Faisceau de lampe torche en cône, dessiné pixel par pixel (pas d'image externe).
 ## La pointe du cône est au bord gauche de l'image, le faisceau part vers la droite.
+## Calculé une seule fois (gardé pour les parties suivantes).
+static var _faisceau: ImageTexture
+
 func _texture_faisceau() -> ImageTexture:
+	if _faisceau:
+		return _faisceau
 	var taille := 256
 	var image := Image.create(taille, taille, false, Image.FORMAT_LA8)
 	var demi_angle := deg_to_rad(Reglages.LAMPE_ANGLE / 2.0)
@@ -47,10 +52,13 @@ func _texture_faisceau() -> ImageTexture:
 			var angle := absf(p.angle())
 			var force := 0.0
 			if d <= 1.0 and angle <= demi_angle:
-				# Plus doux sur les bords du cône et au bout du faisceau
-				force = (1.0 - pow(d, 2.0)) * clampf((demi_angle - angle) / (demi_angle * 0.4), 0.0, 1.0)
+				# Bord du cône net, s'éteint doucement au bout du faisceau
+				var bord := clampf((demi_angle - angle) / (demi_angle * 0.15), 0.0, 1.0)
+				var coeur := 1.0 - angle / demi_angle   # plus fort au milieu du faisceau
+				force = (1.0 - pow(d, 2.5)) * bord * (0.65 + 0.35 * coeur)
 			image.set_pixel(x, y, Color(1, 1, 1, force))
-	return ImageTexture.create_from_image(image)
+	_faisceau = ImageTexture.create_from_image(image)
+	return _faisceau
 
 
 ## Appelé par le niveau quand le joystick bouge.

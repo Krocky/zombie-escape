@@ -37,6 +37,11 @@ var _flash := 0.0
 var _battu := false        # vrai pour toujours dès qu'il n'a plus de PV
 var _disparition := 0.0   # temps restant de l'animation où il bascule et s'efface
 var _delai_cri := 0.0     # évite qu'il crie en boucle
+# Yeux : dessinés sur l'enfant « Yeux », non assombri par la nuit (ils brillent dans le noir)
+var _yeux_centre := Vector2.ZERO
+var _yeux_sens := 1.0
+var _corps_rotation := 0.0
+var _corps_echelle := Vector2.ONE
 
 
 ## detectable = faux quand le héros est caché ou K.O.
@@ -64,6 +69,10 @@ func _ready() -> void:
 	$Coup.volume_db = Reglages.SONS_VOLUME
 	# Le cône est dessiné sur un enfant placé sous les personnages et le décor
 	$Cone.draw.connect(_dessiner_cone)
+	var sans_ombre := CanvasItemMaterial.new()
+	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	$Yeux.material = sans_ombre
+	$Yeux.draw.connect(_dessiner_yeux)
 
 
 ## Appelé par le niveau quand la batte du héros le touche.
@@ -202,9 +211,12 @@ func _draw() -> void:
 		# Il bascule en arrière et s'efface
 		var avance := 1.0 - _disparition / 0.6
 		modulate.a = 1.0 - avance
-		draw_set_transform(Vector2.ZERO, -s * avance * PI / 2.0, Vector2(1.25, 1.25) * (1.0 - avance * 0.3))
+		_corps_rotation = -s * avance * PI / 2.0
+		_corps_echelle = Vector2(1.25, 1.25) * (1.0 - avance * 0.3)
 	else:
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
+		_corps_rotation = 0.0
+		_corps_echelle = Vector2(1.25, 1.25)
+	draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
 	var rayon_ombre := 34.0 if type == Type.LENT else 24.0
 	Dessin.ombre(self, Rect2(-rayon_ombre, -10, rayon_ombre * 2.0, 20))
 	if type == Type.LENT:
@@ -251,13 +263,22 @@ func _dessiner_maigre(s: float, pas: float, tangue: float) -> void:
 
 
 func _dessiner_visage(t: Vector2, s: float) -> void:
-	# Grands yeux jaunes un peu ahuris et bouche ouverte
-	for dx in [-5.0, 5.0]:
-		var oeil := t + Vector2(dx + s * 3, -3)
-		Dessin.cercle(self, oeil, 4.5, Palette.ZOMBIE_YEUX, false)
-		draw_arc(oeil, 4.5, 0, TAU, 12, Palette.CONTOUR, 2.0)
-		draw_circle(oeil + Vector2(s, 0), 1.6, Palette.CONTOUR)
+	# Bouche ouverte ; les grands yeux jaunes sont dessinés par l'enfant « Yeux »
 	Dessin.ellipse(self, t + Vector2(s * 3, 7), Vector2(4, 3), Palette.CONTOUR, false)
+	_yeux_centre = t + Vector2(s * 3, -3)
+	_yeux_sens = s
+	$Yeux.queue_redraw()
+
+
+## Grands yeux jaunes un peu ahuris, qui brillent dans le noir (matériau sans ombre).
+func _dessiner_yeux() -> void:
+	$Yeux.draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
+	$Yeux.draw_circle(_yeux_centre, 13.0, Palette.ZOMBIE_YEUX_LUEUR)
+	for dx: float in [-5.0, 5.0]:
+		var oeil := _yeux_centre + Vector2(dx, 0)
+		$Yeux.draw_circle(oeil, 4.5, Palette.ZOMBIE_YEUX)
+		$Yeux.draw_arc(oeil, 4.5, 0, TAU, 12, Palette.CONTOUR, 2.0)
+		$Yeux.draw_circle(oeil + Vector2(_yeux_sens, 0), 1.6, Palette.CONTOUR)
 
 
 func _dessiner_alerte(p: Vector2) -> void:

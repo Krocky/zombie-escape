@@ -34,10 +34,10 @@ position_smoothing_speed = 6.0
 
 [node name="Halo" type="PointLight2D" parent="."]
 position = Vector2(0, -30)
-energy = 1.0
+energy = 0.8
 texture = SubResource("GradientTexture2D_halo")
-texture_scale = 2.0
+texture_scale = 1.6
 
 [node name="Lampe" type="PointLight2D" parent="."]
 position = Vector2(30, -50)
-energy = 1.2
+energy = 1.5

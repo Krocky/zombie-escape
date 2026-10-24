@@ -16,6 +16,7 @@ const LAMPE_ANGLE := 50.0             # largeur du faisceau, en degrés
 # --- Ambiance ---
 const NUIT_CLARTE := 1.0              # 1 = normal, 0.5 = deux fois plus sombre, 2 = deux fois plus clair
 const BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
+const AFFICHER_IPS := true            # true = affiche les images par seconde en haut (pour tester la fluidité)
 
 # --- Bruit (les zombies entendent jusqu'à cette distance) ---
 const BRUIT_PAS := 130.0              # bruit des pas quand le héros marche

@@ -13,6 +13,8 @@ enum Style { MUR, ETAGERE, CAISSE }
 
 const FENETRE_TAILLE := Vector2(150, 58)
 
+static var _texture_lune: GradientTexture2D
+
 
 func _ready() -> void:
 	var forme := RectangleShape2D.new()
@@ -27,6 +29,29 @@ func _ready() -> void:
 	ombre.z_index = -1
 	ombre.draw.connect(_dessiner_ombre.bind(ombre))
 	add_child(ombre)
+	for x in fenetres:
+		_ajouter_lune(x)
+
+
+## Flaque de lumière de lune froide au sol, sous une fenêtre.
+func _ajouter_lune(x: float) -> void:
+	if _texture_lune == null:
+		var degrade := Gradient.new()
+		degrade.colors = PackedColorArray([Color.WHITE, Color(1, 1, 1, 0)])
+		_texture_lune = GradientTexture2D.new()
+		_texture_lune.gradient = degrade
+		_texture_lune.width = 128
+		_texture_lune.height = 128
+		_texture_lune.fill = GradientTexture2D.FILL_RADIAL
+		_texture_lune.fill_from = Vector2(0.5, 0.5)
+		_texture_lune.fill_to = Vector2(1.0, 0.5)
+	var lune := PointLight2D.new()
+	lune.texture = _texture_lune
+	lune.texture_scale = 2.4
+	lune.color = Palette.LUNE
+	lune.energy = 0.55
+	lune.position = Vector2(x, 60)
+	add_child(lune)
 
 
 func _dessiner_ombre(ombre: Node2D) -> void:

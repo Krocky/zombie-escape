@@ -5,6 +5,8 @@ signal deplacement(direction: Vector2)
 signal attaque
 signal cacher
 
+var _attente_ips := 0.0
+
 
 func _ready() -> void:
 	$Joystick.direction_changee.connect(deplacement.emit)
@@ -14,6 +16,18 @@ func _ready() -> void:
 	$BoutonCacher.appuye.connect(cacher.emit)
 	$CompteurObjets.add_theme_color_override("font_color", Palette.LAMPE)
 	$CompteurObjets.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	$Ips.visible = Reglages.AFFICHER_IPS
+	$Ips.add_theme_color_override("font_color", Palette.UI_TEXTE)
+	$Ips.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	set_process(Reglages.AFFICHER_IPS)
+
+
+## Images par seconde, mises à jour deux fois par seconde (test de fluidité).
+func _process(delta: float) -> void:
+	_attente_ips -= delta
+	if _attente_ips <= 0.0:
+		_attente_ips = 0.5
+		$Ips.text = "%d ips" % Engine.get_frames_per_second()
 
 
 func afficher_pv(pv: int, pv_max: int) -> void:

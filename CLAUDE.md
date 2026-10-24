@@ -88,6 +88,11 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
 - Volumes (refonte lot 1) : `Dessin.boite` dessine face avant + côté droit + dessus ; le bord arrière est décalé vers la droite de `profondeur x Dessin.OBLIQUE` (max `OBLIQUE_MAX` = 24 px, pour les murs très profonds). La collision reste l'emprise au sol rectangulaire.
 - Ombres : texture dégradée unique (`Dessin.ombre`), sur un enfant `Ombre` en z_index -1 pour les obstacles (sous les personnages), dans le `_draw` pour les personnages.
+- Yeux des zombies (refonte lot 2) : dessinés sur l'enfant `Yeux` avec un `CanvasItemMaterial` UNSHADED : ils échappent au `CanvasModulate` et brillent dans le noir (lueur `ZOMBIE_YEUX_LUEUR`). Le corps reste assombri hors de la lampe.
+- Faisceau : bord net, cœur plus fort, texture calculée une seule fois (`static var`). Halo réduit. Vignettage : scène `Vignette` (CanvasLayer 5, sous le HUD), une texture dégradée étirée, ne capte pas les doigts.
+- Brume : une texture dégradée unique, nappes aplaties au ras du sol, graine fixe ; `BROUILLARD_OPACITE` garde le même sens.
+- Lune : une PointLight2D bleue (`Palette.LUNE`) au sol sous chaque fenêtre du mur du fond. Total : 6 lumières (halo, lampe, sortie, 3 lunes).
+- `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott).
 - Détails déterministes (produits des étagères, fissures) : hasard à graine = position de l'obstacle. Fenêtres du mur du fond : `Mur.fenetres` (x locaux), placées à l'écart de la porte.
 
 ## Journal des lots
@@ -102,6 +107,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 ## Refonte visuelle (après le lot 1, demande du père)
 Lots : 1 volumes 3/4, 2 éclairage, 3 personnages, 4 décor (sol, débris), 5 objets, 6 retours de jeu, 7 UI.
 - Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
+- Refonte / lot 2 : faisceau net et chaud, halo réduit, vignettage, brume au ras du sol, lumière de lune sous les fenêtres, yeux des zombies qui brillent dans le noir, compteur d'ips.
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.
