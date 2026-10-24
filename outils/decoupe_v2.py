@@ -305,7 +305,7 @@ def construire():
         atlas = Image.new("RGBA", (largeur, hauteur), (0, 0, 0, 0))
         for nom, (x, y) in places.items():
             atlas.alpha_composite(images[nom], (x, y))
-            regions[nom] = (famille, x, y, images[nom].width, images[nom].height, decalages.get(nom, (0, 0)))
+            regions[nom] = (famille, x, y, images[nom].width, images[nom].height, decalages.get(nom, (0, 0)), ancres(images[nom]))
         atlas.save(os.path.join(RACINE, "images", famille + ".png"), optimize=True)
         apercus.append((famille, atlas))
         print(famille, len(images), "images,", largeur, "x", hauteur)
@@ -313,19 +313,39 @@ def construire():
     ecrire_apercu(apercus)
 
 
+def ancres(image):
+    """Coins au sol d'un objet isométrique, en pixels de l'image : gauche, bas (avant), droite.
+    gauche/droite = plus bas pixel opaque des colonnes extrêmes ; bas = milieu de la rangée la plus basse."""
+    a = np.asarray(image.getchannel("A")) > 128
+    ys, xs = np.nonzero(a)
+    if len(xs) == 0:
+        return (0, 0, 0, 0, 0, 0, 0)
+    xg, xd = xs.min(), xs.max()
+    yg = ys[xs <= xg + 2].max()
+    yd = ys[xs >= xd - 2].max()
+    yb = ys.max()
+    xb = int(xs[ys >= yb - 1].mean())
+    # Pieds (personnages) : milieu des pixels opaques dans le bas de l'image (6 % de la hauteur)
+    xp = int(xs[ys >= yb - max(3, a.shape[0] * 0.06)].mean())
+    return (int(xg), int(yg), xb, int(yb), int(xd), int(yd), xp)
+
+
 def ecrire_atlas_gd(regions):
     lignes = [
         "extends Node",
         "## FICHIER GÉNÉRÉ par outils/decoupe_v2.py : ne pas modifier à la main.",
         "## Images détourées des planches docs/raw/V2, rangées dans un atlas par famille (images/<famille>.png).",
-        "## Chaque image : [famille, région dans l'atlas, décalage]. Les images « _yeux » ne contiennent",
+        "## Chaque image : [famille, région dans l'atlas, décalage, ancres]. Les images « _yeux » ne contiennent",
         "## que les yeux (à dessiner sans être assombris par la nuit), au décalage donné dans l'image du corps.",
+        "## Ancres (pixels de l'image) : coins au sol gauche, avant (le plus bas) et droit d'un objet isométrique,",
+        "## puis les pieds (milieu du bas, pour les personnages).",
         "",
         "const REGIONS := {",
     ]
     for nom in sorted(regions):
-        famille, x, y, w, h, (dx, dy) = regions[nom]
-        lignes.append('\t"%s": ["%s", Rect2(%d, %d, %d, %d), Vector2(%d, %d)],' % (nom, famille, x, y, w, h, dx, dy))
+        famille, x, y, w, h, (dx, dy), (xg, yg, xb, yb, xd, yd, xp) = regions[nom]
+        lignes.append('\t"%s": ["%s", Rect2(%d, %d, %d, %d), Vector2(%d, %d), [Vector2(%d, %d), Vector2(%d, %d), Vector2(%d, %d), Vector2(%d, %d)]],'
+                      % (nom, famille, x, y, w, h, dx, dy, xg, yg, xb, yb, xd, yd, xp, yb))
     lignes.append("}")
     with open(os.path.join(RACINE, "data", "atlas.gd"), "w") as f:
         f.write("\n".join(lignes) + "\n")

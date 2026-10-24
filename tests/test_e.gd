@@ -9,7 +9,7 @@ func _touch(pos, pressed):
 	Input.parse_input_event(e)
 func _snap(n): root.get_texture().get_image().save_png(OS.get_environment("CAPTURES") + "/capture_e_%s.png" % n)
 func _centre(n): return n.get_global_rect().get_center()
-func _process(_d):
+func _physics_process(_d):
 	f += 1
 	if f == 20:
 		_snap("titre")

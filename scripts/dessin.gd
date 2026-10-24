@@ -28,41 +28,18 @@ static func cercle(ci: CanvasItem, centre: Vector2, rayon: float, couleur: Color
 	ellipse(ci, centre, Vector2(rayon, rayon), couleur, contour)
 
 
-# --- Vue 3/4 : boîtes avec dessus, face avant et côté droit ---
-
-## Le dessus et le côté sont décalés vers la droite selon la profondeur (vue légèrement de biais).
-const OBLIQUE := 0.35
-const OBLIQUE_MAX := 24.0   # limite pour les obstacles très profonds (murs de côté)
+# --- Dessin de secours en isométrique (quand une image V2 manque) ---
 
 static var _ombre: GradientTexture2D
 
 
-## Décalage vers la droite du bord arrière d'une emprise de cette profondeur.
-static func biais(profondeur: float) -> float:
-	return minf(profondeur * OBLIQUE, OBLIQUE_MAX)
-
-
-## Boîte vue en 3/4. Origine = milieu du bord bas avant (au sol), comme les obstacles.
-## taille = emprise au sol, hauteur = hauteur de la face avant.
-static func boite(ci: CanvasItem, taille: Vector2, hauteur: float, dessus: Color, face: Color, cote: Color) -> void:
-	var g := -taille.x / 2.0
-	var d := taille.x / 2.0
-	var p := taille.y
-	var e := biais(p)
-	polygone(ci, PackedVector2Array([Vector2(d, 0), Vector2(d + e, -p), Vector2(d + e, -p - hauteur), Vector2(d, -hauteur)]), cote)
-	polygone(ci, PackedVector2Array([Vector2(g, 0), Vector2(d, 0), Vector2(d, -hauteur), Vector2(g, -hauteur)]), face)
-	polygone(ci, dessus_boite(taille, hauteur), dessus)
-	# Arête avant du dessus éclaircie : donne du volume
-	ci.draw_line(Vector2(g + 3, -hauteur - 2), Vector2(d - 2, -hauteur - 2), dessus.lightened(0.25), 2.0)
-
-
-## Les 4 coins du dessus d'une boîte (avant gauche, avant droit, arrière droit, arrière gauche).
-static func dessus_boite(taille: Vector2, hauteur: float) -> PackedVector2Array:
-	var g := -taille.x / 2.0
-	var d := taille.x / 2.0
-	var e := biais(taille.y)
-	return PackedVector2Array([Vector2(g, -hauteur), Vector2(d, -hauteur),
-		Vector2(d + e, -hauteur - taille.y), Vector2(g + e, -hauteur - taille.y)])
+## Boîte isométrique : coins au sol à l'écran (gauche, avant, droit, arrière, voir Iso.coins),
+## hauteur en pixels d'écran. Faces gauche et droite, puis dessus.
+static func boite_iso(ci: CanvasItem, c: PackedVector2Array, hauteur: float, dessus: Color, face: Color, cote: Color) -> void:
+	var h := Vector2(0, -hauteur)
+	polygone(ci, PackedVector2Array([c[0], c[1], c[1] + h, c[0] + h]), face)
+	polygone(ci, PackedVector2Array([c[1], c[2], c[2] + h, c[1] + h]), cote)
+	polygone(ci, PackedVector2Array([c[0] + h, c[1] + h, c[2] + h, c[3] + h]), dessus)
 
 
 ## Ombre douce posée au sol, dans le rectangle donné (une seule texture, sans contour).

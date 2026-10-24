@@ -1,19 +1,28 @@
 extends StaticBody2D
 ## Obstacle du décor : mur, étagère, caisse...
-## position = milieu du bord bas de l'emprise au sol.
-## Dessin en vue 3/4 : face avant, côté droit et dessus (voir Dessin.boite).
+## position = milieu du bord bas de l'emprise au sol (coordonnées monde).
+## Affichage isométrique (voir Iso) : le niveau place visuels() dans ses calques.
 
 enum Style { MUR, ETAGERE, CAISSE }
 
 @export var taille := Vector2(200, 60)   # emprise au sol (collision)
-@export var hauteur := 60.0              # hauteur de la face avant dessinée
+@export var hauteur := 60.0              # hauteur du dessin de secours (pixels d'écran)
 @export var style := Style.MUR
-## Fenêtres dans la face avant (murs hauts) : position x de leur centre, en local.
+## Fenêtres du mur : position (x ou y local, selon le sens du mur) de leur centre.
 @export var fenetres := PackedFloat32Array()
+## Portes (même repère) : le pan de mur à cet endroit n'est pas dessiné (la porte le remplace).
+@export var portes := PackedFloat32Array()
+## Mur de devant (en bas de l'écran) : un simple rebord bas, sinon il cacherait la pièce.
+@export var rebord := false
 
-const FENETRE_TAILLE := Vector2(150, 58)
+const LONGUEUR_PANNEAU := 200.0   # longueur d'un pan de mur (monde), voir Sortie
+const LONGUEUR_RAYON := 140.0     # longueur d'un rayon d'étagère (monde)
+const HAUTEUR_REBORD := 18.0
 
 static var _texture_lune: GradientTexture2D
+
+var _vue := Node2D.new()   # dans le calque Vue (trié en profondeur)
+var _sol := Node2D.new()   # dans le calque du sol (ombre)
 
 
 func _ready() -> void:
@@ -23,18 +32,83 @@ func _ready() -> void:
 	collision.shape = forme
 	collision.position = Vector2(0, -taille.y / 2.0)
 	add_child(collision)
-	# L'ombre au sol est sur un enfant placé sous les personnages (comme le cône des zombies)
-	var ombre := Node2D.new()
-	ombre.name = "Ombre"
-	ombre.z_index = -1
-	ombre.draw.connect(_dessiner_ombre.bind(ombre))
-	add_child(ombre)
-	for x in fenetres:
-		_ajouter_lune(x)
+	_vue.y_sort_enabled = true
+	if style != Style.MUR:
+		_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise(), 0.8))
+	_construire()
 
 
-## Flaque de lumière de lune froide au sol, sous une fenêtre.
-func _ajouter_lune(x: float) -> void:
+## Nœuds d'affichage, placés par le niveau : {"vue": ..., "sol": ...}.
+func visuels() -> Dictionary:
+	return {"vue": _vue, "sol": _sol}
+
+
+func emprise() -> Rect2:
+	return Rect2(global_position + Vector2(-taille.x / 2.0, -taille.y), taille)
+
+
+func _construire() -> void:
+	var long_en_x := taille.x >= taille.y
+	var longueur := maxf(taille.x, taille.y)
+	match style:
+		Style.MUR:
+			if rebord:
+				_secours(emprise(), HAUTEUR_REBORD, Palette.MUR, Palette.MUR_FACE, Palette.MUR_COTE)
+				return
+			var n := maxi(roundi(longueur / LONGUEUR_PANNEAU), 1)
+			for i in n:
+				var morceau := _morceau(i, n, long_en_x)
+				var milieu := -longueur / 2.0 + longueur * (i + 0.5) / n
+				var nom := "mur"
+				var porte := false
+				for p in portes:
+					porte = porte or absf(p - milieu) < longueur / n / 2.0
+				if porte:
+					continue
+				for f in fenetres:
+					if absf(f - milieu) < longueur / n / 2.0:
+						nom = "mur_fenetre"
+						_ajouter_lune(morceau)
+				_habiller(nom, morceau, long_en_x, Palette.MUR, Palette.MUR_FACE, Palette.MUR_COTE)
+		Style.ETAGERE:
+			var n := maxi(roundi(longueur / LONGUEUR_RAYON), 1)
+			for i in n:
+				_habiller("etagere", _morceau(i, n, long_en_x), long_en_x, Palette.ETAGERE, Palette.ETAGERE_FACE, Palette.ETAGERE_COTE, Palette.ETAGERE_TEINTE)
+		Style.CAISSE:
+			# Petite ou grande caisse, dans un sens ou l'autre : toujours pareil pour une même caisse
+			var h := hash(Vector2i(position))
+			var nom := "caisse_grande" if h % 3 == 0 else "caisse"
+			_habiller(nom, emprise(), h % 2 == 0, Palette.CAISSE_BOIS, Palette.CAISSE_BOIS_FACE, Palette.CAISSE_BOIS_COTE)
+
+
+## i-ème morceau (sur n) de l'emprise, découpée dans sa longueur.
+func _morceau(i: int, n: int, long_en_x: bool) -> Rect2:
+	var e := emprise()
+	if long_en_x:
+		return Rect2(e.position.x + e.size.x * i / n, e.position.y, e.size.x / n, e.size.y)
+	return Rect2(e.position.x, e.position.y + e.size.y * i / n, e.size.x, e.size.y / n)
+
+
+func _habiller(nom: String, morceau: Rect2, long_en_x: bool, dessus: Color, face: Color, cote: Color, teinte := Color.WHITE) -> void:
+	if Images.existe(nom):
+		Iso.habiller(nom, morceau, _vue, Iso.miroir_pour(nom, long_en_x), teinte)
+	else:
+		_secours(morceau, hauteur, dessus, face, cote)
+
+
+## Dessin de secours : boîte isométrique en aplats, triée sur son coin avant.
+func _secours(morceau: Rect2, haut: float, dessus: Color, face: Color, cote: Color) -> void:
+	var boite := Node2D.new()
+	var c := Iso.coins(morceau)
+	boite.position = c[1]
+	for i in c.size():
+		c[i] -= boite.position
+	boite.draw.connect(func() -> void: Dessin.boite_iso(boite, c, haut, dessus, face, cote))
+	_vue.add_child(boite)
+
+
+## Flaque de lumière de lune froide au sol, devant une fenêtre.
+func _ajouter_lune(morceau: Rect2) -> void:
 	if _texture_lune == null:
 		var degrade := Gradient.new()
 		degrade.colors = PackedColorArray([Color.WHITE, Color(1, 1, 1, 0)])
@@ -47,125 +121,10 @@ func _ajouter_lune(x: float) -> void:
 		_texture_lune.fill_to = Vector2(1.0, 0.5)
 	var lune := PointLight2D.new()
 	lune.texture = _texture_lune
-	lune.texture_scale = 2.4
+	lune.texture_scale = 2.6
 	lune.color = Palette.LUNE
-	lune.energy = 0.55
-	lune.position = Vector2(x, 60)
-	add_child(lune)
-
-
-func _dessiner_ombre(ombre: Node2D) -> void:
-	var e := Dessin.biais(taille.y)
-	Dessin.ombre(ombre, Rect2(-taille.x / 2.0 - 16, -taille.y - 10, taille.x + e + 40, taille.y + 34))
-
-
-func _draw() -> void:
-	match style:
-		Style.MUR:
-			Dessin.boite(self, taille, hauteur, Palette.MUR, Palette.MUR_FACE, Palette.MUR_COTE)
-			_dessiner_mur()
-		Style.ETAGERE:
-			Dessin.boite(self, taille, hauteur, Palette.ETAGERE, Palette.ETAGERE_FACE, Palette.ETAGERE_COTE)
-			_dessiner_etagere()
-		Style.CAISSE:
-			Dessin.boite(self, taille, hauteur, Palette.CAISSE_BOIS, Palette.CAISSE_BOIS_FACE, Palette.CAISSE_BOIS_COTE)
-			_dessiner_caisse()
-
-
-## Hasard toujours identique pour un même obstacle (dépend de sa position).
-func _hasard() -> RandomNumberGenerator:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(Vector2i(position))
-	return rng
-
-
-func _dessiner_mur() -> void:
-	var g := -taille.x / 2.0
-	var d := taille.x / 2.0
-	if hauteur < 50.0:
-		return   # muret de bord : rien de plus
-	# Plinthe en bas
-	draw_rect(Rect2(g + 2, -14, taille.x - 4, 12), Palette.MUR_PLINTHE)
-	draw_line(Vector2(g + 2, -14), Vector2(d - 2, -14), Palette.CONTOUR, 3.0)
-	# Fissures
-	var rng := _hasard()
-	for i in int(taille.x / 260.0):
-		var x := rng.randf_range(g + 30, d - 30)
-		var y := -hauteur + rng.randf_range(10, 30)
-		var p := Vector2(x, y)
-		for j in 3:
-			var suivant := p + Vector2(rng.randf_range(-14, 14), rng.randf_range(10, 22))
-			draw_line(p, suivant, Palette.FISSURE, 2.0)
-			p = suivant
-	# Fenêtres éclairées par la lune
-	for x in fenetres:
-		var r := Rect2(Vector2(x - FENETRE_TAILLE.x / 2.0, -hauteur + 18), FENETRE_TAILLE)
-		Dessin.rect(self, r.grow(6), Palette.MUR_COTE)
-		Dessin.rect(self, r, Palette.FENETRE)
-		for k: int in [1, 2]:
-			var xv := r.position.x + r.size.x * k / 3.0
-			draw_line(Vector2(xv, r.position.y), Vector2(xv, r.end.y), Palette.CONTOUR, 4.0)
-		# Vitre cassée : quelques fêlures
-		var c := r.position + Vector2(r.size.x * 0.2, r.size.y * 0.4)
-		for a: float in [0.3, 1.6, 2.6, 4.2]:
-			draw_line(c, c + Vector2.from_angle(a) * 16.0, Palette.CONTOUR, 1.5)
-		draw_line(r.position + Vector2(r.size.x * 0.75, 6), r.position + Vector2(r.size.x * 0.88, 22), Color(1, 1, 1, 0.5), 2.0)
-
-
-func _dessiner_etagere() -> void:
-	var g := -taille.x / 2.0
-	var d := taille.x / 2.0
-	var rng := _hasard()
-	# Montants verticaux
-	var nb_montants := maxi(int(taille.x / 140.0), 1)
-	for i in nb_montants + 1:
-		var x := lerpf(g + 4, d - 4, float(i) / nb_montants)
-		draw_line(Vector2(x, -hauteur), Vector2(x, 0), Palette.CONTOUR, 5.0)
-	# Trois rayons, avec des produits oubliés posés dessus
-	var etage := hauteur / 3.0
-	for n in 3:
-		var y_planche := -n * etage - 4.0
-		var x := g + 8.0
-		while x < d - 18.0:
-			var largeur := rng.randf_range(14, 24)
-			if rng.randf() < 0.45:   # rayon à moitié vide
-				var haut := rng.randf_range(10, etage - 8.0)
-				var couleur: Color = Palette.PRODUITS[rng.randi() % Palette.PRODUITS.size()]
-				var r := Rect2(x, y_planche - haut, largeur, haut)
-				draw_rect(r, couleur.darkened(0.2))
-				draw_rect(Rect2(r.position, Vector2(r.size.x, 4)), couleur)   # haut éclairé
-				draw_rect(r, Palette.CONTOUR, false, 2.0)
-			x += largeur + rng.randf_range(4, 16)
-		draw_line(Vector2(g + 2, y_planche), Vector2(d - 2, y_planche), Palette.CONTOUR, 5.0)
-		draw_line(Vector2(g + 4, y_planche - 2), Vector2(d - 4, y_planche - 2), Palette.ETAGERE_PLANCHE, 2.0)
-	# Rayon vu de dessus quand il est long vers le fond : séparation centrale + produits
-	if taille.y > taille.x:
-		var coins := Dessin.dessus_boite(taille, hauteur)
-		var milieu_avant := (coins[0] + coins[1]) / 2.0
-		var milieu_arriere := (coins[2] + coins[3]) / 2.0
-		draw_line(milieu_avant, milieu_arriere, Palette.CONTOUR, 3.0)
-		var t := 0.05
-		while t < 0.95:
-			if rng.randf() < 0.5:
-				var cote := -1.0 if rng.randf() < 0.5 else 1.0
-				var p := milieu_avant.lerp(milieu_arriere, t) + Vector2(cote * taille.x * 0.25 - 6, -6)
-				var couleur: Color = Palette.PRODUITS[rng.randi() % Palette.PRODUITS.size()]
-				Dessin.rect(self, Rect2(p, Vector2(12, 12)), couleur.darkened(0.2))
-			t += 0.06
-
-
-func _dessiner_caisse() -> void:
-	var g := -taille.x / 2.0
-	var d := taille.x / 2.0
-	# Face avant : cadre, lattes et croisillon
-	var cadre := Rect2(g + 7, -hauteur + 7, taille.x - 14, hauteur - 14)
-	for i in range(1, 4):
-		var x := g + taille.x * i / 4.0
-		draw_line(Vector2(x, cadre.position.y), Vector2(x, cadre.end.y), Palette.FISSURE, 2.0)
-	draw_line(cadre.position, cadre.end, Palette.CONTOUR, 5.0)
-	draw_rect(cadre, Palette.CONTOUR, false, 3.0)
-	# Dessus : lattes parallèles au bord avant
-	var coins := Dessin.dessus_boite(taille, hauteur)
-	for i in range(1, 4):
-		var t := i / 4.0
-		draw_line(coins[0].lerp(coins[3], t) + Vector2(3, 0), coins[1].lerp(coins[2], t) - Vector2(3, 0), Palette.FISSURE, 2.0)
+	lune.energy = 0.6
+	# Au sol, devant le milieu de la fenêtre
+	var devant := morceau.get_center() + (Vector2(0, 110) if taille.x >= taille.y else Vector2(110, 0))
+	lune.position = Iso.ecran(devant)
+	_vue.add_child(lune)

@@ -1,8 +1,15 @@
 extends Node2D
 ## Le niveau : le supermarché abandonné. Relie le HUD au héros et dessine le sol.
+## Monde (physique, IA) en coordonnées monde, caché ; l'affichage isométrique est dans les calques
+## SolEffets (ombres, cônes de vue) et Vue (trié en profondeur), voir Iso.
 
 const TAILLE := Vector2(2400, 1600)
-const CARREAU := 80.0
+const CASE := 200.0          # une dalle (3 x 3 carreaux) couvre une case du monde
+const GRAINE := 7            # sol et débris : toujours le même tirage pour ce niveau
+const NOMBRE_DEBRIS := 26
+## Dalles : nom et poids du tirage (la dalle propre est la plus fréquente).
+const DALLES := {"dalle": 16, "dalle_fissuree": 2, "dalle_tache": 2, "dalle_flaque": 1, "dalle_gravats": 1, "dalle_papiers": 1}
+const DEBRIS := ["debris_papiers", "debris_bout", "debris_planche", "debris_planches", "debris_carton"]
 
 
 var _heros_mort := false
@@ -17,14 +24,28 @@ var _cachette_occupee: Node2D = null
 
 func _ready() -> void:
 	$Nuit.color = Palette.NUIT * Color(Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, 1.0)
-	$HUD.deplacement.connect(_heros.definir_direction)
+	# Affichage isométrique : chaque entité donne ses nœuds d'affichage
+	$Monde.visible = false
+	for entite in $Monde.get_children():
+		if entite.has_method("visuels"):
+			var visuels: Dictionary = entite.visuels()
+			if visuels.has("sol"):
+				$SolEffets.add_child(visuels["sol"])
+			if visuels.has("vue"):
+				$Vue.add_child(visuels["vue"])
+	_tirer_sol()
+	$HUD.deplacement.connect(_sur_deplacement)
 	$HUD.attaque.connect(_heros.attaquer)
 	_heros.attaque.connect(_sur_attaque)
 	_heros.pv_change.connect($HUD.afficher_pv)
 	_heros.mort.connect(_sur_mort)
 	_heros.bruit.connect(_sur_bruit)
 	$HUD.cacher.connect(_sur_cacher)
-	_heros.regler_limites_camera(Rect2(Vector2.ZERO, TAILLE))
+	# Limites de la caméra : le sol projeté, plus la hauteur des murs du fond
+	var gauche := Iso.ecran(Vector2(0, TAILLE.y)).x
+	var droite := Iso.ecran(Vector2(TAILLE.x, 0)).x
+	var bas := Iso.ecran(TAILLE).y
+	_heros.regler_limites_camera(Rect2(gauche - 40, -330, droite - gauche + 80, bas + 400))
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.touche_heros.connect(_heros.recevoir_degats)
 	_total_objets = get_tree().get_nodes_in_group("objets").size()
@@ -56,6 +77,11 @@ func _physics_process(_delta: float) -> void:
 	# Sortie atteinte : victoire
 	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)
+
+
+## Le joystick donne une direction à l'écran ; le héros se déplace dans le monde.
+func _sur_deplacement(direction: Vector2) -> void:
+	_heros.definir_direction(Iso.direction_monde(direction) if direction != Vector2.ZERO else Vector2.ZERO)
 
 
 func _sur_cacher() -> void:
@@ -100,13 +126,71 @@ func _finir(victoire: bool) -> void:
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 
 
+# Sol tiré une fois : [nom, rectangle à l'écran, retourné] pour les dalles puis les débris
+var _sol := []
+
+
+func _tirer_sol() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = GRAINE
+	var total := 0
+	for nom in DALLES:
+		total += DALLES[nom]
+	var colonnes := int(TAILLE.x / CASE)
+	var lignes := int(TAILLE.y / CASE)
+	# De l'arrière vers l'avant : la tranche de chaque dalle est cachée par la suivante
+	for somme in colonnes + lignes - 1:
+		for i in colonnes:
+			var j := somme - i
+			if j < 0 or j >= lignes:
+				continue
+			var tirage := rng.randi() % total
+			var nom := "dalle"
+			for n in DALLES:
+				tirage -= DALLES[n]
+				if tirage < 0:
+					nom = n
+					break
+			if not Images.existe(nom):
+				nom = "dalle"
+			var haut := Iso.ecran(Vector2(i, j) * CASE)
+			if Images.existe(nom):
+				var r := Images.region(nom)
+				var e := 2.0 * CASE * Iso.K / r.size.x
+				_sol.append([nom, Rect2(haut - Vector2(r.size.x * e / 2.0, 0), r.size * e), rng.randf() < 0.5])
+			else:
+				_sol.append(["", Rect2(haut, Vector2(CASE, CASE)), false])
+	# Débris au sol, hors des obstacles et loin des objets et de la sortie
+	var interdits := []
+	for entite in $Monde.get_children():
+		if entite is StaticBody2D and "taille" in entite:
+			interdits.append(Rect2(entite.position + Vector2(-entite.taille.x / 2.0, -entite.taille.y), entite.taille).grow(50))
+		elif entite is Node2D and not entite is CharacterBody2D:
+			interdits.append(Rect2(entite.position - Vector2(70, 70), Vector2(140, 140)))
+	var places := 0
+	for essai in NOMBRE_DEBRIS * 10:
+		if places >= NOMBRE_DEBRIS:
+			break
+		var p := Vector2(rng.randf_range(120, TAILLE.x - 80), rng.randf_range(240, TAILLE.y - 60))
+		var libre := true
+		for r in interdits:
+			if r.has_point(p):
+				libre = false
+		var nom: String = DEBRIS[rng.randi() % DEBRIS.size()]
+		if libre and Images.existe(nom):
+			var r := Images.region(nom)
+			var e := rng.randf_range(0.3, 0.42)
+			_sol.append([nom, Rect2(Iso.ecran(p) - Vector2(r.size.x, r.size.y * 1.6) * e / 2.0, r.size * e), rng.randf() < 0.5])
+			interdits.append(Rect2(p - Vector2(60, 60), Vector2(120, 120)))
+			places += 1
+
+
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, TAILLE), Palette.SOL)
-	var x := CARREAU
-	while x < TAILLE.x:
-		draw_line(Vector2(x, 0), Vector2(x, TAILLE.y), Palette.SOL_JOINT, 3.0)
-		x += CARREAU
-	var y := CARREAU
-	while y < TAILLE.y:
-		draw_line(Vector2(0, y), Vector2(TAILLE.x, y), Palette.SOL_JOINT, 3.0)
-		y += CARREAU
+	for morceau in _sol:
+		if morceau[0] != "":
+			Images.dessiner(self, morceau[0], morceau[1], morceau[2])
+		else:
+			# Secours : losange de carrelage
+			var haut: Vector2 = morceau[1].position
+			var c := Iso.coins(Rect2(Iso.monde(haut), Vector2(CASE, CASE)))
+			Dessin.polygone(self, PackedVector2Array([c[3], c[2], c[1], c[0]]), Palette.SOL)

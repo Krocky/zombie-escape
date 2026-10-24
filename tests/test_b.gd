@@ -3,7 +3,7 @@ var niveau; var f := 0; var z; var h; var d0
 func _initialize():
 	niveau = load("res://scenes/niveau.tscn").instantiate()
 	root.add_child(niveau)
-func _process(_d):
+func _physics_process(_d):
 	f += 1
 	if f == 3:
 		z = niveau.get_node("Monde/ZombieLent"); h = niveau.get_node("Monde/Heros")

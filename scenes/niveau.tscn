@@ -14,22 +14,25 @@
 [node name="Niveau" type="Node2D"]
 script = ExtResource("1_niveau")
 
+[node name="SolEffets" type="Node2D" parent="."]
+
 [node name="Monde" type="Node2D" parent="."]
-z_index = 1
-y_sort_enabled = true
+visible = false
 
 [node name="MurHaut" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1200, 160)
 taille = Vector2(2400, 80)
 hauteur = 120.0
 style = 0
-fenetres = PackedFloat32Array(-520, 80, 680)
+fenetres = PackedFloat32Array(-500, 100, 700)
+portes = PackedFloat32Array(-900)
 
 [node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1200, 1600)
 taille = Vector2(2400, 40)
 hauteur = 30.0
 style = 0
+rebord = true
 
 [node name="MurGauche" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(20, 1560)
@@ -42,6 +45,7 @@ position = Vector2(2380, 1560)
 taille = Vector2(40, 1400)
 hauteur = 30.0
 style = 0
+rebord = true
 
 [node name="Etagere1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(650, 560)
@@ -75,31 +79,31 @@ style = 1
 
 [node name="Caisse1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(300, 1300)
-taille = Vector2(90, 60)
+taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
 [node name="Caisse2" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(400, 1330)
-taille = Vector2(90, 60)
+taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
 [node name="Caisse3" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1150, 1250)
-taille = Vector2(90, 60)
+taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
 [node name="Caisse4" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1900, 1350)
-taille = Vector2(90, 60)
+taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
 [node name="Caisse5" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1100, 330)
-taille = Vector2(90, 60)
+taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
@@ -112,7 +116,7 @@ position = Vector2(250, 870)
 [node name="Congelateur" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(1600, 1320)
 style = 1
-taille = Vector2(170, 70)
+taille = Vector2(180, 95)
 hauteur = 60.0
 
 [node name="Sortie" parent="Monde" instance=ExtResource("8_sortie")]
@@ -150,7 +154,13 @@ position = Vector2(1500, 350)
 type = 1
 patrouille = Vector2(550, 0)
 
+[node name="Vue" type="Node2D" parent="."]
+z_index = 1
+y_sort_enabled = true
+
 [node name="Brouillard" parent="." instance=ExtResource("9_brouillard")]
+position = Vector2(-960, 0)
+taille = Vector2(2400, 1411)
 
 [node name="Nuit" type="CanvasModulate" parent="."]
 

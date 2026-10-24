@@ -8,7 +8,7 @@ func _touch(idx, pos, pressed):
 	var e = InputEventScreenTouch.new(); e.index = idx; e.position = pos; e.pressed = pressed
 	Input.parse_input_event(e)
 func _snap(n): root.get_texture().get_image().save_png(OS.get_environment("CAPTURES") + "/capture_d_%s.png" % n)
-func _process(_d):
+func _physics_process(_d):
 	f += 1
 	var taille = root.get_visible_rect().size
 	var cacher = taille - Vector2(130, 300)
@@ -22,7 +22,7 @@ func _process(_d):
 		h.position = zl.position + Vector2(-150, 0); h.get_node("Camera2D").reset_smoothing()
 	if f == 30: print("1 derriere a 150px, immobile: ", E[zl._etat], " (attendu PATROUILLE)")
 	if f == 31: _touch(1, frapper, true)
-	if f == 33: _touch(1, frapper, false)
+	if f == 37: _touch(1, frapper, false)
 	if f == 40: print("2 apres coup de batte (bruit): ", E[zl._etat], " (attendu CHERCHE ou POURSUITE)"); _snap("bruit")
 	if f == 41:
 		# Test 3 : de l'autre côté d'une étagère, devant lui mais caché par le mur
@@ -38,10 +38,11 @@ func _process(_d):
 		h.position = Vector2(250, 760); zl.position = Vector2(550, 760); zl._point_recherche = h.position
 		h.get_node("Camera2D").reset_smoothing()
 	if f == 84: _touch(1, cacher, true)
-	if f == 86: _touch(1, cacher, false); print("5 cache: ", h._cache)
+	if f == 92: _touch(1, cacher, false); print("5 cache: ", h._cache)
 	if f == 100: _snap("cache")
 	if f == 400: print("6 apres 5s cache: ", E[zl._etat], " pv=", pvs, " (attendu CHERCHE/RETOUR/PATROUILLE, pas de degats)")
 	if f == 401: _touch(1, cacher, true)
-	if f == 403: _touch(1, cacher, false); print("7 sorti: ", not h._cache)
-	if f == 420: quit()
+	if f == 409: _touch(1, cacher, false)
+	if f == 416: print("7 sorti: ", not h._cache)
+	if f == 425: quit()
 	return false

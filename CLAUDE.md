@@ -30,16 +30,16 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Référence : `docs/reference/original.png` (ex `style-b-supermarche.png` : cible visuelle, ambiance, palette, persos ; c'est un JPEG malgré l'extension). `docs/reference/actuel.png` : rendu avant refonte. `docs/raw/` : images de travail de la discussion « rendu visuel » (voir Méthode de travail).
 - Sprites `docs/raw/` (V1, JPEG 512x286) : trop petits. `docs/raw/V2/` : planches 2752x1536 sur fond magenta, isométriques ; certaines contiennent l'image cible incrustée (mélangée au magenta, alignée pixel pour pixel avec `original.png`).
 - Héros : capuche, sac à dos, batte, lampe torche. Zombie lent : gros. Zombie rapide : maigre.
-- Vue 3/4 orthogonale (type Zelda), pas isométrique. Tri de profondeur par Y. Refonte visuelle : vue 3/4 « dessinée » (décision du père) : seul le dessin change, physique et IA inchangées.
-- Lot 1 : formes géométriques dessinées en code (`_draw`), contour épais (`Palette.CONTOUR`, `Dessin.EPAISSEUR`).
+- Vue ISOMÉTRIQUE (décision du père, refonte lot 4, pour utiliser les images V2) : losanges 1,7:1. SEUL L'AFFICHAGE est projeté (`Iso`) ; physique, IA, positions et tailles restent en coordonnées « monde » (plan du sol). Tri de profondeur par Y à l'écran.
+- Images V2 détourées (`images/`, voir Refonte visuelle). Dessin en code (contour épais `Palette.CONTOUR`, `Dessin.EPAISSEUR`) = secours quand une image manque, jamais de carré vide.
 - Toutes les couleurs viennent de `data/palette.gd` (autoload `Palette`), extraites de l'image de référence.
 
 ## Conventions
 - Une scène par entité (`scenes/`), un script par scène (`scripts/`, même nom en snake_case).
 - Signaux vers le haut, appels de méthode vers le bas (le parent appelle ses enfants, les enfants émettent des signaux). Pas de références croisées entre frères.
 - Équilibrage : TOUTES les valeurs réglables (vitesses, PV, dégâts, portées, délais) dans `data/reglages.gd` (autoload `Reglages`). Eliott modifie ce fichier.
-- Origine des entités = au sol (aux pieds), le dessin monte vers les Y négatifs, pour que le tri par Y soit correct.
-- Obstacles (`Mur`) : `position` = milieu du bord bas de l'emprise au sol ; `taille` = emprise au sol (collision) ; `hauteur` = face avant dessinée.
+- Origine des entités = au sol (aux pieds), en coordonnées monde. Leur affichage est projeté à l'écran (pieds = point trié).
+- Obstacles (`Mur`) : `position` = milieu du bord bas de l'emprise au sol ; `taille` = emprise au sol (collision) ; `hauteur` = hauteur du dessin de secours ; `fenetres` / `portes` = positions le long du mur ; `rebord` = mur de devant dessiné bas.
 - Code et noms en français, sans accents dans les identifiants.
 - Fenêtre 1280x720, stretch `canvas_items`, aspect `expand`. Paysage ET portrait (demande du père après l'étape a) : l'autoload `Ecran` passe la base en 720x1280 en portrait. UI ancrée aux bords, boutons tactiles >= 100 px, à vérifier dans les deux sens.
 - Contrôles tactiles uniquement (`emulate_touch_from_mouse` activé seulement pour tester à la souris).
@@ -61,6 +61,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 ## Tests
 - `tests/test_*.gd` : scénarios automatiques (SceneTree) qui simulent le toucher et vérifient le comportement ; ils affichent leurs résultats et enregistrent des captures d'écran dans `$CAPTURES`.
 - Lancer : `GODOT=<godot 4.4.1> CAPTURES=<dossier> tests/lancer.sh 1280x800` puis `800x1280` (besoin de `xvfb-run` ; le son passe par un pilote factice, donc les sons ne sont pas vraiment testés).
+- Les tests comptent des pas de physique (`_physics_process`, 60 par seconde), pas des images : le rendu logiciel du serveur est lent (5 à 20 ips) et ne doit pas changer le résultat. Laisser au moins 6 pas entre un appui et son relâchement simulés.
 - `test_e` efface la sauvegarde `user://` de l'environnement de test (pas celle de la tablette).
 - `tests/` est exclu de l'export APK (`exclude_filter` dans export_presets.cfg).
 - Installer Godot dans une session cloud : télécharger `Godot_v4.4.1-stable_linux.x86_64.zip` depuis les releases GitHub de godotengine, dézipper, lancer avec `--headless`.
@@ -87,7 +88,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Zombie battu : il bascule et s'efface (pas de gore).
 - Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame, avec `detectable` (faux si caché ou K.O.) ; aucun zombie ne connaît le nœud du héros.
 - Vue : cône (angle + distance, plus loin en poursuite) et ligne de vue bloquée par le décor (rayon physique, couche 1). Tout près (contact x1,5), il te sent même de dos.
-- Cône de vue dessiné au sol (repère pour l'enfant), sans découpe par les murs. Il est sur l'enfant `Cone` (z_index -1) ; `Monde` a z_index 1 pour passer au-dessus du sol.
+- Cône de vue dessiné au sol (repère pour l'enfant), sans découpe par les murs, calculé dans le monde puis projeté. Le nœud `Cone` du zombie est placé par le niveau dans le calque `SolEffets`.
 - Bruit : le héros émet `bruit` (pas toutes les 0,4 s en marchant, coup de batte) ; un zombie qui entend va voir (« ? ») mais ne poursuit que s'il voit.
 - États du zombie : PATROUILLE -> POURSUITE (« ! ») -> CHERCHE (« ? », au dernier endroit vu/entendu) -> RETOUR -> PATROUILLE.
 - Cachettes : se cacher marche toujours, même sous les yeux d'un zombie (choix « enfant »). Caché : invisible, immobile, silencieux, ne peut pas frapper, pas de dégâts. On sort uniquement avec le bouton (Sortir).
@@ -97,22 +98,27 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Enchaînement : Titre -> Niveau -> Fin (Victoire / Retour à la base) -> Rejouer -> Niveau. L'autoload `Partie` garde le résultat et l'inventaire.
 - Sauvegarde : `user://sauvegarde.json` = `{"version": 1, "inventaire": {type: nombre}}`, cumulée sur toutes les parties, affichée sur l'écran de fin.
 - Écrans titre/fin : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée).
-- Sons (fournis par le père, rangés dans `sons/` car `docs/` est ignoré par Godot) : cri `zombie_gros` / `zombie_maigre` quand un zombie voit le héros (passage en POURSUITE, au plus un cri toutes les `ZOMBIE_DELAI_CRI` s) ; `taper1..3` au hasard quand la batte touche un zombie. Sons spatialisés (AudioStreamPlayer2D, écouteur = caméra). Volume global : `Reglages.SONS_VOLUME`.
+- Sons (fournis par le père, rangés dans `sons/` car `docs/` est ignoré par Godot) : cri `zombie_gros` / `zombie_maigre` quand un zombie voit le héros (passage en POURSUITE, au plus un cri toutes les `ZOMBIE_DELAI_CRI` s) ; `taper1..3` au hasard quand la batte touche un zombie. Sons spatialisés (AudioStreamPlayer2D) ; écouteur = `AudioListener2D` sur le héros, dans le monde (la caméra est à l'écran). Volume global : `Reglages.SONS_VOLUME`.
 - Zombie battu : drapeau `_battu` définitif (il ne bouge plus jamais), invisible jusqu'à la fin du son de coup, puis enlevé. (Bug corrigé : sans ce drapeau, il « renaissait » pendant le son.)
 - Nuit : `CanvasModulate` (`Palette.NUIT` x `Reglages.NUIT_CLARTE`) dans le niveau, très sombre (demande d'Eliott : on ne voit les zombies au loin que dans le faisceau) ; le HUD (CanvasLayer 10) n'est pas assombri.
 - Sortie : petite lumière verte pour la retrouver dans le noir. Les objets n'ont pas de lumière (à trouver à la lampe).
-- Lampe : deux PointLight2D sur le héros, `Halo` (dégradé rond, autour de lui) et `Lampe` (cône dessiné par code dans `_texture_faisceau`, aucune image). Le faisceau suit la dernière direction du joystick (8 directions). Dans une cachette, la lampe s'éteint (le halo reste).
+- Lampe : deux PointLight2D du héros, `Halo` (dégradé rond, autour de lui) et `Lampe` (cône dessiné par code dans `_texture_faisceau`, aucune image), déplacées dans son nœud d'affichage. Le faisceau part de la torche (ancre la plus à droite de la pose) et suit la dernière direction (8 directions, projetée à l'écran). Dans une cachette, la lampe s'éteint (le halo reste).
 - Brouillard : scène `Brouillard` (z_index 2), nappes de cercles transparents qui dérivent ; épaisseur réglable (`BROUILLARD_OPACITE`).
 - Caché : le héros n'est plus rendu invisible (sinon ses lumières s'éteignent) ; il ne se dessine simplement pas.
 - Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
-- Volumes (refonte lot 1) : `Dessin.boite` dessine face avant + côté droit + dessus ; le bord arrière est décalé vers la droite de `profondeur x Dessin.OBLIQUE` (max `OBLIQUE_MAX` = 24 px, pour les murs très profonds). La collision reste l'emprise au sol rectangulaire.
-- Ombres : texture dégradée unique (`Dessin.ombre`), sur un enfant `Ombre` en z_index -1 pour les obstacles (sous les personnages), dans le `_draw` pour les personnages.
+- Affichage isométrique (refonte lot 4) : `Monde` (physique) est caché. Chaque entité crée ses nœuds d'affichage et les donne par `visuels()` -> {"vue", "sol"} ; le niveau les place dans `Vue` (y_sort, z 1) ou `SolEffets` (ombres, cônes). Chaque entité met à jour la position projetée de son affichage et le libère à sa sortie (`_exit_tree`).
+- Décor : `Iso.habiller` met une image à la largeur de l'emprise à l'écran, son point le plus bas sur le coin avant, et la découpe en bandes verticales de 24 px triées chacune sur le bord avant de l'emprise (sinon un long objet ne peut pas être à la fois devant et derrière le héros). Le sens de l'image (long en x ou en y du monde) vient de ses ancres ; elle est retournée si besoin.
+- Murs du fond : pans de 200 (`Mur.LONGUEUR_PANNEAU`), image `mur` ou `mur_fenetre` ; un pan est sauté à chaque `portes` (la `Sortie` y met `porte_ouverte`, même taille). Murs de devant (`rebord`) : boîte basse dessinée. Étagères : rayons de 140 (`etagere`, assombris par `Palette.ETAGERE_TEINTE`). Caisses 110x110 (petite ou grande, sens tiré sur la position). Congélateur 180x95 (proportions de l'image).
+- Sol : dalles V2 d'une case de 200 (3 x 3 carreaux), tirées avec une graine fixe (`Niveau.GRAINE`) parmi `DALLES` (poids), dessinées de l'arrière vers l'avant ; débris V2 posés au sol hors des obstacles. Le tout dessiné une fois dans `Niveau._draw`.
+- Personnages : images à 2x, `ECHELLE` 0,5, posées sur l'ancre « pieds ». 2 directions d'images (face, dos) x gauche/droite (retournées), immobile + cycle de marche de 4 (3 poses). Le gros zombie est de face pour descendre, le maigre de profil. `Images.dessiner_*` acceptent `base` (transformation en cours) pour les images retournées.
+- Joystick : direction à l'écran convertie en direction du monde par le niveau (`Iso.direction_monde`). Vitesses inchangées dans le monde (à l'écran, monter ou descendre paraît plus lent : c'est l'effet de profondeur).
+- Attaque : le coup part dans la direction du regard (`_regard`, 8 directions), plus seulement gauche/droite.
+- Caméra : reste le nœud `Camera2D` du héros (les tests l'utilisent), en `top_level`, placée sur la position projetée.
 - Yeux des zombies (refonte lot 2) : dessinés sur l'enfant `Yeux` avec un `CanvasItemMaterial` UNSHADED : ils échappent au `CanvasModulate` et brillent dans le noir (lueur `ZOMBIE_YEUX_LUEUR`). Le corps reste assombri hors de la lampe.
 - Faisceau : bord net, cœur plus fort, texture calculée une seule fois (`static var`). Halo réduit. Vignettage : scène `Vignette` (CanvasLayer 5, sous le HUD), une texture dégradée étirée, ne capte pas les doigts.
 - Brume : une texture dégradée unique, nappes aplaties au ras du sol, graine fixe ; `BROUILLARD_OPACITE` garde le même sens.
 - Lune : une PointLight2D bleue (`Palette.LUNE`) au sol sous chaque fenêtre du mur du fond. Total : 6 lumières (halo, lampe, sortie, 3 lunes).
 - `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott).
-- Détails déterministes (produits des étagères, fissures) : hasard à graine = position de l'obstacle. Fenêtres du mur du fond : `Mur.fenetres` (x locaux), placées à l'écart de la porte.
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
@@ -135,6 +141,7 @@ Lots (plan révisé après les planches V2) : 1 volumes 3/4 (fait, devient le de
 - Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
 - Refonte / lot 2 : faisceau net et chaud, halo réduit, vignettage, brume au ras du sol, lumière de lune sous les fenêtres, yeux des zombies qui brillent dans le noir, compteur d'ips.
 - Refonte / lot 3 : planches V2 détourées en 7 atlas (86 images : 12 poses du héros, 23 de zombies + yeux, 6 dalles, 4 murs, 15 décors, 8 objets, 2 portes).
+- Refonte / lot 4 : passage en isométrique (affichage seul), décor, sol, débris, murs à fenêtres, porte de sortie verte, héros et zombies en images V2 animées, tests adaptés (pas de physique, joystick projeté).
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.

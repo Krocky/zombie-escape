@@ -2,7 +2,8 @@ extends CharacterBody2D
 ## Un zombie : il patrouille, voit le héros dans son cône de vue, entend le bruit,
 ## poursuit, cherche là où il l'a perdu, puis retourne patrouiller.
 ## Le niveau lui donne la position du héros (connaitre_heros) et les bruits (entendre).
-## Origine = aux pieds (tri par Y).
+## Origine = aux pieds (coordonnées monde). Affichage isométrique : sprites V2 dans le calque Vue,
+## yeux sur l'enfant « Yeux » (non assombri par la nuit), cône de vue sur le calque du sol.
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
@@ -14,6 +15,15 @@ const MASQUE_DECOR := 1   # couche physique des murs et cachettes (bloquent la v
 const SON_CRI_GROS := preload("res://sons/zombie_gros.mp3")
 const SON_CRI_MAIGRE := preload("res://sons/zombie_maigre.mp3")
 const SONS_COUP := [preload("res://sons/taper1.mp3"), preload("res://sons/taper2.mp3"), preload("res://sons/taper3.mp3")]
+const ECHELLE := 0.5            # images à 2x : taille à l'écran
+const CADENCE_MARCHE := 5.0     # poses par seconde (en patrouille ; deux fois plus en poursuite)
+## Poses : immobile, puis cycle de marche. « gauche » : les images regardent à gauche.
+const POSES := {
+	Type.LENT: {"face": ["gros_face_2", ["gros_face_2", "gros_face_4", "gros_face_5", "gros_face_4"]],
+		"dos": ["gros_dos_2", ["gros_dos_1", "gros_dos_2", "gros_dos_4", "gros_dos_2"]], "gauche": false},
+	Type.RAPIDE: {"face": ["maigre_profil_2", ["maigre_profil_1", "maigre_profil_2", "maigre_profil_3", "maigre_profil_2"]],
+		"dos": ["maigre_dos_2", ["maigre_dos_1", "maigre_dos_2", "maigre_dos_3", "maigre_dos_2"]], "gauche": true},
+}
 
 @export var type := Type.LENT
 ## Point de patrouille, relatif à la position de départ : il fait l'aller-retour.
@@ -37,11 +47,15 @@ var _flash := 0.0
 var _battu := false        # vrai pour toujours dès qu'il n'a plus de PV
 var _disparition := 0.0   # temps restant de l'animation où il bascule et s'efface
 var _delai_cri := 0.0     # évite qu'il crie en boucle
-# Yeux : dessinés sur l'enfant « Yeux », non assombri par la nuit (ils brillent dans le noir)
+# Yeux du dessin de secours (calculés pendant le dessin du corps)
 var _yeux_centre := Vector2.ZERO
 var _yeux_sens := 1.0
 var _corps_rotation := 0.0
 var _corps_echelle := Vector2.ONE
+var _vue := Node2D.new()   # dans le calque Vue du niveau
+
+@onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
+@onready var _yeux: Node2D = $Yeux   # enfant de _vue
 
 
 ## detectable = faux quand le héros est caché ou K.O.
@@ -67,12 +81,28 @@ func _ready() -> void:
 	$Cri.stream = SON_CRI_GROS if type == Type.LENT else SON_CRI_MAIGRE
 	$Cri.volume_db = Reglages.SONS_VOLUME
 	$Coup.volume_db = Reglages.SONS_VOLUME
-	# Le cône est dessiné sur un enfant placé sous les personnages et le décor
-	$Cone.draw.connect(_dessiner_cone)
+	# Le cône est dessiné au sol (calque du sol), les yeux par-dessus le corps, sans ombre
+	_cone.draw.connect(_dessiner_cone)
 	var sans_ombre := CanvasItemMaterial.new()
 	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
-	$Yeux.material = sans_ombre
-	$Yeux.draw.connect(_dessiner_yeux)
+	_yeux.material = sans_ombre
+	_yeux.draw.connect(_dessiner_yeux)
+	remove_child(_yeux)
+	_vue.add_child(_yeux)
+	_vue.draw.connect(_dessiner)
+	_vue.position = Iso.ecran(global_position)
+
+
+## Nœuds d'affichage, placés par le niveau.
+func visuels() -> Dictionary:
+	remove_child(_cone)
+	return {"vue": _vue, "sol": _cone}
+
+
+func _exit_tree() -> void:
+	for noeud in [_vue, _cone]:
+		if is_instance_valid(noeud):
+			noeud.queue_free()
 
 
 ## Appelé par le niveau quand la batte du héros le touche.
@@ -132,8 +162,8 @@ func _physics_process(delta: float) -> void:
 	_flash = maxf(_flash - delta, 0.0)
 	if _battu:
 		_disparition = maxf(_disparition - delta, 0.0)
-		queue_redraw()
-		$Cone.visible = false
+		_suivre()
+		_cone.visible = false
 		# Il ne bouge plus jamais ; on attend la fin du son de coup avant de l'enlever
 		if _disparition == 0.0 and not $Coup.playing:
 			queue_free()
@@ -192,8 +222,8 @@ func _physics_process(delta: float) -> void:
 	if direction != Vector2.ZERO:
 		_regard = _regard.slerp(direction, minf(8.0 * delta, 1.0)).normalized()
 	_temps += delta * (2.0 if _etat == Etat.POURSUITE else 1.0)
-	queue_redraw()
-	$Cone.queue_redraw()
+	_suivre()
+	_cone.queue_redraw()
 
 
 func _changer_etat(nouvel_etat: Etat) -> void:
@@ -202,90 +232,141 @@ func _changer_etat(nouvel_etat: Etat) -> void:
 	_temps_recherche = 0.0
 
 
-func _draw() -> void:
-	var s := -1.0 if _regard.x < 0.0 else 1.0
-	var pas := sin(_temps * 8.0) * 4.0
-	var tangue := sin(_temps * 4.0) * 2.0
-	modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
+## Le dessin suit la position projetée à l'écran.
+func _suivre() -> void:
+	_vue.position = Iso.ecran(global_position)
+	_vue.queue_redraw()
+	_yeux.queue_redraw()
+
+
+## Nom de l'image à afficher (face ou dos, marche) et retournement.
+func _pose() -> Array:
+	var regard := Iso.direction_ecran(_regard)
+	var poses: Dictionary = POSES[type]
+	var liste: Array = poses["dos" if regard.y < -0.1 else "face"]
+	var nom: String = liste[0]
+	if velocity.length() > 5.0 and not _battu:
+		var cycle: Array = liste[1]
+		nom = cycle[int(_temps * CADENCE_MARCHE) % cycle.size()]
+	var miroir: bool = (regard.x > 0.0) if poses["gauche"] else (regard.x < 0.0)
+	return [nom, miroir]
+
+
+func _dessiner() -> void:
+	var v := _vue
+	var s := -1.0 if Iso.direction_ecran(_regard).x < 0.0 else 1.0
+	v.modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
+	_corps_rotation = 0.0
 	if _battu:
 		# Il bascule en arrière et s'efface
 		var avance := 1.0 - _disparition / 0.6
-		modulate.a = 1.0 - avance
+		v.modulate.a = 1.0 - avance
 		_corps_rotation = -s * avance * PI / 2.0
-		_corps_echelle = Vector2(1.25, 1.25) * (1.0 - avance * 0.3)
-	else:
-		_corps_rotation = 0.0
-		_corps_echelle = Vector2(1.25, 1.25)
-	draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
 	var rayon_ombre := 34.0 if type == Type.LENT else 24.0
-	Dessin.ombre(self, Rect2(-rayon_ombre, -10, rayon_ombre * 2.0, 20))
+	Dessin.ombre(v, Rect2(-rayon_ombre, -10, rayon_ombre * 2.0, 20))
+	var pose := _pose()
+	var haut := -120.0
+	if Images.existe(pose[0]):
+		var base := Transform2D(_corps_rotation, Vector2.ZERO)
+		v.draw_set_transform_matrix(base)
+		Images.dessiner_pieds(v, pose[0], Vector2.ZERO, ECHELLE, pose[1], Color.WHITE, base)
+		haut = -Images.region(pose[0]).size.y * ECHELLE - 8.0
+	else:
+		_dessiner_secours(s)
+	v.draw_set_transform(Vector2.ZERO)
+	if _etourdi > 0.0 and not _battu:
+		_dessiner_etoiles(Vector2(0, haut))
+	elif _etat == Etat.POURSUITE and not _battu:
+		_dessiner_alerte(Vector2(0, haut))
+	elif _etat == Etat.CHERCHE and not _battu:
+		_dessiner_question(Vector2(0, haut))
+
+
+## Dessin en code (si les images manquent).
+func _dessiner_secours(s: float) -> void:
+	var pas := sin(_temps * 8.0) * 4.0
+	var tangue := sin(_temps * 4.0) * 2.0
+	_corps_echelle = Vector2(1.25, 1.25)
+	if _battu:
+		_corps_echelle *= 1.0 - (1.0 - _disparition / 0.6) * 0.3
+	_vue.draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
 	if type == Type.LENT:
 		_dessiner_gros(s, pas, tangue)
 	else:
 		_dessiner_maigre(s, pas, tangue)
-	if _etourdi > 0.0 and not _battu:
-		_dessiner_etoiles(Vector2(0, -116 if type == Type.LENT else -110))
-	elif _etat == Etat.POURSUITE and not _battu:
-		_dessiner_alerte(Vector2(0, -116 if type == Type.LENT else -110))
-	elif _etat == Etat.CHERCHE and not _battu:
-		_dessiner_question(Vector2(0, -116 if type == Type.LENT else -110))
 
 
 func _dessiner_gros(s: float, pas: float, tangue: float) -> void:
+	var v := _vue
 	# Jambes courtes
-	Dessin.rect(self, Rect2(-16 + pas * 0.5, -22, 13, 20), Palette.ZOMBIE_PANTALON)
-	Dessin.rect(self, Rect2(3 - pas * 0.5, -22, 13, 20), Palette.ZOMBIE_PANTALON)
+	Dessin.rect(v, Rect2(-16 + pas * 0.5, -22, 13, 20), Palette.ZOMBIE_PANTALON)
+	Dessin.rect(v, Rect2(3 - pas * 0.5, -22, 13, 20), Palette.ZOMBIE_PANTALON)
 	# Gros ventre en t-shirt
-	Dessin.ellipse(self, Vector2(tangue, -46), Vector2(28, 28), Palette.ZOMBIE_TSHIRT)
+	Dessin.ellipse(v, Vector2(tangue, -46), Vector2(28, 28), Palette.ZOMBIE_TSHIRT)
 	# Bras qui pendent
-	Dessin.ellipse(self, Vector2(-s * 26 + tangue, -40), Vector2(8, 16), Palette.ZOMBIE_PEAU_OMBRE)
-	Dessin.ellipse(self, Vector2(s * 28 + tangue, -42), Vector2(8, 16), Palette.ZOMBIE_PEAU)
+	Dessin.ellipse(v, Vector2(-s * 26 + tangue, -40), Vector2(8, 16), Palette.ZOMBIE_PEAU_OMBRE)
+	Dessin.ellipse(v, Vector2(s * 28 + tangue, -42), Vector2(8, 16), Palette.ZOMBIE_PEAU)
 	# Tête
 	var t := Vector2(s * 4 + tangue, -84)
-	Dessin.ellipse(self, t, Vector2(17, 16), Palette.ZOMBIE_PEAU)
+	Dessin.ellipse(v, t, Vector2(17, 16), Palette.ZOMBIE_PEAU)
 	_dessiner_visage(t, s)
 
 
 func _dessiner_maigre(s: float, pas: float, tangue: float) -> void:
+	var v := _vue
 	# Jambes fines
-	Dessin.rect(self, Rect2(-9 + pas, -34, 7, 32), Palette.ZOMBIE_PANTALON)
-	Dessin.rect(self, Rect2(2 - pas, -34, 7, 32), Palette.ZOMBIE_PANTALON)
+	Dessin.rect(v, Rect2(-9 + pas, -34, 7, 32), Palette.ZOMBIE_PANTALON)
+	Dessin.rect(v, Rect2(2 - pas, -34, 7, 32), Palette.ZOMBIE_PANTALON)
 	# Corps maigre, penché en avant
-	Dessin.polygone(self, PackedVector2Array([
+	Dessin.polygone(v, PackedVector2Array([
 		Vector2(-9 + s * 4, -70), Vector2(9 + s * 4, -70), Vector2(9, -32), Vector2(-9, -32)]), Palette.ZOMBIE_TSHIRT)
 	# Bras tendus vers l'avant
-	draw_line(Vector2(s * 6, -64), Vector2(s * 34, -56 + tangue), Palette.CONTOUR, 9.0)
-	draw_line(Vector2(s * 6, -64), Vector2(s * 34, -56 + tangue), Palette.ZOMBIE_PEAU, 5.0)
+	v.draw_line(Vector2(s * 6, -64), Vector2(s * 34, -56 + tangue), Palette.CONTOUR, 9.0)
+	v.draw_line(Vector2(s * 6, -64), Vector2(s * 34, -56 + tangue), Palette.ZOMBIE_PEAU, 5.0)
 	# Tête
 	var t := Vector2(s * 8, -82 + tangue)
-	Dessin.ellipse(self, t, Vector2(12, 13), Palette.ZOMBIE_PEAU)
+	Dessin.ellipse(v, t, Vector2(12, 13), Palette.ZOMBIE_PEAU)
 	_dessiner_visage(t, s)
 
 
 func _dessiner_visage(t: Vector2, s: float) -> void:
 	# Bouche ouverte ; les grands yeux jaunes sont dessinés par l'enfant « Yeux »
-	Dessin.ellipse(self, t + Vector2(s * 3, 7), Vector2(4, 3), Palette.CONTOUR, false)
+	Dessin.ellipse(_vue, t + Vector2(s * 3, 7), Vector2(4, 3), Palette.CONTOUR, false)
 	_yeux_centre = t + Vector2(s * 3, -3)
 	_yeux_sens = s
-	$Yeux.queue_redraw()
 
 
-## Grands yeux jaunes un peu ahuris, qui brillent dans le noir (matériau sans ombre).
+## Grands yeux jaunes qui brillent dans le noir (matériau sans ombre) : calque d'yeux de l'image,
+## ou yeux dessinés en code.
 func _dessiner_yeux() -> void:
-	$Yeux.draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
-	$Yeux.draw_circle(_yeux_centre, 13.0, Palette.ZOMBIE_YEUX_LUEUR)
+	if _battu:
+		return
+	var pose := _pose()
+	var nom_yeux: String = pose[0] + "_yeux"
+	if Images.existe(pose[0]):
+		if not Images.existe(nom_yeux):
+			return   # vu de dos : pas d'yeux
+		var base := Transform2D(_corps_rotation, Vector2.ZERO)
+		_yeux.draw_set_transform_matrix(base)
+		var centre := Images.centre_calque(pose[0], nom_yeux, Vector2.ZERO, ECHELLE, pose[1])
+		_yeux.draw_circle(centre, 16.0, Palette.ZOMBIE_YEUX_LUEUR)
+		_yeux.draw_circle(centre, 9.0, Palette.ZOMBIE_YEUX_LUEUR)
+		Images.dessiner_calque(_yeux, pose[0], nom_yeux, Vector2.ZERO, ECHELLE, pose[1], Color.WHITE, base)
+		return
+	_yeux.draw_set_transform(Vector2.ZERO, _corps_rotation, _corps_echelle)
+	_yeux.draw_circle(_yeux_centre, 13.0, Palette.ZOMBIE_YEUX_LUEUR)
 	for dx: float in [-5.0, 5.0]:
 		var oeil := _yeux_centre + Vector2(dx, 0)
-		$Yeux.draw_circle(oeil, 4.5, Palette.ZOMBIE_YEUX)
-		$Yeux.draw_arc(oeil, 4.5, 0, TAU, 12, Palette.CONTOUR, 2.0)
-		$Yeux.draw_circle(oeil + Vector2(_yeux_sens, 0), 1.6, Palette.CONTOUR)
+		_yeux.draw_circle(oeil, 4.5, Palette.ZOMBIE_YEUX)
+		_yeux.draw_arc(oeil, 4.5, 0, TAU, 12, Palette.CONTOUR, 2.0)
+		_yeux.draw_circle(oeil + Vector2(_yeux_sens, 0), 1.6, Palette.CONTOUR)
 
 
 func _dessiner_alerte(p: Vector2) -> void:
 	# Point d'exclamation : le zombie t'a vu !
-	Dessin.polygone(self, PackedVector2Array([
+	Dessin.polygone(_vue, PackedVector2Array([
 		p + Vector2(-7, -26), p + Vector2(7, -26), p + Vector2(4, -4), p + Vector2(-4, -4)]), Palette.LAMPE)
-	Dessin.cercle(self, p + Vector2(0, 5), 5, Palette.LAMPE)
+	Dessin.cercle(_vue, p + Vector2(0, 5), 5, Palette.LAMPE)
 
 
 func _dessiner_etoiles(p: Vector2) -> void:
@@ -293,23 +374,24 @@ func _dessiner_etoiles(p: Vector2) -> void:
 	for i in 3:
 		var a := _temps * 6.0 + TAU * i / 3.0
 		var c := p + Vector2(cos(a) * 18.0, sin(a) * 6.0 - 6.0)
-		draw_circle(c, 7.0, Palette.CONTOUR)
-		draw_circle(c, 5.0, Palette.LAMPE)
+		_vue.draw_circle(c, 7.0, Palette.CONTOUR)
+		_vue.draw_circle(c, 5.0, Palette.LAMPE)
 
 
 func _dessiner_cone() -> void:
 	# Cône de vue dessiné au sol (repère pour le joueur), sans tenir compte des murs
 	var demi := deg_to_rad(Reglages.ZOMBIE_VUE_ANGLE / 2.0)
-	var points := PackedVector2Array([Vector2.ZERO])
+	# Calculé dans le monde, puis projeté à l'écran
+	var points := PackedVector2Array([Iso.ecran(global_position)])
 	for i in 13:
 		var a := _regard.angle() - demi + 2.0 * demi * i / 12.0
-		points.append(Vector2(cos(a), sin(a)) * _portee_vue())
+		points.append(Iso.ecran(global_position + Vector2(cos(a), sin(a)) * _portee_vue()))
 	var couleur := Palette.ZOMBIE_VUE_ALERTE if _etat == Etat.POURSUITE else Palette.ZOMBIE_VUE
-	$Cone.draw_colored_polygon(points, couleur)
+	_cone.draw_colored_polygon(points, couleur)
 
 
 func _dessiner_question(p: Vector2) -> void:
 	# Point d'interrogation : le zombie te cherche
 	var police := ThemeDB.fallback_font
-	draw_string_outline(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, 8, Palette.CONTOUR)
-	draw_string(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Palette.LAMPE)
+	_vue.draw_string_outline(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, 8, Palette.CONTOUR)
+	_vue.draw_string(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Palette.LAMPE)

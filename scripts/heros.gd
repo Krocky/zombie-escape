@@ -1,6 +1,7 @@
 extends CharacterBody2D
 ## Le héros : capuche, sac à dos, batte, lampe torche.
-## Origine = aux pieds (tri par Y).
+## Origine = aux pieds (coordonnées monde). Affichage isométrique : sprites V2 dans le calque Vue
+## (4 directions en diagonale, 3 poses de marche), dessin en code si une image manque.
 
 ## La batte frappe : le niveau décide quels zombies sont touchés.
 signal attaque(origine: Vector2, sens: Vector2)
@@ -10,9 +11,15 @@ signal mort
 signal bruit(origine: Vector2, rayon: float)
 
 const DUREE_COUP := 0.2
+const ECHELLE := 0.5            # images à 2x : taille à l'écran
+const CADENCE_MARCHE := 7.0     # poses par seconde
+## Poses (images regardant à droite, retournées pour la gauche) : immobile, puis cycle de marche.
+const POSES := {
+	"face": ["profil_1", ["profil_2", "profil_1", "profil_3", "profil_1"]],
+	"dos": ["dos_droite_2", ["dos_droite_1", "dos_droite_2", "dos_droite_3", "dos_droite_2"]],
+}
 
 var _direction := Vector2.ZERO
-var _regarde_gauche := false
 var _temps := 0.0
 var _pv := Reglages.HEROS_PV
 var _recul := Vector2.ZERO
@@ -21,17 +28,38 @@ var _recharge_attaque := 0.0
 var _coup := 0.0   # temps restant de l'animation de coup de batte
 var _cache := false
 var _temps_pas := 0.0
-var _regard := Vector2.RIGHT   # direction de la lampe torche (8 directions)
+var _regard := Vector2.RIGHT   # direction du regard et de la lampe (monde, 8 directions)
+var _vue := Node2D.new()       # dans le calque Vue du niveau
+
+@onready var _lampe: PointLight2D = $Lampe
+@onready var _halo: PointLight2D = $Halo
+@onready var _camera: Camera2D = $Camera2D
 
 
 func _ready() -> void:
 	pv_change.emit.call_deferred(_pv, Reglages.HEROS_PV)
-	$Lampe.texture = _texture_faisceau()
-	$Lampe.color = Palette.LAMPE_FAISCEAU
-	$Halo.color = Palette.LAMPE_DOUCE
-	$Lampe.texture_scale = Reglages.LAMPE_PORTEE / 256.0
+	_lampe.texture = _texture_faisceau()
+	_lampe.color = Palette.LAMPE_FAISCEAU
+	_halo.color = Palette.LAMPE_DOUCE
+	_lampe.texture_scale = Reglages.LAMPE_PORTEE * Iso.K / 256.0
 	# La pointe du cône (bord gauche de l'image) doit être sur la main
-	$Lampe.offset = Vector2(128.0 * $Lampe.texture_scale, 0)
+	_lampe.offset = Vector2(128.0 * _lampe.texture_scale, 0)
+	# Lumières et dessin suivent la position à l'écran ; la caméra aussi (hors du monde)
+	for lumiere in [_halo, _lampe]:
+		remove_child(lumiere)
+		_vue.add_child(lumiere)
+	_vue.draw.connect(_dessiner)
+	_camera.top_level = true
+	# Les sons des zombies se règlent sur la distance dans le monde, pas à l'écran
+	var oreille := AudioListener2D.new()
+	add_child(oreille)
+	oreille.make_current()
+	_suivre()
+
+
+## Nœuds d'affichage, placés par le niveau.
+func visuels() -> Dictionary:
+	return {"vue": _vue}
 
 
 ## Faisceau de lampe torche en cône, dessiné pixel par pixel (pas d'image externe).
@@ -72,21 +100,21 @@ func attaquer() -> void:
 		return
 	_recharge_attaque = Reglages.ATTAQUE_DELAI
 	_coup = DUREE_COUP
-	attaque.emit(global_position, Vector2(-1 if _regarde_gauche else 1, 0))
+	attaque.emit(global_position, _regard)
 	bruit.emit(global_position, Reglages.BRUIT_ATTAQUE)
 
 
 ## Appelé par le niveau : le héros entre dans une cachette (invisible, immobile, silencieux).
 func se_cacher() -> void:
 	_cache = true
-	$Lampe.enabled = false   # lampe éteinte dans la cachette
+	_lampe.enabled = false   # lampe éteinte dans la cachette
 	collision_layer = 0
-	queue_redraw()
+	_vue.queue_redraw()
 
 
 func sortir_cachette() -> void:
 	_cache = false
-	$Lampe.enabled = true
+	_lampe.enabled = true
 	collision_layer = 2
 
 
@@ -103,8 +131,9 @@ func recevoir_degats(degats: int, depuis: Vector2) -> void:
 		mort.emit()
 
 
+## limites : rectangle à l'écran (vue isométrique).
 func regler_limites_camera(limites: Rect2) -> void:
-	var camera: Camera2D = $Camera2D
+	var camera := _camera
 	camera.limit_left = int(limites.position.x)
 	camera.limit_top = int(limites.position.y)
 	camera.limit_right = int(limites.end.x)
@@ -125,64 +154,94 @@ func _physics_process(delta: float) -> void:
 	velocity = direction * Reglages.HEROS_VITESSE + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
-	if absf(direction.x) > 0.1:
-		_regarde_gauche = direction.x < 0.0
 	if direction != Vector2.ZERO:
 		_regard = direction
-	# La lampe suit la direction du héros, depuis sa main
-	$Lampe.rotation = lerp_angle($Lampe.rotation, _regard.angle(), minf(12.0 * delta, 1.0))
-	$Lampe.position = Vector2(-30 if _regarde_gauche else 30, -50)
-	if direction != Vector2.ZERO:
 		_temps += delta
 	else:
 		_temps = 0.0
-	queue_redraw()
+	_suivre()
 
 
-func _draw() -> void:
+## Le dessin, les lumières et la caméra suivent la position projetée à l'écran.
+func _suivre() -> void:
+	_vue.position = Iso.ecran(global_position)
+	_camera.global_position = _vue.position + Vector2(0, -50)
+	var regard := Iso.direction_ecran(_regard)
+	var nom := _pose()
+	var main := Vector2(regard.x * 30.0, -60.0)
+	if Images.existe(nom):
+		# La lampe est le point le plus à droite de l'image (ancre droite)
+		var a := Images.ancres(nom)
+		main = (a[2] - a[3]) * ECHELLE
+		if regard.x < 0.0:
+			main.x = -main.x
+	_lampe.position = main
+	_lampe.rotation = lerp_angle(_lampe.rotation, regard.angle(), minf(12.0 * get_physics_process_delta_time(), 1.0))
+	_vue.queue_redraw()
+
+
+## Nom de l'image à afficher selon la direction (face ou dos) et la marche.
+func _pose() -> String:
+	var poses: Array = POSES["dos" if Iso.direction_ecran(_regard).y < -0.1 else "face"]
+	if _temps == 0.0:
+		return poses[0]
+	var cycle: Array = poses[1]
+	return cycle[int(_temps * CADENCE_MARCHE) % cycle.size()]
+
+
+func _dessiner() -> void:
 	if _cache:
 		return   # dans la cachette : la cachette dessine ses yeux
-	var s := -1.0 if _regarde_gauche else 1.0  # sens du regard
-	var pas := sin(_temps * 14.0) * 4.0         # balancement des jambes
-	var rebond := absf(sin(_temps * 14.0)) * 2.0
+	var v := _vue
+	var s := -1.0 if Iso.direction_ecran(_regard).x < 0.0 else 1.0  # sens du regard à l'écran
+	# Clignote quand il vient d'être touché
+	v.modulate.a = 0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0
+	Dessin.ombre(v, Rect2(-30, -10, 60, 20))
+	var base := Transform2D.IDENTITY
 	if _pv <= 0:
 		# K.O. : couché par terre
-		draw_set_transform(Vector2(0, -10), -s * PI / 2.0, Vector2(1.25, 1.25))
+		base = Transform2D(-s * PI / 2.0, Vector2(0, -12))
+	v.draw_set_transform_matrix(base)
+	var nom := _pose()
+	if Images.existe(nom):
+		Images.dessiner_pieds(v, nom, Vector2.ZERO, ECHELLE, s < 0.0, Color.WHITE, base)
 	else:
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
-	# Clignote quand il vient d'être touché
-	modulate.a = 0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0
+		_dessiner_secours(s)
+	v.draw_set_transform(Vector2.ZERO)
+	# Coup de batte : un arc lumineux balaie devant le héros
+	if _coup > 0.0:
+		var avance := 1.0 - _coup / DUREE_COUP
+		var centre := Vector2(0, -50)
+		var angle := Iso.direction_ecran(_regard).angle()
+		v.draw_arc(centre, 58.0, angle - 1.2, angle - 1.2 + 2.4 * avance, 16, Palette.LAMPE * Color(1, 1, 1, 0.7), 8.0)
 
-	# Ombre au sol
-	Dessin.ombre(self, Rect2(-28, -9, 56, 18))
+
+## Dessin en code (si les images manquent).
+func _dessiner_secours(s: float) -> void:
+	var v := _vue
+	var pas := sin(_temps * 14.0) * 4.0         # balancement des jambes
+	var rebond := absf(sin(_temps * 14.0)) * 2.0
+	v.draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
+	if _pv <= 0:
+		v.draw_set_transform(Vector2(0, -10), -s * PI / 2.0, Vector2(1.25, 1.25))
 	# Jambes
-	Dessin.rect(self, Rect2(-11 + pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
-	Dessin.rect(self, Rect2(2 - pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
+	Dessin.rect(v, Rect2(-11 + pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
+	Dessin.rect(v, Rect2(2 - pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
 	# Sac à dos (côté opposé au regard)
-	Dessin.rect(self, Rect2(-s * 22 - 8, -60 - rebond, 16, 26), Palette.HEROS_SAC)
-	# Batte dans la main arrière (au repos)
-	if _coup == 0.0:
-		draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.CONTOUR, 9.0)
-		draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.BATTE, 5.0)
+	Dessin.rect(v, Rect2(-s * 22 - 8, -60 - rebond, 16, 26), Palette.HEROS_SAC)
+	# Batte dans la main arrière
+	v.draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.CONTOUR, 9.0)
+	v.draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.BATTE, 5.0)
 	# Corps (veste)
-	Dessin.polygone(self, PackedVector2Array([
+	Dessin.polygone(v, PackedVector2Array([
 		Vector2(-16, -62 - rebond), Vector2(16, -62 - rebond),
 		Vector2(18, -24), Vector2(-18, -24)]), Palette.HEROS_VESTE)
 	# Bras avant + lampe torche
-	draw_line(Vector2(s * 12, -54 - rebond), Vector2(s * 26, -40 - rebond), Palette.CONTOUR, 10.0)
-	draw_line(Vector2(s * 12, -54 - rebond), Vector2(s * 26, -40 - rebond), Palette.HEROS_VESTE, 6.0)
-	Dessin.rect(self, Rect2(s * 26 - 5, -46 - rebond, 10, 10), Palette.LAMPE)
+	v.draw_line(Vector2(s * 12, -54 - rebond), Vector2(s * 26, -40 - rebond), Palette.CONTOUR, 10.0)
+	v.draw_line(Vector2(s * 12, -54 - rebond), Vector2(s * 26, -40 - rebond), Palette.HEROS_VESTE, 6.0)
+	Dessin.rect(v, Rect2(s * 26 - 5, -46 - rebond, 10, 10), Palette.LAMPE)
 	# Tête : capuche puis visage tourné vers le regard
-	Dessin.cercle(self, Vector2(0, -74 - rebond), 17, Palette.HEROS_VESTE)
-	Dessin.cercle(self, Vector2(s * 5, -73 - rebond), 11, Palette.HEROS_PEAU)
-	draw_rect(Rect2(s * 5 - 9, -84 - rebond, 18, 5), Palette.HEROS_CHEVEUX)
-	draw_circle(Vector2(s * 10, -74 - rebond), 2.0, Palette.CONTOUR)
-	# Coup de batte : la batte balaie devant le héros
-	if _coup > 0.0:
-		var avance := 1.0 - _coup / DUREE_COUP
-		var angle := lerpf(-PI * 0.6, PI * 0.25, avance)
-		var main := Vector2(s * 14, -46)
-		var bout := main + Vector2(s * cos(angle), sin(angle)) * 46.0
-		draw_arc(main, 46.0, -PI * 0.6 if s > 0 else PI * 1.6, angle if s > 0 else PI - angle, 12, Palette.LAMPE * Color(1, 1, 1, 0.5), 6.0)
-		draw_line(main, bout, Palette.CONTOUR, 11.0)
-		draw_line(main, bout, Palette.BATTE, 7.0)
+	Dessin.cercle(v, Vector2(0, -74 - rebond), 17, Palette.HEROS_VESTE)
+	Dessin.cercle(v, Vector2(s * 5, -73 - rebond), 11, Palette.HEROS_PEAU)
+	v.draw_rect(Rect2(s * 5 - 9, -84 - rebond, 18, 5), Palette.HEROS_CHEVEUX)
+	v.draw_circle(Vector2(s * 10, -74 - rebond), 2.0, Palette.CONTOUR)
