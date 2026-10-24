@@ -73,7 +73,7 @@ func _physics_process(_delta: float) -> void:
 	for objet in get_tree().get_nodes_in_group("objets"):
 		if _heros.global_position.distance_to(objet.global_position) <= Reglages.OBJET_PORTEE:
 			_ramasses.append(objet.ramasser())
-			$HUD.afficher_objets(_ramasses.size(), _total_objets)
+			$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
 	# Sortie atteinte : victoire
 	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)

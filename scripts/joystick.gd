@@ -59,8 +59,22 @@ func _emettre(direction: Vector2) -> void:
 
 func _draw() -> void:
 	var actif := _doigt != -1
-	var opacite := 1.0 if actif else 0.6
-	draw_circle(_centre, RAYON_BASE, Palette.UI_FOND * Color(1, 1, 1, opacite))
-	draw_arc(_centre, RAYON_BASE, 0, TAU, 48, Palette.UI_BORD * Color(1, 1, 1, opacite), 4.0, true)
-	draw_circle(_bouton, RAYON_BOUTON, Palette.UI_BORD * Color(1, 1, 1, opacite))
-	draw_arc(_bouton, RAYON_BOUTON, 0, TAU, 32, Palette.CONTOUR, 4.0, true)
+	var opacite := 1.0 if actif else 0.65
+	var o := Color(1, 1, 1, opacite)
+	# Socle : disque sombre bordé, avec quatre flèches
+	draw_circle(_centre + Vector2(0, 6), RAYON_BASE, Palette.CONTOUR * Color(1, 1, 1, 0.5 * opacite))
+	draw_circle(_centre, RAYON_BASE, Palette.UI_FOND * o)
+	draw_arc(_centre, RAYON_BASE, 0, TAU, 48, Palette.CONTOUR * o, 7.0, true)
+	draw_arc(_centre, RAYON_BASE - 6.0, 0, TAU, 48, Palette.UI_BORD * Color(1, 1, 1, 0.45 * opacite), 3.0, true)
+	for k in 4:
+		var d := Vector2.from_angle(k * PI / 2.0)
+		var pointe := _centre + d * (RAYON_BASE - 14.0)
+		var cote := d.orthogonal() * 11.0
+		draw_colored_polygon(PackedVector2Array([pointe, pointe - d * 16.0 + cote, pointe - d * 16.0 - cote]),
+			Palette.UI_BORD * Color(1, 1, 1, 0.7 * opacite))
+	# Manette : ombre, corps, reflet
+	draw_circle(_bouton + Vector2(0, 7), RAYON_BOUTON, Palette.CONTOUR * Color(1, 1, 1, 0.6 * opacite))
+	draw_circle(_bouton, RAYON_BOUTON, Palette.CONTOUR * o)
+	draw_circle(_bouton, RAYON_BOUTON - 5.0, Palette.UI_BOUTON * o)
+	draw_circle(_bouton, RAYON_BOUTON * 0.55, Palette.UI_BOUTON.lightened(0.15) * o)
+	draw_arc(_bouton, RAYON_BOUTON - 12.0, PI * 1.05, PI * 1.5, 10, Palette.UI_TEXTE * Color(1, 1, 1, 0.5 * opacite), 5.0, true)

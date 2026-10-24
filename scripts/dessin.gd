@@ -56,3 +56,41 @@ static func ombre(ci: CanvasItem, r: Rect2, force := 1.0) -> void:
 		_ombre.fill_from = Vector2(0.5, 0.5)
 		_ombre.fill_to = Vector2(1.0, 0.5)
 	ci.draw_texture_rect(_ombre, r, false, Color(1, 1, 1, force))
+
+
+# --- Icônes des objets (niveau, HUD, écran de fin) ---
+
+## Image V2 de chaque type d'objet (la fiole n'en a pas : dessinée en code).
+const IMAGES_OBJETS := {"conserve": "conserve", "eau": "eau", "bandage": "trousse", "piles": "piles"}
+
+
+## Icône d'un objet, posée sur « pieds » (milieu du bas), haute de « hauteur » pixels.
+static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: float, couleur := Color.WHITE) -> void:
+	var nom: String = IMAGES_OBJETS.get(type, "")
+	if nom != "" and Images.existe(nom):
+		Images.dessiner_pieds(ci, nom, pieds, hauteur / Images.region(nom).size.y, false, couleur)
+		return
+	# Dessin en code (fiole, ou image manquante), à l'échelle de la hauteur voulue
+	var e := hauteur / 40.0
+	ci.draw_set_transform(pieds + Vector2(0, -20.0 * e), 0.0, Vector2(e, e))
+	match type:
+		"conserve":
+			rect(ci, Rect2(-11, -14, 22, 28), Palette.UI_BORD * couleur)
+			ci.draw_rect(Rect2(-11, -6, 22, 12), Palette.COEUR * couleur)
+		"eau":
+			rect(ci, Rect2(-9, -10, 18, 28), Palette.FENETRE * couleur)
+			rect(ci, Rect2(-5, -17, 10, 7), Palette.UI_TEXTE * couleur)
+		"bandage":
+			rect(ci, Rect2(-15, -11, 30, 22), Palette.UI_TEXTE * couleur)
+			ci.draw_rect(Rect2(-3, -8, 6, 16), Palette.COEUR * couleur)
+			ci.draw_rect(Rect2(-8, -3, 16, 6), Palette.COEUR * couleur)
+		"piles":
+			for dx: float in [-7.0, 7.0]:
+				rect(ci, Rect2(dx - 5, -13, 10, 26), Palette.LAMPE * couleur)
+				ci.draw_rect(Rect2(dx - 5, 3, 10, 10), Palette.CONTOUR)
+		_:
+			# Fiole de remède : ballon vert, bouchon, reflet
+			cercle(ci, Vector2(0, 6), 13.0, Palette.ZOMBIE_PEAU.lightened(0.3) * couleur)
+			rect(ci, Rect2(-5, -17, 10, 12), Palette.UI_TEXTE * couleur)
+			ci.draw_circle(Vector2(-4, 2), 3.5, Color(1, 1, 1, 0.7 * couleur.a))
+	ci.draw_set_transform(Vector2.ZERO)

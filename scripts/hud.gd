@@ -8,16 +8,39 @@ signal cacher
 var _attente_ips := 0.0
 var _pv := -1
 var _flash := TextureRect.new()   # bords rouges quand le héros est touché
+var _icones := Control.new()      # objets ramassés, sous le compteur
+var _ramasses := []
+var _nombre := 0
 
 
 func _ready() -> void:
 	$Joystick.direction_changee.connect(deplacement.emit)
 	$BoutonAttaquer.couleur = Palette.LAMPE
+	$BoutonAttaquer.icone = "batte"
 	$BoutonAttaquer.appuye.connect(attaque.emit)
-	$BoutonCacher.couleur = Palette.CONGELATEUR
+	$BoutonCacher.couleur = Palette.UI_BOUTON
+	$BoutonCacher.icone = "cacher"
 	$BoutonCacher.appuye.connect(cacher.emit)
 	$CompteurObjets.add_theme_color_override("font_color", Palette.LAMPE)
 	$CompteurObjets.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	# Cadre sombre arrondi derrière le compteur
+	var cadre := StyleBoxFlat.new()
+	cadre.bg_color = Palette.UI_CADRE
+	cadre.border_color = Palette.UI_BORD
+	cadre.set_border_width_all(3)
+	cadre.set_corner_radius_all(20)
+	cadre.content_margin_left = 16
+	cadre.content_margin_right = 16
+	$CompteurObjets.add_theme_stylebox_override("normal", cadre)
+	$CompteurObjets.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	$CompteurObjets.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# Icônes des objets ramassés, en ligne sous le cadre
+	_icones.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icones.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_icones.position = Vector2(-324, 92)
+	_icones.size = Vector2(300, 50)
+	_icones.draw.connect(_dessiner_icones)
+	add_child(_icones)
 	$Ips.visible = Reglages.AFFICHER_IPS
 	$Ips.add_theme_color_override("font_color", Palette.UI_TEXTE)
 	$Ips.add_theme_color_override("font_outline_color", Palette.CONTOUR)
@@ -60,8 +83,24 @@ func afficher_pv(pv: int, pv_max: int) -> void:
 func etat_cachette(proche: bool, cache: bool) -> void:
 	$BoutonCacher.actif = proche or cache
 	$BoutonCacher.texte = "Sortir" if cache else "Cacher"
+	$BoutonCacher.icone = "sortir" if cache else "cacher"
 	$BoutonAttaquer.actif = not cache
 
 
-func afficher_objets(ramasses: int, total: int) -> void:
+## types : les objets ramassés (pour leurs icônes).
+func afficher_objets(ramasses: int, total: int, types := []) -> void:
 	$CompteurObjets.text = "Objets : %d / %d" % [ramasses, total]
+	_ramasses = types
+	_icones.queue_redraw()
+	if ramasses > _nombre:
+		# Le compteur saute un peu à chaque objet
+		var compteur: Label = $CompteurObjets
+		compteur.pivot_offset = compteur.size / 2.0
+		compteur.scale = Vector2(1.25, 1.25)
+		create_tween().tween_property(compteur, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	_nombre = ramasses
+
+
+func _dessiner_icones() -> void:
+	for i in _ramasses.size():
+		Dessin.icone_objet(_icones, _ramasses[i], Vector2(_icones.size.x - 26 - i * 54, 46), 40.0)

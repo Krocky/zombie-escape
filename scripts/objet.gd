@@ -4,8 +4,6 @@ extends Node2D
 
 @export_enum("conserve", "eau", "bandage", "piles", "fiole") var type := "conserve"
 
-## Image V2 de chaque type (la fiole n'en a pas : dessinée en code).
-const IMAGES := {"conserve": "conserve", "eau": "eau", "bandage": "trousse", "piles": "piles"}
 const HAUTEUR_ICONE := 46.0   # pixels d'écran
 const DUREE_RAMASSAGE := 0.5
 const PERIODE_ECLAT := 2.6    # un scintillement toutes les 2,6 s
@@ -70,11 +68,7 @@ func _dessiner() -> void:
 	Dessin.ombre(_vue, Rect2(-22, -7, 44, 14))
 	# Petite lueur qui pulse (visible à la lampe)
 	_vue.draw_circle(Vector2(0, flotte - HAUTEUR_ICONE / 2.0), 30.0 * pulse, Palette.LAMPE * Color(1, 1, 1, 0.12 + 0.08 * sin(_temps * 4.0)))
-	var nom: String = IMAGES.get(type, "")
-	if nom != "" and Images.existe(nom):
-		Images.dessiner_pieds(_vue, nom, Vector2(0, flotte), HAUTEUR_ICONE * pulse / Images.region(nom).size.y)
-	else:
-		_dessiner_secours(Vector2(0, flotte - 20.0))
+	Dessin.icone_objet(_vue, type, Vector2(0, flotte), HAUTEUR_ICONE * pulse)
 
 
 ## Scintillement régulier (repère discret dans le noir) et gerbe d'étincelles au ramassage.
@@ -100,29 +94,3 @@ func _etoile(p: Vector2, rayon: float, opacite: float) -> void:
 	_eclat.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -rayon), p + Vector2(rayon * 0.25, -rayon * 0.25),
 		p + Vector2(rayon, 0), p + Vector2(rayon * 0.25, rayon * 0.25), p + Vector2(0, rayon),
 		p + Vector2(-rayon * 0.25, rayon * 0.25), p + Vector2(-rayon, 0), p + Vector2(-rayon * 0.25, -rayon * 0.25)]), couleur)
-
-
-## Dessin en code (fiole, ou image manquante).
-func _dessiner_secours(c: Vector2) -> void:
-	_vue.draw_set_transform(c, 0.0, Vector2(1.4, 1.4))
-	c = Vector2.ZERO
-	match type:
-		"conserve":
-			Dessin.rect(_vue, Rect2(c + Vector2(-11, -14), Vector2(22, 28)), Palette.UI_BORD)
-			_vue.draw_rect(Rect2(c + Vector2(-11, -6), Vector2(22, 12)), Palette.COEUR)
-		"eau":
-			Dessin.rect(_vue, Rect2(c + Vector2(-9, -12), Vector2(18, 28)), Palette.FENETRE)
-			Dessin.rect(_vue, Rect2(c + Vector2(-5, -19), Vector2(10, 7)), Palette.UI_TEXTE)
-		"bandage":
-			Dessin.rect(_vue, Rect2(c + Vector2(-15, -11), Vector2(30, 22)), Palette.UI_TEXTE)
-			_vue.draw_rect(Rect2(c + Vector2(-3, -8), Vector2(6, 16)), Palette.COEUR)
-			_vue.draw_rect(Rect2(c + Vector2(-8, -3), Vector2(16, 6)), Palette.COEUR)
-		"piles":
-			for dx: float in [-7.0, 7.0]:
-				Dessin.rect(_vue, Rect2(c + Vector2(dx - 5, -13), Vector2(10, 26)), Palette.LAMPE)
-				_vue.draw_rect(Rect2(c + Vector2(dx - 5, 3), Vector2(10, 10)), Palette.CONTOUR)
-		"fiole":
-			Dessin.cercle(_vue, c + Vector2(0, 4), 12.0, Palette.ZOMBIE_PEAU.lightened(0.3))
-			Dessin.rect(_vue, Rect2(c + Vector2(-5, -18), Vector2(10, 12)), Palette.UI_TEXTE)
-			_vue.draw_circle(c + Vector2(-4, 1), 3.0, Color(1, 1, 1, 0.7))
-	_vue.draw_set_transform(Vector2.ZERO)
