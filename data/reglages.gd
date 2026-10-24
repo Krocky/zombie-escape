@@ -16,6 +16,10 @@ const BRUIT_ATTAQUE := 450.0          # bruit d'un coup de batte
 # --- Cachettes ---
 const CACHETTE_PORTEE := 70.0         # distance pour pouvoir se cacher
 
+# --- Objets et sortie ---
+const OBJET_PORTEE := 45.0            # distance pour ramasser un objet en marchant dessus
+const SORTIE_PORTEE := 70.0           # distance de la porte pour sortir (victoire)
+
 # --- Attaque du héros (batte) ---
 const ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 const ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche

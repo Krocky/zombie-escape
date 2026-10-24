@@ -6,6 +6,9 @@ const CARREAU := 80.0
 
 
 var _heros_mort := false
+var _fini := false
+var _ramasses: Array = []
+var _total_objets := 0
 var _cachette_proche: Node2D = null
 var _cachette_occupee: Node2D = null
 
@@ -23,6 +26,8 @@ func _ready() -> void:
 	_heros.regler_limites_camera(Rect2(Vector2.ZERO, TAILLE))
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.touche_heros.connect(_heros.recevoir_degats)
+	_total_objets = get_tree().get_nodes_in_group("objets").size()
+	$HUD.afficher_objets(0, _total_objets)
 
 
 func _physics_process(_delta: float) -> void:
@@ -40,9 +45,21 @@ func _physics_process(_delta: float) -> void:
 				meilleure = d
 				_cachette_proche = cachette
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
+	if _heros_mort or _fini or _cachette_occupee:
+		return
+	# Objets ramassés en marchant dessus
+	for objet in get_tree().get_nodes_in_group("objets"):
+		if _heros.global_position.distance_to(objet.global_position) <= Reglages.OBJET_PORTEE:
+			_ramasses.append(objet.ramasser())
+			$HUD.afficher_objets(_ramasses.size(), _total_objets)
+	# Sortie atteinte : victoire
+	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
+		_finir(true)
 
 
 func _sur_cacher() -> void:
+	if _fini:
+		return
 	if _cachette_occupee:
 		_cachette_occupee.occuper(false)
 		_cachette_occupee = null
@@ -66,11 +83,20 @@ func _sur_attaque(origine: Vector2, sens: Vector2) -> void:
 			zombie.recevoir_coup(Reglages.ATTAQUE_DEGATS, origine)
 
 
-## Étape (c) : en attendant l'écran « Retour à la base » (étape e), on recommence le niveau.
 func _sur_mort() -> void:
 	_heros_mort = true
-	await get_tree().create_timer(2.0).timeout
-	get_tree().reload_current_scene()
+	_finir(false)
+
+
+## Fin de partie : on note le résultat, puis l'écran de fin s'affiche.
+func _finir(victoire: bool) -> void:
+	if _fini:
+		return
+	_fini = true
+	_heros.definir_direction(Vector2.ZERO)
+	Partie.terminer(victoire, _ramasses)
+	await get_tree().create_timer(2.0 if not victoire else 0.5).timeout
+	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 
 
 func _draw() -> void:

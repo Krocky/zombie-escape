@@ -65,13 +65,18 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Attaque : le héros émet `attaque` ; le niveau touche les zombies à portée, devant le héros (ou au-dessus / en dessous). Le coup repousse et sonne le zombie (étoiles).
 - Contact : le zombie émet `touche_heros` ; le niveau appelle `recevoir_degats` sur le héros (recul + clignotement d'invulnérabilité).
 - Zombie battu : il bascule et s'efface (pas de gore).
-- Étape (c) provisoire : à la mort du héros, le niveau recommence au bout de 2 s (l'écran « Retour à la base » arrive à l'étape e).
 - Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame, avec `detectable` (faux si caché ou K.O.) ; aucun zombie ne connaît le nœud du héros.
 - Vue : cône (angle + distance, plus loin en poursuite) et ligne de vue bloquée par le décor (rayon physique, couche 1). Tout près (contact x1,5), il te sent même de dos.
 - Cône de vue dessiné au sol (repère pour l'enfant), sans découpe par les murs. Il est sur l'enfant `Cone` (z_index -1) ; `Monde` a z_index 1 pour passer au-dessus du sol.
 - Bruit : le héros émet `bruit` (pas toutes les 0,4 s en marchant, coup de batte) ; un zombie qui entend va voir (« ? ») mais ne poursuit que s'il voit.
 - États du zombie : PATROUILLE -> POURSUITE (« ! ») -> CHERCHE (« ? », au dernier endroit vu/entendu) -> RETOUR -> PATROUILLE.
 - Cachettes : se cacher marche toujours, même sous les yeux d'un zombie (choix « enfant »). Caché : invisible, immobile, silencieux, ne peut pas frapper, pas de dégâts. On sort uniquement avec le bouton (Sortir).
+- Objets : ramassés automatiquement en marchant dessus (pas de bouton). 5 objets : conserve, eau, bandage, piles, fiole de remède. Ils ne servent à rien en jeu au lot 1 (pas de soin) : ils vont dans l'inventaire.
+- Sortie : toujours ouverte ; l'atteindre = Victoire, avec tous les objets ramassés (pas d'objet obligatoire).
+- Mort : on perd la moitié des objets ramassés, au hasard, arrondi en dessous (1 objet -> rien de perdu ; 3 -> 1 perdu).
+- Enchaînement : Titre -> Niveau -> Fin (Victoire / Retour à la base) -> Rejouer -> Niveau. L'autoload `Partie` garde le résultat et l'inventaire.
+- Sauvegarde : `user://sauvegarde.json` = `{"version": 1, "inventaire": {type: nombre}}`, cumulée sur toutes les parties, affichée sur l'écran de fin.
+- Écrans titre/fin : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée).
 - Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
 
 ## Journal des lots
@@ -79,6 +84,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Lot 1 / étape (b) : orientation portrait + paysage ; zombies lent (gros) et rapide (maigre), patrouille, poursuite avec « ! », abandon puis retour au point de départ.
 - Lot 1 / étape (c) : bouton Frapper (batte, délai entre deux coups), cœurs du héros, dégâts au contact, recul, zombie sonné puis battu.
 - Lot 1 / étape (d) : 3 cachettes (2 cartons, 1 congélateur) + bouton Cacher/Sortir, vue en cône bloquée par les murs, bruit des pas et des coups, recherche puis retour.
+- Lot 1 / étape (e) : 5 objets à ramasser + compteur, sortie, écran titre, écran de fin (Victoire / Retour à la base avec perte de la moitié des objets), Rejouer, sauvegarde de l'inventaire.
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.

@@ -4,7 +4,7 @@ config_version=5
 [application]
 
 config/name="Zombie Escape"
-run/main_scene="res://scenes/niveau.tscn"
+run/main_scene="res://scenes/titre.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -13,6 +13,7 @@ config/icon="res://icon.svg"
 Palette="*res://data/palette.gd"
 Reglages="*res://data/reglages.gd"
 Ecran="*res://scripts/ecran.gd"
+Partie="*res://scripts/partie.gd"
 
 [display]
 

@@ -12,6 +12,8 @@ func _ready() -> void:
 	$BoutonAttaquer.appuye.connect(attaque.emit)
 	$BoutonCacher.couleur = Palette.CONGELATEUR
 	$BoutonCacher.appuye.connect(cacher.emit)
+	$CompteurObjets.add_theme_color_override("font_color", Palette.LAMPE)
+	$CompteurObjets.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 
 
 func afficher_pv(pv: int, pv_max: int) -> void:
@@ -23,3 +25,7 @@ func etat_cachette(proche: bool, cache: bool) -> void:
 	$BoutonCacher.actif = proche or cache
 	$BoutonCacher.texte = "Sortir" if cache else "Cacher"
 	$BoutonAttaquer.actif = not cache
+
+
+func afficher_objets(ramasses: int, total: int) -> void:
+	$CompteurObjets.text = "Objets : %d / %d" % [ramasses, total]
