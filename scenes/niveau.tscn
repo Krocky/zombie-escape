@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/niveau.gd" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
 [ext_resource type="PackedScene" path="res://scenes/heros.tscn" id="3_heros"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://scenes/zombie.tscn" id="5_zombie"]
 
 [node name="Niveau" type="Node2D"]
 script = ExtResource("1_niveau")
@@ -97,5 +98,14 @@ style = 2
 
 [node name="Heros" parent="Monde" instance=ExtResource("3_heros")]
 position = Vector2(1200, 1450)
+
+[node name="ZombieLent" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(400, 760)
+patrouille = Vector2(800, 0)
+
+[node name="ZombieRapide" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(1500, 350)
+type = 1
+patrouille = Vector2(550, 0)
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]

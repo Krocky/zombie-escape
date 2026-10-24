@@ -10,6 +10,13 @@ func _ready() -> void:
 	$Monde/Heros.regler_limites_camera(Rect2(Vector2.ZERO, TAILLE))
 
 
+func _physics_process(_delta: float) -> void:
+	# Chaque zombie connaît la position du héros (il décide lui-même s'il le voit).
+	var position_heros: Vector2 = $Monde/Heros.global_position
+	for zombie in get_tree().get_nodes_in_group("zombies"):
+		zombie.connaitre_position_heros(position_heros)
+
+
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, TAILLE), Palette.SOL)
 	var x := CARREAU

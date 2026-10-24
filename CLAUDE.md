@@ -40,7 +40,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Origine des entités = au sol (aux pieds), le dessin monte vers les Y négatifs, pour que le tri par Y soit correct.
 - Obstacles (`Mur`) : `position` = milieu du bord bas de l'emprise au sol ; `taille` = emprise au sol (collision) ; `hauteur` = face avant dessinée.
 - Code et noms en français, sans accents dans les identifiants.
-- Fenêtre 1280x720, stretch `canvas_items`, aspect `expand`, paysage forcé. UI ancrée aux bords, boutons tactiles >= 100 px.
+- Fenêtre 1280x720, stretch `canvas_items`, aspect `expand`. Paysage ET portrait (demande du père après l'étape a) : l'autoload `Ecran` passe la base en 720x1280 en portrait. UI ancrée aux bords, boutons tactiles >= 100 px, à vérifier dans les deux sens.
 - Contrôles tactiles uniquement (`emulate_touch_from_mouse` activé seulement pour tester à la souris).
 - Sauvegarde locale (inventaire) dans `user://`.
 - Fichiers `.uid` générés par Godot 4.4 : à committer.
@@ -58,9 +58,14 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Vitesse du héros : pleine vitesse dès que le joystick dépasse la zone morte (plus simple pour un enfant que l'analogique).
 - Le dessin des formes communes (polygone + contour) est dans `scripts/dessin.gd` (classe utilitaire `Dessin`, pas une scène).
 - Les obstacles (murs, étagères, caisses) partagent une seule scène `Mur` avec un `style`.
+- Orientation : capteur libre (portrait + paysage), au lieu du « paysage forcé » du brief initial. Pour revenir au paysage seul : `window/handheld/orientation=4` dans project.godot.
+- Zombies : une seule scène `Zombie` avec un `type` (LENT / RAPIDE) et un aller-retour de patrouille (`patrouille`, relatif au départ).
+- Étape (b) : détection par simple distance (sera remplacée par vue en cône + bruit à l'étape d). Pas de recherche de chemin : le zombie fonce tout droit et glisse le long des obstacles (les étagères aident à le semer).
+- Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame ; aucun zombie ne connaît le nœud du héros.
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
+- Lot 1 / étape (b) : orientation portrait + paysage ; zombies lent (gros) et rapide (maigre), patrouille, poursuite avec « ! », abandon puis retour au point de départ.
 
 ## Idées lot 2
 - (vide pour l'instant)
