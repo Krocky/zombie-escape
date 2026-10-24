@@ -12,7 +12,7 @@ Boucle : BASE (construire, rescapés qui travaillent) -> CARTE (choisir un lieu 
 Version 1 visée plus tard : 1 héros, 5 à 8 lieux, 3 types de zombies, ~10 armes/objets, ~10 rescapés. Solo, hors ligne.
 Hors périmètre définitif : multijoueur, construction libre, monde ouvert, comptes, réseau, pub, achats.
 
-## Lot 1 : périmètre (terminé, en test)
+## Lot 1 : périmètre (terminé ; retours de test intégrés)
 Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la fin :
 - Écran titre (Jouer), écran de fin (Victoire / Retour à la base) avec Rejouer.
 - Un niveau : murs, 3 cachettes (cartons, congélateur), 4 à 6 objets, une sortie.
@@ -27,8 +27,8 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 
 ## Direction artistique
 - Dark cartoon, aplats vectoriels, contours épais, palette bleu nuit / gris-violet, lampe torche jaune chaud, zombies verts un peu rigolos, pas de gore.
-- Référence : `docs/reference/original.png` (cible visuelle : ambiance, palette, persos). Attention : c'est un JPEG malgré l'extension. Rendu avant refonte : `docs/reference/actuel.png`.
-- Sprites `docs/raw/` (JPEG 512x286 sur fond magenta) : trop petits et flous pour les personnages, redessinés en code. Icônes (objets, cœurs, boutons, porte) éventuellement récupérables plus tard.
+- Référence : `docs/reference/original.png` (ex `style-b-supermarche.png` : cible visuelle, ambiance, palette, persos ; c'est un JPEG malgré l'extension). `docs/reference/actuel.png` : rendu avant refonte. `docs/raw/` : images de travail de la discussion « rendu visuel » (voir Méthode de travail).
+- Sprites `docs/raw/` (V1, JPEG 512x286) : trop petits. `docs/raw/V2/` : planches 2752x1536 sur fond magenta, isométriques ; certaines contiennent l'image cible incrustée (mélangée au magenta, alignée pixel pour pixel avec `original.png`).
 - Héros : capuche, sac à dos, batte, lampe torche. Zombie lent : gros. Zombie rapide : maigre.
 - Vue 3/4 orthogonale (type Zelda), pas isométrique. Tri de profondeur par Y. Refonte visuelle : vue 3/4 « dessinée » (décision du père) : seul le dessin change, physique et IA inchangées.
 - Lot 1 : formes géométriques dessinées en code (`_draw`), contour épais (`Palette.CONTOUR`, `Dessin.EPAISSEUR`).
@@ -45,6 +45,25 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Contrôles tactiles uniquement (`emulate_touch_from_mouse` activé seulement pour tester à la souris).
 - Sauvegarde locale (inventaire) dans `user://`.
 - Fichiers `.uid` générés par Godot 4.4 : à committer.
+
+## Lot 2 : proposé (option A : Base + Carte), en attente du choix d'Eliott
+Étapes : (a) écran Base + inventaire, (b) 3 constructions (barricade, atelier, lampe renforcée), (c) carte avec 2 lieux,
+(d) 2e lieu : la maison, (e) objectifs de mission + jauge du remède.
+Prompts complets, un par session : `docs/lot2-prompts.md` (valeurs entre crochets = propositions modifiables par Eliott).
+Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e zombie, armes, rescapé), (C) personnalisation du héros (prévue au lot 3).
+
+## Méthode de travail
+- Le père lance une session Claude Code par étape (prompt de `docs/lot2-prompts.md`), valide sur la tablette, puis lance la suivante.
+- Une AUTRE discussion travaille en parallèle sur le rendu visuel (dessins `_draw`, palette, `docs/reference`, `docs/raw`). Toujours `git pull origin main` avant de commencer ; ne pas réécrire le dessin des entités sans nécessité ; en cas de conflit, garder les changements visuels de l'autre discussion.
+- Pousser sur main (autorisé par le père) ; si la session impose une branche, pousser aussi sur main en fast-forward.
+- Le père ajoute parfois des fichiers directement sur GitHub (images, sons) : chaque ajout déclenche un build/une Release.
+
+## Tests
+- `tests/test_*.gd` : scénarios automatiques (SceneTree) qui simulent le toucher et vérifient le comportement ; ils affichent leurs résultats et enregistrent des captures d'écran dans `$CAPTURES`.
+- Lancer : `GODOT=<godot 4.4.1> CAPTURES=<dossier> tests/lancer.sh 1280x800` puis `800x1280` (besoin de `xvfb-run` ; le son passe par un pilote factice, donc les sons ne sont pas vraiment testés).
+- `test_e` efface la sauvegarde `user://` de l'environnement de test (pas celle de la tablette).
+- `tests/` est exclu de l'export APK (`exclude_filter` dans export_presets.cfg).
+- Installer Godot dans une session cloud : télécharger `Godot_v4.4.1-stable_linux.x86_64.zip` depuis les releases GitHub de godotengine, dézipper, lancer avec `--headless`.
 
 ## Build
 - `.github/workflows/build.yml` : à chaque push, export APK debug arm64-v8a avec Godot 4.4.1 (template non-Gradle, min SDK 21, compatible Android 11+).
@@ -103,6 +122,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Lot 1 / étape (e) : 5 objets à ramasser + compteur, sortie, écran titre, écran de fin (Victoire / Retour à la base avec perte de la moitié des objets), Rejouer, sauvegarde de l'inventaire.
 - Lot 1 / étape (f) : nuit (CanvasModulate), lampe torche (halo + faisceau qui suit la direction), brouillard, sons des zombies (cri quand ils te voient) et des coups de batte.
 - Lot 1 / retours de test : volume -6 dB, nuit beaucoup plus sombre + réglage `NUIT_CLARTE`, lumière verte sur la sortie, correction des zombies qui renaissaient.
+- Clôture lot 1 : tests automatiques ajoutés au dépôt (`tests/`), prompts du lot 2 rédigés (`docs/lot2-prompts.md`).
 
 ## Refonte visuelle (après le lot 1, demande du père)
 Lots : 1 volumes 3/4, 2 éclairage, 3 personnages, 4 décor (sol, débris), 5 objets, 6 retours de jeu, 7 UI.
@@ -112,3 +132,4 @@ Lots : 1 volumes 3/4, 2 éclairage, 3 personnages, 4 décor (sol, débris), 5 ob
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.
 - Cône de vue découpé par les murs.
+- Avec la nuit très sombre, les cônes de vue se voient peu : à surveiller (les garder visibles dans l'ombre si c'est trop dur).
