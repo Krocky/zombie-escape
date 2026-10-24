@@ -27,9 +27,10 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 
 ## Direction artistique
 - Dark cartoon, aplats vectoriels, contours épais, palette bleu nuit / gris-violet, lampe torche jaune chaud, zombies verts un peu rigolos, pas de gore.
-- Référence : `docs/reference/style-b-supermarche.png` (ambiance, palette, persos UNIQUEMENT). Attention : c'est un JPEG malgré l'extension.
+- Référence : `docs/reference/original.png` (cible visuelle : ambiance, palette, persos). Attention : c'est un JPEG malgré l'extension. Rendu avant refonte : `docs/reference/actuel.png`.
+- Sprites `docs/raw/` (JPEG 512x286 sur fond magenta) : trop petits et flous pour les personnages, redessinés en code. Icônes (objets, cœurs, boutons, porte) éventuellement récupérables plus tard.
 - Héros : capuche, sac à dos, batte, lampe torche. Zombie lent : gros. Zombie rapide : maigre.
-- Vue 3/4 orthogonale (type Zelda), pas isométrique. Tri de profondeur par Y.
+- Vue 3/4 orthogonale (type Zelda), pas isométrique. Tri de profondeur par Y. Refonte visuelle : vue 3/4 « dessinée » (décision du père) : seul le dessin change, physique et IA inchangées.
 - Lot 1 : formes géométriques dessinées en code (`_draw`), contour épais (`Palette.CONTOUR`, `Dessin.EPAISSEUR`).
 - Toutes les couleurs viennent de `data/palette.gd` (autoload `Palette`), extraites de l'image de référence.
 
@@ -85,6 +86,9 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Brouillard : scène `Brouillard` (z_index 2), nappes de cercles transparents qui dérivent ; épaisseur réglable (`BROUILLARD_OPACITE`).
 - Caché : le héros n'est plus rendu invisible (sinon ses lumières s'éteignent) ; il ne se dessine simplement pas.
 - Couches physiques : 1 décor (murs, cachettes), 2 héros, 3 zombies (valeur 4).
+- Volumes (refonte lot 1) : `Dessin.boite` dessine face avant + côté droit + dessus ; le bord arrière est décalé vers la droite de `profondeur x Dessin.OBLIQUE` (max `OBLIQUE_MAX` = 24 px, pour les murs très profonds). La collision reste l'emprise au sol rectangulaire.
+- Ombres : texture dégradée unique (`Dessin.ombre`), sur un enfant `Ombre` en z_index -1 pour les obstacles (sous les personnages), dans le `_draw` pour les personnages.
+- Détails déterministes (produits des étagères, fissures) : hasard à graine = position de l'obstacle. Fenêtres du mur du fond : `Mur.fenetres` (x locaux), placées à l'écart de la porte.
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
@@ -94,6 +98,10 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Lot 1 / étape (e) : 5 objets à ramasser + compteur, sortie, écran titre, écran de fin (Victoire / Retour à la base avec perte de la moitié des objets), Rejouer, sauvegarde de l'inventaire.
 - Lot 1 / étape (f) : nuit (CanvasModulate), lampe torche (halo + faisceau qui suit la direction), brouillard, sons des zombies (cri quand ils te voient) et des coups de batte.
 - Lot 1 / retours de test : volume -6 dB, nuit beaucoup plus sombre + réglage `NUIT_CLARTE`, lumière verte sur la sortie, correction des zombies qui renaissaient.
+
+## Refonte visuelle (après le lot 1, demande du père)
+Lots : 1 volumes 3/4, 2 éclairage, 3 personnages, 4 décor (sol, débris), 5 objets, 6 retours de jeu, 7 UI.
+- Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.

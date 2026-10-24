@@ -205,7 +205,8 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO, -s * avance * PI / 2.0, Vector2(1.25, 1.25) * (1.0 - avance * 0.3))
 	else:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
-	Dessin.ellipse(self, Vector2.ZERO, Vector2(26 if type == Type.LENT else 18, 8), Palette.OMBRE, false)
+	var rayon_ombre := 34.0 if type == Type.LENT else 24.0
+	Dessin.ombre(self, Rect2(-rayon_ombre, -10, rayon_ombre * 2.0, 20))
 	if type == Type.LENT:
 		_dessiner_gros(s, pas, tangue)
 	else:

@@ -31,7 +31,7 @@ func _draw() -> void:
 		flotte -= avance * 50.0
 		modulate.a = 1.0 - avance
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.4, 1.4))
-	Dessin.ellipse(self, Vector2.ZERO, Vector2(14, 5), Palette.OMBRE, false)
+	Dessin.ombre(self, Rect2(-18, -6, 36, 12))
 	# Petite lueur pour le repérer dans le noir
 	draw_circle(Vector2(0, flotte), 26.0, Palette.LAMPE * Color(1, 1, 1, 0.12 + 0.06 * sin(_temps * 4.0)))
 	var c := Vector2(0, flotte)

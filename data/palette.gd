@@ -9,17 +9,27 @@ const SOL := Color("4a5577")              # carrelage
 const SOL_JOINT := Color("3a4462")        # joints du carrelage
 const MUR := Color("2a2438")              # murs
 const MUR_FACE := Color("211a21")         # face avant des murs
+const MUR_COTE := Color("1a1520")         # côté des murs (plus sombre)
+const MUR_PLINTHE := Color("16131c")      # bas des murs
+const FISSURE := Color("15111b")          # fissures et lattes
 const FENETRE := Color("6890c5")          # fenêtre éclairée par la lune
 const ETAGERE := Color("3b3550")          # étagères métal
 const ETAGERE_FACE := Color("2a2540")
+const ETAGERE_COTE := Color("221e34")
+const ETAGERE_PLANCHE := Color("5a5878")  # planches métal éclairées
 const CAISSE_BOIS := Color("4a3a3e")      # caisses en bois
 const CAISSE_BOIS_FACE := Color("3d363e")
+const CAISSE_BOIS_COTE := Color("2f292f")
 const CARTON := Color("7a6058")           # cartons
 const CARTON_FACE := Color("645055")
+const CARTON_COTE := Color("4e3f45")
 const CONGELATEUR := Color("6a7ca0")      # congélateur
 const CONGELATEUR_FACE := Color("4e5c79")
+const CONGELATEUR_COTE := Color("3d4862")
+# Produits oubliés sur les étagères (couleurs ternes)
+const PRODUITS := [Color("7a6058"), Color("8a4a55"), Color("4e6a8a"), Color("718f79"), Color("a08a5a")]
 const BROUILLARD := Color("4c5576")
-const OMBRE := Color(0.05, 0.04, 0.09, 0.45)
+const OMBRE := Color(0.05, 0.04, 0.09, 0.6)
 const NUIT := Color(0.13, 0.13, 0.24)     # assombrit tout le niveau (CanvasModulate)
 
 # Lampe torche

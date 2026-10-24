@@ -22,6 +22,7 @@ position = Vector2(1200, 160)
 taille = Vector2(2400, 80)
 hauteur = 120.0
 style = 0
+fenetres = PackedFloat32Array(-520, 80, 680)
 
 [node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1200, 1600)

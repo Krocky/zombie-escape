@@ -146,7 +146,7 @@ func _draw() -> void:
 	modulate.a = 0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0
 
 	# Ombre au sol
-	Dessin.ellipse(self, Vector2(0, 0), Vector2(22, 7), Palette.OMBRE, false)
+	Dessin.ombre(self, Rect2(-28, -9, 56, 18))
 	# Jambes
 	Dessin.rect(self, Rect2(-11 + pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
 	Dessin.rect(self, Rect2(2 - pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
