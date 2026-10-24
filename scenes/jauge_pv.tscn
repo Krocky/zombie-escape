@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/jauge_pv.gd" id="1_jauge"]
+
+[node name="JaugePV" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 324.0
+offset_bottom = 84.0
+mouse_filter = 2
+script = ExtResource("1_jauge")

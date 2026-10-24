@@ -1,10 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
 [ext_resource type="PackedScene" path="res://scenes/joystick.tscn" id="2_joy"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="3_bouton"]
+[ext_resource type="PackedScene" path="res://scenes/jauge_pv.tscn" id="4_jauge"]
 
 [node name="HUD" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud")
 
 [node name="Joystick" parent="." instance=ExtResource("2_joy")]
+
+[node name="BoutonAttaquer" parent="." instance=ExtResource("3_bouton")]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -200.0
+offset_right = -60.0
+offset_bottom = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+texte = "Frapper"
+
+[node name="JaugePV" parent="." instance=ExtResource("4_jauge")]

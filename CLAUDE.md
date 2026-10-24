@@ -61,11 +61,17 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Orientation : capteur libre (portrait + paysage), au lieu du « paysage forcé » du brief initial. Pour revenir au paysage seul : `window/handheld/orientation=4` dans project.godot.
 - Zombies : une seule scène `Zombie` avec un `type` (LENT / RAPIDE) et un aller-retour de patrouille (`patrouille`, relatif au départ).
 - Étape (b) : détection par simple distance (sera remplacée par vue en cône + bruit à l'étape d). Pas de recherche de chemin : le zombie fonce tout droit et glisse le long des obstacles (les étagères aident à le semer).
+- Boutons d'action : scène `BoutonTactile` maison (gère plusieurs doigts) ; un `Button` Godot ne réagit qu'au premier doigt, donc pas pendant qu'on tient le joystick.
+- Attaque : le héros émet `attaque` ; le niveau touche les zombies à portée, devant le héros (ou au-dessus / en dessous). Le coup repousse et sonne le zombie (étoiles).
+- Contact : le zombie émet `touche_heros` ; le niveau appelle `recevoir_degats` sur le héros (recul + clignotement d'invulnérabilité).
+- Zombie battu : il bascule et s'efface (pas de gore).
+- Étape (c) provisoire : à la mort du héros, le niveau recommence au bout de 2 s (l'écran « Retour à la base » arrive à l'étape e).
 - Le niveau transmet la position du héros aux zombies (groupe `zombies`) à chaque frame ; aucun zombie ne connaît le nœud du héros.
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
 - Lot 1 / étape (b) : orientation portrait + paysage ; zombies lent (gros) et rapide (maigre), patrouille, poursuite avec « ! », abandon puis retour au point de départ.
+- Lot 1 / étape (c) : bouton Frapper (batte, délai entre deux coups), cœurs du héros, dégâts au contact, recul, zombie sonné puis battu.
 
 ## Idées lot 2
 - (vide pour l'instant)

@@ -2,14 +2,52 @@ extends CharacterBody2D
 ## Le héros : capuche, sac à dos, batte, lampe torche.
 ## Origine = aux pieds (tri par Y).
 
+## La batte frappe : le niveau décide quels zombies sont touchés.
+signal attaque(origine: Vector2, sens: Vector2)
+signal pv_change(pv: int, pv_max: int)
+signal mort
+
+const DUREE_COUP := 0.2
+
 var _direction := Vector2.ZERO
 var _regarde_gauche := false
 var _temps := 0.0
+var _pv := Reglages.HEROS_PV
+var _recul := Vector2.ZERO
+var _invulnerable := 0.0
+var _recharge_attaque := 0.0
+var _coup := 0.0   # temps restant de l'animation de coup de batte
+
+
+func _ready() -> void:
+	pv_change.emit.call_deferred(_pv, Reglages.HEROS_PV)
 
 
 ## Appelé par le niveau quand le joystick bouge.
 func definir_direction(direction: Vector2) -> void:
 	_direction = direction
+
+
+## Appelé par le niveau quand on appuie sur Frapper.
+func attaquer() -> void:
+	if _pv <= 0 or _recharge_attaque > 0.0:
+		return
+	_recharge_attaque = Reglages.ATTAQUE_DELAI
+	_coup = DUREE_COUP
+	attaque.emit(global_position, Vector2(-1 if _regarde_gauche else 1, 0))
+
+
+## Appelé par le niveau quand un zombie touche le héros.
+func recevoir_degats(degats: int, depuis: Vector2) -> void:
+	if _pv <= 0 or _invulnerable > 0.0:
+		return
+	_pv = maxi(_pv - degats, 0)
+	_invulnerable = Reglages.HEROS_INVULNERABLE
+	_recul = depuis.direction_to(global_position) * Reglages.HEROS_RECUL
+	pv_change.emit(_pv, Reglages.HEROS_PV)
+	if _pv == 0:
+		_direction = Vector2.ZERO
+		mort.emit()
 
 
 func regler_limites_camera(limites: Rect2) -> void:
@@ -22,7 +60,12 @@ func regler_limites_camera(limites: Rect2) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	velocity = _direction * Reglages.HEROS_VITESSE
+	_invulnerable = maxf(_invulnerable - delta, 0.0)
+	_recharge_attaque = maxf(_recharge_attaque - delta, 0.0)
+	_coup = maxf(_coup - delta, 0.0)
+	var direction := _direction if _pv > 0 else Vector2.ZERO
+	velocity = direction * Reglages.HEROS_VITESSE + _recul
+	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
 	if absf(_direction.x) > 0.1:
 		_regarde_gauche = _direction.x < 0.0
@@ -37,7 +80,13 @@ func _draw() -> void:
 	var s := -1.0 if _regarde_gauche else 1.0  # sens du regard
 	var pas := sin(_temps * 14.0) * 4.0         # balancement des jambes
 	var rebond := absf(sin(_temps * 14.0)) * 2.0
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
+	if _pv <= 0:
+		# K.O. : couché par terre
+		draw_set_transform(Vector2(0, -10), -s * PI / 2.0, Vector2(1.25, 1.25))
+	else:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.25, 1.25))
+	# Clignote quand il vient d'être touché
+	modulate.a = 0.35 if _invulnerable > 0.0 and int(_invulnerable * 12.0) % 2 == 0 else 1.0
 
 	# Ombre au sol
 	Dessin.ellipse(self, Vector2(0, 0), Vector2(22, 7), Palette.OMBRE, false)
@@ -46,9 +95,10 @@ func _draw() -> void:
 	Dessin.rect(self, Rect2(2 - pas * 0.5, -26, 9, 24), Palette.HEROS_JEAN)
 	# Sac à dos (côté opposé au regard)
 	Dessin.rect(self, Rect2(-s * 22 - 8, -60 - rebond, 16, 26), Palette.HEROS_SAC)
-	# Batte dans la main arrière
-	draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.CONTOUR, 9.0)
-	draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.BATTE, 5.0)
+	# Batte dans la main arrière (au repos)
+	if _coup == 0.0:
+		draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.CONTOUR, 9.0)
+		draw_line(Vector2(-s * 10, -34 - rebond), Vector2(-s * 30, -6), Palette.BATTE, 5.0)
 	# Corps (veste)
 	Dessin.polygone(self, PackedVector2Array([
 		Vector2(-16, -62 - rebond), Vector2(16, -62 - rebond),
@@ -62,3 +112,12 @@ func _draw() -> void:
 	Dessin.cercle(self, Vector2(s * 5, -73 - rebond), 11, Palette.HEROS_PEAU)
 	draw_rect(Rect2(s * 5 - 9, -84 - rebond, 18, 5), Palette.HEROS_CHEVEUX)
 	draw_circle(Vector2(s * 10, -74 - rebond), 2.0, Palette.CONTOUR)
+	# Coup de batte : la batte balaie devant le héros
+	if _coup > 0.0:
+		var avance := 1.0 - _coup / DUREE_COUP
+		var angle := lerpf(-PI * 0.6, PI * 0.25, avance)
+		var main := Vector2(s * 14, -46)
+		var bout := main + Vector2(s * cos(angle), sin(angle)) * 46.0
+		draw_arc(main, 46.0, -PI * 0.6 if s > 0 else PI * 1.6, angle if s > 0 else PI - angle, 12, Palette.LAMPE * Color(1, 1, 1, 0.5), 6.0)
+		draw_line(main, bout, Palette.CONTOUR, 11.0)
+		draw_line(main, bout, Palette.BATTE, 7.0)
