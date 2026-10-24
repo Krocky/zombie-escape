@@ -125,9 +125,16 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Clôture lot 1 : tests automatiques ajoutés au dépôt (`tests/`), prompts du lot 2 rédigés (`docs/lot2-prompts.md`).
 
 ## Refonte visuelle (après le lot 1, demande du père)
-Lots : 1 volumes 3/4, 2 éclairage, 3 personnages, 4 décor (sol, débris), 5 objets, 6 retours de jeu, 7 UI.
+Lots (plan révisé après les planches V2) : 1 volumes 3/4 (fait, devient le dessin de secours), 2 éclairage (fait), 3 préparation des images V2 (fait), 4 passage en ISOMÉTRIQUE (décision du père : le décor V2 est isométrique), 5 personnages en sprites, 6 objets + retours de jeu, 7 UI.
+- Images V2 : `outils/decoupe_v2.py` (Python + numpy, pillow, scipy) découpe les planches `docs/raw/V2` et écrit `images/<famille>.png` (un atlas par famille : heros, zombies, sol, murs, decor, objets, portes), `data/atlas.gd` (FICHIER GÉNÉRÉ : `REGIONS` = nom -> [famille, Rect2 dans l'atlas, décalage]) et `docs/apercu_atlas.jpg`. Pour corriger une découpe : modifier `MORCEAUX` (polygones en coordonnées « aperçu » = moitié de la planche) et relancer le script.
+- Détourage : fond = magenta pur, ou mélange magenta + `original.png` (incrustation alignée pixel pour pixel), ou voile violet clair. Faisceau du héros et lueur des objets retirés par remplissage depuis l'extérieur jusqu'au contour noir.
+- Textures à 2x la taille d'affichage visée (tablette 2560x1600). Échelles par famille dans `FAMILLES`.
+- Zombies : une image `<pose>_yeux` par pose de face/profil (les yeux seuls, recadrés, avec leur décalage) pour les dessiner sans être assombris par la nuit.
+- Écartés : la pose de gros zombie salie par l'incrustation (doublon), la dalle salie, les caisses coupées par le bord de la planche. Pas de fiole de remède dans V2 (reste dessinée en code). Petits restes d'un ou deux pixels sous le couteau, le talkie et la carte, et une légère lueur dans l'anneau de la clé.
+- Questions ouvertes (père / Eliott) : porte avec cadenas = clé à trouver (changement de gameplay) ? Remplacer la fiole par un objet V2 ?
 - Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
 - Refonte / lot 2 : faisceau net et chaud, halo réduit, vignettage, brume au ras du sol, lumière de lune sous les fenêtres, yeux des zombies qui brillent dans le noir, compteur d'ips.
+- Refonte / lot 3 : planches V2 détourées en 7 atlas (86 images : 12 poses du héros, 23 de zombies + yeux, 6 dalles, 4 murs, 15 décors, 8 objets, 2 portes).
 
 ## Idées lot 2
 - Montrer le bruit à l'écran (petites ondes autour du héros) pour qu'on comprenne pourquoi un zombie arrive.
