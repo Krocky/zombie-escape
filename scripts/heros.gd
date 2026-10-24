@@ -165,8 +165,9 @@ func _physics_process(delta: float) -> void:
 ## Le dessin, les lumières et la caméra suivent la position projetée à l'écran.
 func _suivre() -> void:
 	_vue.position = Iso.ecran(global_position)
-	_camera.global_position = _vue.position + Vector2(0, -50)
 	var regard := Iso.direction_ecran(_regard)
+	# La caméra regarde un peu en avant, du côté où il va
+	_camera.global_position = _vue.position + Vector2(0, -50) + regard * Reglages.CAMERA_AVANCE
 	var nom := _pose()
 	var main := Vector2(regard.x * 30.0, -60.0)
 	if Images.existe(nom):

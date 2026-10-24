@@ -25,6 +25,7 @@ const CONGELATEUR := Color("6a7ca0")      # congélateur
 const CONGELATEUR_FACE := Color("4e5c79")
 const CONGELATEUR_COTE := Color("3d4862")
 const BROUILLARD := Color("4c5576")
+const BRUME_CLAIRE := Color("7d88ad")    # brume au sol, visible même dans le noir
 const OMBRE := Color(0.05, 0.04, 0.09, 0.6)
 const NUIT := Color(0.13, 0.13, 0.24)     # assombrit tout le niveau (CanvasModulate)
 const VIGNETTE := Color(0.03, 0.02, 0.07, 0.85)   # bords de l'écran assombris

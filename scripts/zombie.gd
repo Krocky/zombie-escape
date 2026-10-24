@@ -53,6 +53,7 @@ var _yeux_sens := 1.0
 var _corps_rotation := 0.0
 var _corps_echelle := Vector2.ONE
 var _vue := Node2D.new()   # dans le calque Vue du niveau
+var _haut_icone := -120.0  # au-dessus de la tête : « ! », « ? », étoiles
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
 @onready var _yeux: Node2D = $Yeux   # enfant de _vue
@@ -274,12 +275,7 @@ func _dessiner() -> void:
 	else:
 		_dessiner_secours(s)
 	v.draw_set_transform(Vector2.ZERO)
-	if _etourdi > 0.0 and not _battu:
-		_dessiner_etoiles(Vector2(0, haut))
-	elif _etat == Etat.POURSUITE and not _battu:
-		_dessiner_alerte(Vector2(0, haut))
-	elif _etat == Etat.CHERCHE and not _battu:
-		_dessiner_question(Vector2(0, haut))
+	_haut_icone = haut
 
 
 ## Dessin en code (si les images manquent).
@@ -336,11 +332,23 @@ func _dessiner_visage(t: Vector2, s: float) -> void:
 	_yeux_sens = s
 
 
+## « ! », « ? » ou étoiles au-dessus de la tête : sur le calque sans ombre, lisibles dans le noir.
+func _dessiner_icone() -> void:
+	_yeux.draw_set_transform(Vector2.ZERO)
+	if _etourdi > 0.0:
+		_dessiner_etoiles(Vector2(0, _haut_icone))
+	elif _etat == Etat.POURSUITE:
+		_dessiner_alerte(Vector2(0, _haut_icone))
+	elif _etat == Etat.CHERCHE:
+		_dessiner_question(Vector2(0, _haut_icone))
+
+
 ## Grands yeux jaunes qui brillent dans le noir (matériau sans ombre) : calque d'yeux de l'image,
 ## ou yeux dessinés en code.
 func _dessiner_yeux() -> void:
 	if _battu:
 		return
+	_dessiner_icone()
 	var pose := _pose()
 	var nom_yeux: String = pose[0] + "_yeux"
 	if Images.existe(pose[0]):
@@ -364,9 +372,9 @@ func _dessiner_yeux() -> void:
 
 func _dessiner_alerte(p: Vector2) -> void:
 	# Point d'exclamation : le zombie t'a vu !
-	Dessin.polygone(_vue, PackedVector2Array([
+	Dessin.polygone(_yeux, PackedVector2Array([
 		p + Vector2(-7, -26), p + Vector2(7, -26), p + Vector2(4, -4), p + Vector2(-4, -4)]), Palette.LAMPE)
-	Dessin.cercle(_vue, p + Vector2(0, 5), 5, Palette.LAMPE)
+	Dessin.cercle(_yeux, p + Vector2(0, 5), 5, Palette.LAMPE)
 
 
 func _dessiner_etoiles(p: Vector2) -> void:
@@ -374,8 +382,8 @@ func _dessiner_etoiles(p: Vector2) -> void:
 	for i in 3:
 		var a := _temps * 6.0 + TAU * i / 3.0
 		var c := p + Vector2(cos(a) * 18.0, sin(a) * 6.0 - 6.0)
-		_vue.draw_circle(c, 7.0, Palette.CONTOUR)
-		_vue.draw_circle(c, 5.0, Palette.LAMPE)
+		_yeux.draw_circle(c, 7.0, Palette.CONTOUR)
+		_yeux.draw_circle(c, 5.0, Palette.LAMPE)
 
 
 func _dessiner_cone() -> void:
@@ -393,5 +401,5 @@ func _dessiner_cone() -> void:
 func _dessiner_question(p: Vector2) -> void:
 	# Point d'interrogation : le zombie te cherche
 	var police := ThemeDB.fallback_font
-	_vue.draw_string_outline(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, 8, Palette.CONTOUR)
-	_vue.draw_string(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Palette.LAMPE)
+	_yeux.draw_string_outline(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, 8, Palette.CONTOUR)
+	_yeux.draw_string(police, p + Vector2(-9, 4), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 36, Palette.LAMPE)

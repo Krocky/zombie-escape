@@ -116,7 +116,9 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Caméra : reste le nœud `Camera2D` du héros (les tests l'utilisent), en `top_level`, placée sur la position projetée.
 - Yeux des zombies (refonte lot 2) : dessinés sur l'enfant `Yeux` avec un `CanvasItemMaterial` UNSHADED : ils échappent au `CanvasModulate` et brillent dans le noir (lueur `ZOMBIE_YEUX_LUEUR`). Le corps reste assombri hors de la lampe.
 - Faisceau : bord net, cœur plus fort, texture calculée une seule fois (`static var`). Halo réduit. Vignettage : scène `Vignette` (CanvasLayer 5, sous le HUD), une texture dégradée étirée, ne capte pas les doigts.
-- Brume : une texture dégradée unique, nappes aplaties au ras du sol, graine fixe ; `BROUILLARD_OPACITE` garde le même sens.
+- Brume : une texture dégradée unique, nappes aplaties, graine fixe ; deux couches (scène `Brouillard`) : `BrumeSol` sous les personnages, claire (`Palette.BRUME_CLAIRE`) et non assombrie par la nuit (`lumineuse`), et `Brouillard` par-dessus, légère. `force` multiplie `Reglages.BROUILLARD_OPACITE`.
+- « ! », « ? » et étoiles des zombies : sur le calque `Yeux` (sans ombre), lisibles dans le noir. Panneau SORTIE aussi sans ombre.
+- Caméra : regarde en avant du héros de `Reglages.CAMERA_AVANCE` pixels dans la direction du regard.
 - Lune : une PointLight2D bleue (`Palette.LUNE`) au sol sous chaque fenêtre du mur du fond. Total : 6 lumières (halo, lampe, sortie, 3 lunes).
 - `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott).
 
@@ -131,7 +133,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Clôture lot 1 : tests automatiques ajoutés au dépôt (`tests/`), prompts du lot 2 rédigés (`docs/lot2-prompts.md`).
 
 ## Refonte visuelle (après le lot 1, demande du père)
-Lots (plan révisé après les planches V2) : 1 volumes 3/4 (fait, devient le dessin de secours), 2 éclairage (fait), 3 préparation des images V2 (fait), 4 passage en ISOMÉTRIQUE (décision du père : le décor V2 est isométrique), 5 personnages en sprites, 6 objets + retours de jeu, 7 UI.
+Lots (plan révisé après les planches V2) : 1 volumes 3/4 (remplacé par l'isométrique), 2 éclairage, 3 préparation des images V2, 4 passage en ISOMÉTRIQUE + décor + personnages en images V2, 5 ambiance (brume, lisibilité), 6 objets + retours de jeu, 7 UI.
 - Images V2 : `outils/decoupe_v2.py` (Python + numpy, pillow, scipy) découpe les planches `docs/raw/V2` et écrit `images/<famille>.png` (un atlas par famille : heros, zombies, sol, murs, decor, objets, portes), `data/atlas.gd` (FICHIER GÉNÉRÉ : `REGIONS` = nom -> [famille, Rect2 dans l'atlas, décalage]) et `docs/apercu_atlas.jpg`. Pour corriger une découpe : modifier `MORCEAUX` (polygones en coordonnées « aperçu » = moitié de la planche) et relancer le script.
 - Détourage : fond = magenta pur, ou mélange magenta + `original.png` (incrustation alignée pixel pour pixel), ou voile violet clair. Faisceau du héros et lueur des objets retirés par remplissage depuis l'extérieur jusqu'au contour noir.
 - Textures à 2x la taille d'affichage visée (tablette 2560x1600). Échelles par famille dans `FAMILLES`.
@@ -141,6 +143,7 @@ Lots (plan révisé après les planches V2) : 1 volumes 3/4 (fait, devient le de
 - Refonte / lot 1 : obstacles et cachettes en volume (dessus, face, côté), étagères garnies, caisses à lattes, carton scotché, congélateur vitré, fenêtres cassées au fond, ombres douces au sol.
 - Refonte / lot 2 : faisceau net et chaud, halo réduit, vignettage, brume au ras du sol, lumière de lune sous les fenêtres, yeux des zombies qui brillent dans le noir, compteur d'ips.
 - Refonte / lot 3 : planches V2 détourées en 7 atlas (86 images : 12 poses du héros, 23 de zombies + yeux, 6 dalles, 4 murs, 15 décors, 8 objets, 2 portes).
+- Refonte / lot 5 : brume claire au sol, icônes des zombies et panneau SORTIE lisibles dans le noir, caméra qui regarde en avant.
 - Refonte / lot 4 : passage en isométrique (affichage seul), décor, sol, débris, murs à fenêtres, porte de sortie verte, héros et zombies en images V2 animées, tests adaptés (pas de physique, joystick projeté).
 
 ## Idées lot 2

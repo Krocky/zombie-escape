@@ -1,10 +1,15 @@
 extends Node2D
-## Brume au sol : des nappes plates et douces qui dérivent lentement au-dessus du niveau.
+## Brume au sol : des nappes plates et douces qui dérivent lentement (coordonnées écran).
 ## Une seule texture dégradée, dessinée étirée pour chaque nappe (pas d'allocation par image).
+## Deux couches dans le niveau : sous les personnages (dense) et par-dessus (légère).
 
 const NOMBRE := 34
 
 @export var taille := Vector2(2400, 1600)
+@export var force := 1.0          # multiplie Reglages.BROUILLARD_OPACITE
+## Vrai : la brume n'est pas assombrie par la nuit (elle reste visible, comme une brume claire).
+@export var lumineuse := false
+@export var graine := 1
 
 var _nappes := []   # chaque nappe : [position, rayon, vitesse]
 var _texture: GradientTexture2D
@@ -12,7 +17,8 @@ var _texture: GradientTexture2D
 
 func _ready() -> void:
 	var degrade := Gradient.new()
-	degrade.colors = PackedColorArray([Palette.BROUILLARD, Color(Palette.BROUILLARD, 0.0)])
+	var couleur := Palette.BRUME_CLAIRE if lumineuse else Palette.BROUILLARD
+	degrade.colors = PackedColorArray([couleur, Color(couleur, 0.0)])
 	_texture = GradientTexture2D.new()
 	_texture.gradient = degrade
 	_texture.width = 64
@@ -22,7 +28,11 @@ func _ready() -> void:
 	_texture.fill_to = Vector2(1.0, 0.5)
 	# Toujours la même brume au départ (graine fixe)
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 1
+	rng.seed = graine
+	if lumineuse:
+		var sans_ombre := CanvasItemMaterial.new()
+		sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+		material = sans_ombre
 	for i in NOMBRE:
 		_nappes.append([
 			Vector2(rng.randf() * taille.x, rng.randf() * taille.y),
@@ -42,7 +52,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	# Opacité du centre de la nappe ; les nappes sont plates (au ras du sol)
-	var teinte := Color(1, 1, 1, clampf(Reglages.BROUILLARD_OPACITE * 4.0, 0.0, 1.0))
+	var teinte := Color(1, 1, 1, clampf(Reglages.BROUILLARD_OPACITE * 4.0 * force, 0.0, 1.0))
 	for nappe in _nappes:
 		var rayon: float = nappe[1]
 		draw_texture_rect(_texture, Rect2(nappe[0] - Vector2(rayon, rayon * 0.45), Vector2(rayon * 2.0, rayon * 0.9)), false, teinte)

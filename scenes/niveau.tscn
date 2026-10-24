@@ -154,6 +154,14 @@ position = Vector2(1500, 350)
 type = 1
 patrouille = Vector2(550, 0)
 
+[node name="BrumeSol" parent="." instance=ExtResource("9_brouillard")]
+z_index = 0
+position = Vector2(-960, 0)
+taille = Vector2(2400, 1411)
+force = 1.3
+lumineuse = true
+graine = 2
+
 [node name="Vue" type="Node2D" parent="."]
 z_index = 1
 y_sort_enabled = true
@@ -161,6 +169,7 @@ y_sort_enabled = true
 [node name="Brouillard" parent="." instance=ExtResource("9_brouillard")]
 position = Vector2(-960, 0)
 taille = Vector2(2400, 1411)
+force = 0.6
 
 [node name="Nuit" type="CanvasModulate" parent="."]
 
