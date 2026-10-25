@@ -2,9 +2,600 @@
  "echelles_perso": {
   "heroine": 0.129695,
   "heros": 0.132597,
+  "survivor": 0.138471,
   "zombie_runner": 0.127273
  },
  "images": {
+  "base_barricade": {
+   "ancre_pieds": [
+    238,
+    319
+   ],
+   "anomalies": [
+    "fond magenta délavé [231, 32, 205] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     237,
+     319
+    ],
+    "droit": [
+     479,
+     191
+    ],
+    "gauche": [
+     0,
+     190
+    ]
+   },
+   "defrange_px": 13732,
+   "echelle": 0.5047,
+   "empreinte": "a3f8ba20414f1ae903ae1dfef2492e9c3eefc941",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_barricade.png",
+   "fond": [
+    231,
+    32,
+    205
+   ],
+   "mauve_desature_px": 18124,
+   "nom": "base_barricade",
+   "ombre_violette_px": 3824,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_barricade.png",
+   "taille": [
+    480,
+    320
+   ],
+   "teinte_violette_px": 2649,
+   "traits_fins_px": 0
+  },
+  "base_campfire": {
+   "ancre_pieds": [
+    238,
+    293
+   ],
+   "anomalies": [],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     239,
+     293
+    ],
+    "droit": [
+     479,
+     164
+    ],
+    "gauche": [
+     0,
+     163
+    ]
+   },
+   "defrange_px": 12210,
+   "echelle": 0.5134,
+   "empreinte": "5b8da92f008794e74eb438ffc47afce05ac0411c",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_campfire.png",
+   "fond": [
+    237,
+    21,
+    220
+   ],
+   "mauve_desature_px": 46076,
+   "nom": "base_campfire",
+   "ombre_violette_px": 3554,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_campfire.png",
+   "taille": [
+    480,
+    294
+   ],
+   "teinte_violette_px": 2588,
+   "traits_fins_px": 55
+  },
+  "base_floodlight": {
+   "ancre_pieds": [
+    114,
+    707
+   ],
+   "anomalies": [
+    "fond magenta délavé [214, 51, 180] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     115,
+     707
+    ],
+    "droit": [
+     220,
+     656
+    ],
+    "gauche": [
+     0,
+     648
+    ]
+   },
+   "defrange_px": 44129,
+   "echelle": 0.2481,
+   "empreinte": "ef8401ede5935f79ac619dd384ec0fc6a4c665a2",
+   "fichier": "images/v3/base_floodlight.png",
+   "fond": [
+    214,
+    51,
+    180
+   ],
+   "hauteur_relative": [
+    "base_shelter_1",
+    1.4
+   ],
+   "mauve_desature_px": 81700,
+   "nom": "base_floodlight",
+   "ombre_violette_px": 8181,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_floodlight.png",
+   "taille": [
+    221,
+    708
+   ],
+   "teinte_violette_px": 6343,
+   "traits_fins_px": 2175
+  },
+  "base_garden": {
+   "ancre_pieds": [
+    262,
+    522
+   ],
+   "anomalies": [
+    "fond magenta délavé [200, 61, 163] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     230,
+     522
+    ],
+    "droit": [
+     478,
+     387
+    ],
+    "gauche": [
+     0,
+     396
+    ]
+   },
+   "defrange_px": 43724,
+   "echelle": 0.4214,
+   "empreinte": "ba1b849dcfc2042e483b9e857975529c8f30af84",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_garden.png",
+   "fond": [
+    200,
+    61,
+    163
+   ],
+   "mauve_desature_px": 52254,
+   "nom": "base_garden",
+   "ombre_violette_px": 814,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_garden.png",
+   "taille": [
+    480,
+    524
+   ],
+   "teinte_violette_px": 3373,
+   "traits_fins_px": 1460
+  },
+  "base_shelter_1": {
+   "ancre_pieds": [
+    253,
+    473
+   ],
+   "anomalies": [],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     211,
+     473
+    ],
+    "droit": [
+     456,
+     385
+    ],
+    "gauche": [
+     15,
+     199
+    ]
+   },
+   "defrange_px": 42819,
+   "echelle": 0.6015,
+   "empreinte": "05d5ec0537c1ab916762010f27dfa7c93cb3bd2c",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_shelter_1.png",
+   "fond": [
+    251,
+    2,
+    251
+   ],
+   "mauve_desature_px": 12256,
+   "nom": "base_shelter_1",
+   "ombre_violette_px": 37638,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_shelter_1.png",
+   "taille": [
+    480,
+    506
+   ],
+   "teinte_violette_px": 1347,
+   "traits_fins_px": 53
+  },
+  "base_shelter_2": {
+   "ancre_pieds": [
+    253,
+    469
+   ],
+   "anomalies": [],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     249,
+     469
+    ],
+    "droit": [
+     444,
+     409
+    ],
+    "gauche": [
+     6,
+     358
+    ]
+   },
+   "defrange_px": 69739,
+   "echelle": 0.5257,
+   "empreinte": "b68f149bf7e96337d33e362c7e30fc8ee3b18844",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_shelter_2.png",
+   "fond": [
+    249,
+    10,
+    237
+   ],
+   "mauve_desature_px": 13822,
+   "nom": "base_shelter_2",
+   "ombre_violette_px": 65014,
+   "poussieres_px": 17,
+   "source": "docs/raw/V3/base_shelter_2.png",
+   "taille": [
+    480,
+    491
+   ],
+   "teinte_violette_px": 2139,
+   "traits_fins_px": 236
+  },
+  "base_tent": {
+   "ancre_pieds": [
+    231,
+    408
+   ],
+   "anomalies": [
+    "fond magenta délavé [209, 55, 172] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     230,
+     408
+    ],
+    "droit": [
+     479,
+     271
+    ],
+    "gauche": [
+     1,
+     284
+    ]
+   },
+   "defrange_px": 15504,
+   "echelle": 0.4211,
+   "empreinte": "d4a99bb10d4621d4f9187b0ac2ab75408119cf78",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_tent.png",
+   "fond": [
+    209,
+    55,
+    172
+   ],
+   "mauve_desature_px": 36941,
+   "nom": "base_tent",
+   "ombre_violette_px": 776,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_tent.png",
+   "taille": [
+    480,
+    410
+   ],
+   "teinte_violette_px": 935,
+   "traits_fins_px": 4
+  },
+  "base_workshop": {
+   "ancre_pieds": [
+    238,
+    517
+   ],
+   "anomalies": [
+    "fond magenta délavé [223, 40, 194] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     237,
+     517
+    ],
+    "droit": [
+     479,
+     390
+    ],
+    "gauche": [
+     0,
+     389
+    ]
+   },
+   "defrange_px": 23403,
+   "echelle": 0.5058,
+   "empreinte": "19fc3cc76861d1d03daefdecbd378ff6b42f61f8",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_workshop.png",
+   "fond": [
+    223,
+    40,
+    194
+   ],
+   "mauve_desature_px": 89033,
+   "nom": "base_workshop",
+   "ombre_violette_px": 5884,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/base_workshop.png",
+   "taille": [
+    480,
+    518
+   ],
+   "teinte_violette_px": 3838,
+   "traits_fins_px": 259
+  },
+  "bg_base": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "echelle": 1.0,
+   "empreinte": "5b36c2c972fd43db9eacbe7d9880b40cd24a00c1",
+   "fichier": "images/v3/bg_base.png",
+   "nom": "bg_base",
+   "source": "docs/raw/V3/bg_base.jpg",
+   "taille": [
+    2048,
+    2048
+   ]
+  },
+  "bg_defeat_heroine": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "echelle": 1.0,
+   "empreinte": "8fce7b474641ef480f5ba4bd468061c95f52e578",
+   "fichier": "images/v3/bg_defeat_heroine.png",
+   "nom": "bg_defeat_heroine",
+   "source": "docs/raw/V3/bg_defeat_heroine.jpg",
+   "taille": [
+    2048,
+    2048
+   ]
+  },
+  "bg_defeat_heros": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "echelle": 1.0,
+   "empreinte": "e8595038e2c38770f0b56b8a67610aa22690a8a5",
+   "fichier": "images/v3/bg_defeat_heros.png",
+   "nom": "bg_defeat_heros",
+   "source": "docs/raw/V3/bg_defeat_heros.jpg",
+   "taille": [
+    2048,
+    2048
+   ]
+  },
+  "bg_map": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "echelle": 0.7273,
+   "empreinte": "a57abf75ad86b55b0cbf887eb87f5570fea1daec",
+   "fichier": "images/v3/bg_map.png",
+   "nom": "bg_map",
+   "source": "docs/raw/V3/bg_map.jpg",
+   "taille": [
+    2048,
+    1117
+   ]
+  },
+  "bg_map_alt": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "echelle": 0.7841,
+   "empreinte": "8b32855669750a87143d9bd7e4a5633313d54061",
+   "fichier": "images/v3/bg_map_alt.png",
+   "nom": "bg_map_alt",
+   "source": "docs/raw/V3/bg_map_alt.jpg",
+   "taille": [
+    2048,
+    1280
+   ]
+  },
+  "bg_victory_heroine": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "defrange_px": 24967,
+   "echelle": 1.0,
+   "empreinte": "8d505a58f9cf8106113fe1406b963a48efa080b1",
+   "fichier": "images/v3/bg_victory_heroine.png",
+   "fond": [
+    251,
+    1,
+    249
+   ],
+   "nom": "bg_victory_heroine",
+   "ombre_violette_px": 11232,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/bg_victory_heroine.jpg",
+   "taille": [
+    1061,
+    1805
+   ],
+   "traits_fins_px": 0
+  },
+  "bg_victory_heros": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "bg",
+   "defrange_px": 36721,
+   "echelle": 1.0,
+   "empreinte": "4943783dba987d14324c355741a36b034f09929d",
+   "fichier": "images/v3/bg_victory_heros.png",
+   "fond": [
+    253,
+    1,
+    251
+   ],
+   "nom": "bg_victory_heros",
+   "ombre_violette_px": 19072,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/bg_victory_heros.jpg",
+   "taille": [
+    1400,
+    1811
+   ],
+   "traits_fins_px": 11
+  },
+  "floor_house_kitchen": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "floor",
+   "coins_sol": {
+    "avant": [
+     192,
+     226
+    ],
+    "droit": [
+     384,
+     113
+    ],
+    "gauche": [
+     0,
+     113
+    ],
+    "haut": [
+     192,
+     0
+    ]
+   },
+   "empreinte": "9491f2b7e72f28c16f0ffd110f6827b95a088fc0",
+   "fichier": "images/v3/floor_house_kitchen.png",
+   "nom": "floor_house_kitchen",
+   "source": "docs/raw/V3/floor_house_kitchen.jpg",
+   "taille": [
+    384,
+    226
+   ]
+  },
+  "floor_house_wood": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "floor",
+   "coins_sol": {
+    "avant": [
+     192,
+     226
+    ],
+    "droit": [
+     384,
+     113
+    ],
+    "gauche": [
+     0,
+     113
+    ],
+    "haut": [
+     192,
+     0
+    ]
+   },
+   "defrange_px": 22616,
+   "empreinte": "01859cf945be1c256045bb241eef54943d57a834",
+   "fichier": "images/v3/floor_house_wood.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "nom": "floor_house_wood",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/floor_house_wood.jpg",
+   "taille": [
+    384,
+    226
+   ]
+  },
+  "floor_market_tiles": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "floor",
+   "coins_sol": {
+    "avant": [
+     192,
+     226
+    ],
+    "droit": [
+     384,
+     113
+    ],
+    "gauche": [
+     0,
+     113
+    ],
+    "haut": [
+     192,
+     0
+    ]
+   },
+   "defrange_px": 26188,
+   "empreinte": "c6e64424ea503886143b9116bfe5a5704a6a41af",
+   "fichier": "images/v3/floor_market_tiles.png",
+   "fond": [
+    252,
+    0,
+    252
+   ],
+   "nom": "floor_market_tiles",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/floor_market_tiles.jpg",
+   "taille": [
+    384,
+    226
+   ]
+  },
   "heroine_attack": {
    "ancre_pieds": [
     51,
@@ -29,6 +620,93 @@
     246
    ],
    "traits_fins_px": 1762
+  },
+  "heroine_back_iddle": {
+   "ancre_pieds": [
+    72,
+    230
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 37668,
+   "echelle": 0.1297,
+   "empreinte": "3b97741107e3014f1fccb54cc7d9e8268a2026e5",
+   "fichier": "images/v3/heroine_back_iddle.png",
+   "fond": [
+    253,
+    2,
+    237
+   ],
+   "nom": "heroine_back_iddle",
+   "ombre_violette_px": 21548,
+   "personnage": "heroine",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/Heroine-back-iddle.jpg",
+   "taille": [
+    145,
+    231
+   ],
+   "traits_fins_px": 16
+  },
+  "heroine_back_walk_a": {
+   "ancre_pieds": [
+    52,
+    231
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 34117,
+   "echelle": 0.1297,
+   "empreinte": "87569a6290f912515e3261d650efcf853cd32ee8",
+   "fichier": "images/v3/heroine_back_walk_a.png",
+   "fond": [
+    253,
+    1,
+    249
+   ],
+   "nom": "heroine_back_walk_a",
+   "ombre_violette_px": 19484,
+   "personnage": "heroine",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/Heroine-back-walk-a.jpg",
+   "taille": [
+    156,
+    232
+   ],
+   "traits_fins_px": 0
+  },
+  "heroine_back_walk_b": {
+   "ancre_pieds": [
+    35,
+    224
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 36151,
+   "echelle": 0.1297,
+   "empreinte": "ea662ba43b595079a5d10355a0a02b207dc942fb",
+   "fichier": "images/v3/heroine_back_walk_b.png",
+   "fond": [
+    245,
+    11,
+    222
+   ],
+   "nom": "heroine_back_walk_b",
+   "ombre_violette_px": 18355,
+   "personnage": "heroine",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/Heroine-back-walk-b.jpg",
+   "taille": [
+    145,
+    225
+   ],
+   "traits_fins_px": 16
   },
   "heroine_iddle": {
    "ancre_pieds": [
@@ -130,6 +808,97 @@
    ],
    "traits_fins_px": 1266
   },
+  "heros_back_iddle": {
+   "ancre_pieds": [
+    93,
+    230
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "faisceau de lampe peint, retiré (115139 px)",
+    "taches détachées du corps effacées (16777 px)"
+   ],
+   "categorie": "perso",
+   "defrange_px": 61327,
+   "echelle": 0.1326,
+   "empreinte": "9ac898098a4c187287654e9b446bab8076bab0ed",
+   "faisceau_retire_px": 115139,
+   "fichier": "images/v3/heros_back_iddle.png",
+   "fond": [
+    253,
+    1,
+    246
+   ],
+   "nom": "heros_back_iddle",
+   "ombre_violette_px": 40421,
+   "personnage": "heros",
+   "poussieres_px": 1,
+   "source": "docs/raw/V3/Heros-back-iddle.jpg",
+   "taches_px": 16777,
+   "taille": [
+    171,
+    231
+   ],
+   "traits_fins_px": 1631
+  },
+  "heros_back_walk_a": {
+   "ancre_pieds": [
+    57,
+    231
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 37427,
+   "echelle": 0.1326,
+   "empreinte": "e6d17c85ceb94deef4bfc357f2711685f2dd63e1",
+   "fichier": "images/v3/heros_back_walk_a.png",
+   "fond": [
+    251,
+    3,
+    237
+   ],
+   "nom": "heros_back_walk_a",
+   "ombre_violette_px": 20926,
+   "personnage": "heros",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/Heros-back-walk-a.jpg",
+   "taille": [
+    171,
+    232
+   ],
+   "traits_fins_px": 9
+  },
+  "heros_back_walk_b": {
+   "ancre_pieds": [
+    41,
+    224
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 42847,
+   "echelle": 0.1326,
+   "empreinte": "b7405200fe4e84841075f3e926ba8c924e3a102b",
+   "fichier": "images/v3/heros_back_walk_b.png",
+   "fond": [
+    251,
+    4,
+    233
+   ],
+   "nom": "heros_back_walk_b",
+   "ombre_violette_px": 36648,
+   "personnage": "heros",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/Heros-back-walk-b.jpg",
+   "taille": [
+    171,
+    225
+   ],
+   "traits_fins_px": 8
+  },
   "heros_iddle": {
    "ancre_pieds": [
     54,
@@ -204,6 +973,1109 @@
     235
    ],
    "traits_fins_px": 1248
+  },
+  "icon_hide": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 18902,
+   "echelle": 0.1784,
+   "empreinte": "0b253ff875a9d0890aa385b2a2d71ab12604f02a",
+   "fichier": "images/v3/icon_hide.png",
+   "fond": [
+    252,
+    8,
+    248
+   ],
+   "nom": "icon_hide",
+   "ombre_violette_px": 10842,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/icon_hide.jpg",
+   "taille": [
+    192,
+    190
+   ],
+   "traits_fins_px": 0
+  },
+  "icon_hit": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 54442,
+   "echelle": 0.1452,
+   "empreinte": "3385eefdd26430f66cba25d9edd91b8b063157e9",
+   "fichier": "images/v3/icon_hit.png",
+   "fond": [
+    253,
+    1,
+    251
+   ],
+   "nom": "icon_hit",
+   "ombre_violette_px": 28068,
+   "poussieres_px": 20,
+   "source": "docs/raw/V3/icon_hit.jpg",
+   "taille": [
+    192,
+    186
+   ],
+   "traits_fins_px": 1670
+  },
+  "icon_star": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 36171,
+   "echelle": 0.1281,
+   "empreinte": "74d52629a5dd80559985a3490ccff4fd763abc5e",
+   "fichier": "images/v3/icon_star.png",
+   "fond": [
+    252,
+    3,
+    247
+   ],
+   "nom": "icon_star",
+   "ombre_violette_px": 14392,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/icon_star.jpg",
+   "taille": [
+    192,
+    189
+   ],
+   "traits_fins_px": 503
+  },
+  "item_key": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "item",
+   "defrange_px": 29586,
+   "echelle": 0.0948,
+   "empreinte": "e2a2e21c06ac833c01f8caec22bd8343d1b08c99",
+   "fichier": "images/v3/item_key.png",
+   "fond": [
+    252,
+    1,
+    251
+   ],
+   "nom": "item_key",
+   "ombre_violette_px": 11753,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/item_key.jpg",
+   "taille": [
+    128,
+    86
+   ],
+   "teinte_violette_px": 2089,
+   "traits_fins_px": 6353
+  },
+  "item_vial": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "item",
+   "defrange_px": 101733,
+   "echelle": 0.1017,
+   "empreinte": "3329a7c405754879a946d229679f0d4ee93b1c84",
+   "fichier": "images/v3/item_vial.png",
+   "fond": [
+    252,
+    2,
+    247
+   ],
+   "nom": "item_vial",
+   "ombre_violette_px": 79412,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/item_vial.jpg",
+   "taille": [
+    97,
+    128
+   ],
+   "teinte_violette_px": 120047,
+   "traits_fins_px": 1252
+  },
+  "map_base": {
+   "ancre_pieds": [
+    199,
+    377
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "map",
+   "defrange_px": 34476,
+   "echelle": 0.277,
+   "empreinte": "d2514554cf246348f99d27bdc5da5c1703256e54",
+   "fichier": "images/v3/map_base.png",
+   "fond": [
+    244,
+    11,
+    216
+   ],
+   "nom": "map_base",
+   "ombre_violette_px": 27637,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/map_base.jpg",
+   "taille": [
+    400,
+    378
+   ],
+   "teinte_violette_px": 6791,
+   "traits_fins_px": 59
+  },
+  "map_house": {
+   "ancre_pieds": [
+    199,
+    354
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "map",
+   "defrange_px": 24494,
+   "echelle": 0.277,
+   "empreinte": "68a527a56b5dfeb349261b6cb261b04342caed49",
+   "fichier": "images/v3/map_house.png",
+   "fond": [
+    252,
+    4,
+    246
+   ],
+   "nom": "map_house",
+   "ombre_violette_px": 16796,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/map_house.jpg",
+   "taille": [
+    400,
+    355
+   ],
+   "teinte_violette_px": 3890,
+   "traits_fins_px": 11
+  },
+  "map_lock": {
+   "ancre_pieds": [
+    75,
+    191
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [236, 7, 197] : détouré sur cette couleur"
+   ],
+   "categorie": "map",
+   "defrange_px": 27323,
+   "echelle": 0.1492,
+   "empreinte": "974c133c21fe934c0fb2d4e7674d427aea342fe2",
+   "fichier": "images/v3/map_lock.png",
+   "fond": [
+    236,
+    7,
+    197
+   ],
+   "nom": "map_lock",
+   "ombre_violette_px": 20941,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/map_lock.jpg",
+   "taille": [
+    151,
+    192
+   ],
+   "teinte_violette_px": 5308,
+   "traits_fins_px": 0
+  },
+  "map_market": {
+   "ancre_pieds": [
+    199,
+    355
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "map",
+   "defrange_px": 25660,
+   "echelle": 0.2768,
+   "empreinte": "6cc3c3ef37a32e03ac7e448eea761f980ddadd21",
+   "fichier": "images/v3/map_market.png",
+   "fond": [
+    252,
+    5,
+    233
+   ],
+   "nom": "map_market",
+   "ombre_violette_px": 20238,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/map_market.jpg",
+   "taille": [
+    400,
+    357
+   ],
+   "teinte_violette_px": 4674,
+   "traits_fins_px": 0
+  },
+  "map_pharmacy": {
+   "ancre_pieds": [
+    199,
+    354
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "map",
+   "defrange_px": 25507,
+   "echelle": 0.2757,
+   "empreinte": "a95757207c9c5e81b79ad4e06d55995691ecf81b",
+   "fichier": "images/v3/map_pharmacy.png",
+   "fond": [
+    241,
+    8,
+    207
+   ],
+   "nom": "map_pharmacy",
+   "ombre_violette_px": 19801,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/map_pharmacy.jpg",
+   "taille": [
+    400,
+    356
+   ],
+   "teinte_violette_px": 4877,
+   "traits_fins_px": 0
+  },
+  "prop_bathtub_2c": {
+   "ancre_pieds": [
+    334,
+    1376
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     288,
+     1376
+    ],
+    "droit": [
+     957,
+     1075
+    ],
+    "gauche": [
+     4,
+     1208
+    ]
+   },
+   "defrange_px": 170674,
+   "echelle": 0.783,
+   "empreinte": "986d2c1f86f4008379ddf79f9883371a8684f433",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_bathtub_2c.png",
+   "fond": [
+    242,
+    15,
+    220
+   ],
+   "mauve_desature_px": 16985,
+   "nom": "prop_bathtub_2c",
+   "ombre_violette_px": 300667,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/prop_bathtub_2c.jpg",
+   "taille": [
+    960,
+    1380
+   ],
+   "teinte_violette_px": 5349,
+   "traits_fins_px": 83
+  },
+  "prop_bed_2c": {
+   "ancre_pieds": [
+    227,
+    654
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (504136 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     233,
+     654
+    ],
+    "droit": [
+     709,
+     388
+    ],
+    "gauche": [
+     0,
+     521
+    ]
+   },
+   "defrange_px": 27805,
+   "echelle": 0.5439,
+   "empreinte": "f0129908bd97744bf3523c4e47c3b44ef7ad1a30",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_bed_2c.png",
+   "fond": [
+    251,
+    5,
+    237
+   ],
+   "largeur_socle_source": 1765,
+   "mauve_desature_px": 248345,
+   "nom": "prop_bed_2c",
+   "ombre_violette_px": 18163,
+   "poussieres_px": 0,
+   "socle_px": 504136,
+   "source": "docs/raw/V3/prop_bed_2c.jpg",
+   "taille": [
+    710,
+    726
+   ],
+   "teinte_violette_px": 4964,
+   "traits_fins_px": 0
+  },
+  "prop_bookshelf": {
+   "ancre_pieds": [
+    289,
+    713
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     120,
+     713
+    ],
+    "droit": [
+     454,
+     605
+    ],
+    "gauche": [
+     22,
+     668
+    ]
+   },
+   "defrange_px": 116823,
+   "echelle": 0.4923,
+   "empreinte": "9d65d44958d52a116b0f01af49eafdcdfe95a4fd",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_bookshelf.png",
+   "fond": [
+    252,
+    2,
+    250
+   ],
+   "mauve_desature_px": 12878,
+   "nom": "prop_bookshelf",
+   "ombre_violette_px": 109639,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/prop_bookshelf.jpg",
+   "taille": [
+    480,
+    726
+   ],
+   "teinte_violette_px": 1745,
+   "traits_fins_px": 0
+  },
+  "prop_cart": {
+   "ancre_pieds": [
+    275,
+    433
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     339,
+     433
+    ],
+    "droit": [
+     477,
+     345
+    ],
+    "gauche": [
+     8,
+     302
+    ]
+   },
+   "defrange_px": 320753,
+   "echelle": 0.3807,
+   "empreinte": "3855a1dff58e749397e6307f6c55a1bdf528e3c3",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_cart.png",
+   "fond": [
+    251,
+    6,
+    236
+   ],
+   "mauve_desature_px": 71536,
+   "nom": "prop_cart",
+   "ombre_violette_px": 298881,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/prop_cart.jpg",
+   "taille": [
+    480,
+    445
+   ],
+   "teinte_violette_px": 11129,
+   "traits_fins_px": 217
+  },
+  "prop_checkout_2c": {
+   "ancre_pieds": [
+    272,
+    637
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (504040 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     265,
+     637
+    ],
+    "droit": [
+     694,
+     230
+    ],
+    "gauche": [
+     0,
+     429
+    ]
+   },
+   "defrange_px": 27337,
+   "echelle": 0.5439,
+   "empreinte": "f9679f4701b30dbeaa3496c0d6e14e28fece834d",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_checkout_2c.png",
+   "fond": [
+    241,
+    9,
+    214
+   ],
+   "largeur_socle_source": 1765,
+   "mauve_desature_px": 191419,
+   "nom": "prop_checkout_2c",
+   "ombre_violette_px": 17059,
+   "poussieres_px": 0,
+   "socle_px": 504040,
+   "source": "docs/raw/V3/prop_checkout_2c.jpg",
+   "taille": [
+    695,
+    707
+   ],
+   "teinte_violette_px": 5814,
+   "traits_fins_px": 15
+  },
+  "prop_freezer": {
+   "ancre_pieds": [
+    116,
+    338
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (437132 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     119,
+     338
+    ],
+    "droit": [
+     338,
+     211
+    ],
+    "gauche": [
+     0,
+     272
+    ]
+   },
+   "defrange_px": 24726,
+   "echelle": 0.272,
+   "empreinte": "de8cc2d1b5e2e53a9b7c41789cbe87852f50dcf3",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_freezer.png",
+   "fond": [
+    245,
+    10,
+    217
+   ],
+   "largeur_socle_source": 1765,
+   "mauve_desature_px": 67340,
+   "nom": "prop_freezer",
+   "ombre_violette_px": 12819,
+   "poussieres_px": 0,
+   "socle_px": 437132,
+   "source": "docs/raw/V3/prop_freezer.jpg",
+   "taille": [
+    339,
+    373
+   ],
+   "teinte_violette_px": 3940,
+   "traits_fins_px": 0
+  },
+  "prop_fridge": {
+   "ancre_pieds": [
+    144,
+    353
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (522181 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     152,
+     353
+    ],
+    "droit": [
+     231,
+     287
+    ],
+    "gauche": [
+     0,
+     286
+    ]
+   },
+   "defrange_px": 25033,
+   "echelle": 0.2721,
+   "empreinte": "ef8913db8ff2d72ddafc1c2b26b63d2b888e90c9",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_fridge.png",
+   "fond": [
+    240,
+    14,
+    222
+   ],
+   "largeur_socle_source": 1764,
+   "mauve_desature_px": 64086,
+   "nom": "prop_fridge",
+   "ombre_violette_px": 14829,
+   "poussieres_px": 0,
+   "socle_px": 522181,
+   "source": "docs/raw/V3/prop_fridge.jpg",
+   "taille": [
+    232,
+    377
+   ],
+   "teinte_violette_px": 4723,
+   "traits_fins_px": 0
+  },
+  "prop_kitchen_table_2c": {
+   "ancre_pieds": [
+    422,
+    640
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (687025 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     395,
+     640
+    ],
+    "droit": [
+     685,
+     511
+    ],
+    "gauche": [
+     0,
+     213
+    ]
+   },
+   "defrange_px": 30809,
+   "echelle": 0.5439,
+   "empreinte": "7f52e0b6c5ac9b476a974247fa454b4767b44cc3",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_kitchen_table_2c.png",
+   "fond": [
+    248,
+    9,
+    228
+   ],
+   "largeur_socle_source": 1765,
+   "mauve_desature_px": 243850,
+   "nom": "prop_kitchen_table_2c",
+   "ombre_violette_px": 18874,
+   "poussieres_px": 0,
+   "socle_px": 687025,
+   "source": "docs/raw/V3/prop_kitchen_table_2c.jpg",
+   "taille": [
+    686,
+    709
+   ],
+   "teinte_violette_px": 6075,
+   "traits_fins_px": 0
+  },
+  "prop_neon": {
+   "ancre_pieds": [
+    127,
+    363
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (566363 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     128,
+     363
+    ],
+    "droit": [
+     252,
+     297
+    ],
+    "gauche": [
+     0,
+     94
+    ]
+   },
+   "defrange_px": 32770,
+   "echelle": 0.2721,
+   "empreinte": "7404f33543c0094287d796fc34fef94131b3d16e",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_neon.png",
+   "fond": [
+    237,
+    10,
+    203
+   ],
+   "largeur_socle_source": 1764,
+   "mauve_desature_px": 154916,
+   "nom": "prop_neon",
+   "ombre_violette_px": 17985,
+   "poussieres_px": 10,
+   "socle_px": 566363,
+   "source": "docs/raw/V3/prop_neon.jpg",
+   "taille": [
+    253,
+    389
+   ],
+   "teinte_violette_px": 5739,
+   "traits_fins_px": 358
+  },
+  "prop_pallet": {
+   "ancre_pieds": [
+    148,
+    329
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (405981 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     153,
+     329
+    ],
+    "droit": [
+     315,
+     237
+    ],
+    "gauche": [
+     0,
+     241
+    ]
+   },
+   "defrange_px": 25471,
+   "echelle": 0.2721,
+   "empreinte": "54eb46660e5d9ec9521061ded000a88990173719",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_pallet.png",
+   "fond": [
+    238,
+    10,
+    209
+   ],
+   "largeur_socle_source": 1764,
+   "mauve_desature_px": 140481,
+   "nom": "prop_pallet",
+   "ombre_violette_px": 14830,
+   "poussieres_px": 0,
+   "socle_px": 405981,
+   "source": "docs/raw/V3/prop_pallet.jpg",
+   "taille": [
+    316,
+    361
+   ],
+   "teinte_violette_px": 6963,
+   "traits_fins_px": 0
+  },
+  "prop_shelf_food_2c": {
+   "ancre_pieds": [
+    303,
+    783
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (404559 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     309,
+     783
+    ],
+    "droit": [
+     568,
+     656
+    ],
+    "gauche": [
+     0,
+     631
+    ]
+   },
+   "defrange_px": 51646,
+   "echelle": 0.5439,
+   "empreinte": "c2aef5766bf15d0a4940a3f1381de315671ec094",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_shelf_food_2c.png",
+   "fond": [
+    244,
+    8,
+    221
+   ],
+   "largeur_socle_source": 1765,
+   "mauve_desature_px": 354395,
+   "nom": "prop_shelf_food_2c",
+   "ombre_violette_px": 35330,
+   "poussieres_px": 0,
+   "socle_px": 404559,
+   "source": "docs/raw/V3/prop_shelf_food_2c.jpg",
+   "taille": [
+    569,
+    841
+   ],
+   "teinte_violette_px": 22992,
+   "traits_fins_px": 879
+  },
+  "prop_shelf_wood": {
+   "ancre_pieds": [
+    139,
+    604
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     150,
+     604
+    ],
+    "droit": [
+     478,
+     459
+    ],
+    "gauche": [
+     1,
+     536
+    ]
+   },
+   "defrange_px": 110016,
+   "echelle": 0.3684,
+   "empreinte": "f968496c9819c05ec85a1b8b8a834c4cacb201cb",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_shelf_wood.png",
+   "fond": [
+    252,
+    2,
+    249
+   ],
+   "mauve_desature_px": 6692,
+   "nom": "prop_shelf_wood",
+   "ombre_violette_px": 222792,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/prop_shelf_wood.jpg",
+   "taille": [
+    480,
+    607
+   ],
+   "teinte_violette_px": 2139,
+   "traits_fins_px": 0
+  },
+  "prop_sofa_2c": {
+   "ancre_pieds": [
+    391,
+    693
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (442528 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     400,
+     693
+    ],
+    "droit": [
+     684,
+     231
+    ],
+    "gauche": [
+     0,
+     368
+    ]
+   },
+   "defrange_px": 26597,
+   "echelle": 0.5436,
+   "empreinte": "83cc44b253f13e5f4d55d5765ad3bf121b34eea8",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_sofa_2c.png",
+   "fond": [
+    253,
+    5,
+    247
+   ],
+   "largeur_socle_source": 1766,
+   "mauve_desature_px": 98623,
+   "nom": "prop_sofa_2c",
+   "ombre_violette_px": 16358,
+   "poussieres_px": 0,
+   "socle_px": 442528,
+   "source": "docs/raw/V3/prop_sofa_2c.jpg",
+   "taille": [
+    685,
+    762
+   ],
+   "teinte_violette_px": 4925,
+   "traits_fins_px": 0
+  },
+  "prop_wardrobe": {
+   "ancre_pieds": [
+    141,
+    686
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     120,
+     686
+    ],
+    "droit": [
+     478,
+     542
+    ],
+    "gauche": [
+     2,
+     615
+    ]
+   },
+   "defrange_px": 203471,
+   "echelle": 0.3915,
+   "empreinte": "e88220c3f3ebba5422dcf92c6c199ff041468486",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_wardrobe.png",
+   "fond": [
+    247,
+    8,
+    235
+   ],
+   "mauve_desature_px": 7763,
+   "nom": "prop_wardrobe",
+   "ombre_violette_px": 270997,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/prop_wardrobe.jpg",
+   "taille": [
+    480,
+    689
+   ],
+   "teinte_violette_px": 2390,
+   "traits_fins_px": 0
+  },
+  "survivor_follow": {
+   "ancre_pieds": [
+    71,
+    229
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [227, 34, 198] : détouré sur cette couleur",
+    "taches détachées du corps effacées (1065 px)"
+   ],
+   "categorie": "perso",
+   "defrange_px": 52509,
+   "echelle": 0.1385,
+   "empreinte": "a5e3da0ca73fb39c19aa9052e4e62ba7030b68ee",
+   "fichier": "images/v3/survivor_follow.png",
+   "fond": [
+    227,
+    34,
+    198
+   ],
+   "nom": "survivor_follow",
+   "ombre_violette_px": 45431,
+   "personnage": "survivor",
+   "poussieres_px": 23,
+   "source": "docs/raw/V3/survivor_follow.jpg",
+   "taches_px": 1065,
+   "taille": [
+    137,
+    230
+   ],
+   "traits_fins_px": 384
+  },
+  "survivor_happy": {
+   "ancre_pieds": [
+    66,
+    232
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [227, 37, 197] : détouré sur cette couleur"
+   ],
+   "categorie": "perso",
+   "defrange_px": 40452,
+   "echelle": 0.1385,
+   "empreinte": "3a1d2b52bcebecf23f62f0a6086a08ea124745bc",
+   "fichier": "images/v3/survivor_happy.png",
+   "fond": [
+    227,
+    37,
+    197
+   ],
+   "nom": "survivor_happy",
+   "ombre_violette_px": 23874,
+   "personnage": "survivor",
+   "poussieres_px": 64,
+   "source": "docs/raw/V3/survivor_happy.jpg",
+   "taille": [
+    121,
+    233
+   ],
+   "traits_fins_px": 358
+  },
+  "survivor_hiding": {
+   "ancre_pieds": [
+    53,
+    226
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 30483,
+   "echelle": 0.1385,
+   "empreinte": "fda9b9ec800206e2cbf88a1fb4d0265c0b921daa",
+   "fichier": "images/v3/survivor_hiding.png",
+   "fond": [
+    241,
+    19,
+    223
+   ],
+   "nom": "survivor_hiding",
+   "ombre_violette_px": 23315,
+   "personnage": "survivor",
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/survivor_hiding.jpg",
+   "taille": [
+    143,
+    227
+   ],
+   "traits_fins_px": 72
+  },
+  "wall_house": {
+   "ancre_pieds": [
+    63,
+    549
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     63,
+     549
+    ],
+    "droit": [
+     348,
+     389
+    ],
+    "gauche": [
+     0,
+     513
+    ]
+   },
+   "defrange_px": 19665,
+   "echelle": 0.3349,
+   "empreinte": "b374997c82618f9bb66052ce395db7554e018eb1",
+   "fichier": "images/v3/wall_house.png",
+   "fond": [
+    241,
+    16,
+    211
+   ],
+   "nom": "wall_house",
+   "ombre_violette_px": 8034,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/wall_house.jpg",
+   "taille": [
+    349,
+    550
+   ],
+   "teinte_violette_px": 1915,
+   "traits_fins_px": 0
+  },
+  "wall_market": {
+   "ancre_pieds": [
+    64,
+    548
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [234, 22, 197] : détouré sur cette couleur"
+   ],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     63,
+     548
+    ],
+    "droit": [
+     348,
+     388
+    ],
+    "gauche": [
+     0,
+     512
+    ]
+   },
+   "defrange_px": 19735,
+   "echelle": 0.3343,
+   "empreinte": "914c2d9d9e6576acc1f0db729750f662659996ff",
+   "fichier": "images/v3/wall_market.png",
+   "fond": [
+    234,
+    22,
+    197
+   ],
+   "nom": "wall_market",
+   "ombre_violette_px": 7443,
+   "poussieres_px": 0,
+   "source": "docs/raw/V3/wall_market.jpg",
+   "taille": [
+    349,
+    549
+   ],
+   "teinte_violette_px": 1777,
+   "traits_fins_px": 0
   },
   "zombie_runner_iddle": {
    "ancre_pieds": [

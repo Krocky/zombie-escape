@@ -11,21 +11,28 @@ Nouveauté = image absente de manifest.json, ou dont le fichier a changé (empre
 dans le manifest). Un personnage déjà traité garde son échelle (echelles_perso du manifest) :
 ses nouvelles poses sortent à la même taille que les anciennes.
 
-Pour chaque image (.png, .jpg) du dossier source (jamais modifié ni supprimé) :
-1. contrôle du fond : magenta attendu ; un faux damier de transparence (gris/blanc) est signalé
-   et l'image n'est pas traitée ;
-2. clé couleur : distance au magenta < tolérance = transparent, puis une zone de transition
-   (« douceur ») où l'alpha monte et où la couleur est démélangée du magenta ;
-3. défrangeage : sur les 3 px du bord, la teinte magenta restante est retirée (liseré rose,
+Pour chaque image (.png, .jpg) du dossier source (jamais modifié ni supprimé ; les sous-dossiers,
+archives, sont ignorés) :
+1. contrôle du fond : couleur médiane des coins, acceptée si elle est uniforme sur les bords et de
+   teinte magenta (rouge et bleu > vert + 100 : magenta pur, délavé ou mauve) ; un faux damier de
+   transparence (gris/blanc) est signalé et l'image n'est pas traitée ;
+2. clé couleur : distance à la couleur de fond mesurée < tolérance = transparent, puis une zone de
+   transition (« douceur ») où l'alpha monte et où la couleur est démélangée du fond ;
+3. ombres violettes (ombre peinte en magenta sombre, fumée violette) reliées au fond : noir
+   semi-transparent, opacité = assombrissement par rapport au fond ; teinte violette légère reliée
+   au fond (bord du tapis, lueur) : désaturée (props, carte, murs) ou effacée (items) ; mauve
+   enfermé (ombre peinte sur le tapis des base_, sol vu à travers un objet) : désaturé ;
+4. défrangeage : sur les 3 px du bord, la teinte magenta restante est retirée (liseré rose,
    surtout dû à la compression JPEG) ; poussières isolées et traits très fins supprimés ;
-4. personnages : le faisceau de lampe peint (clair, hors du contour noir) est retiré, le jeu
-   dessine le sien ;
-5. rognage au contenu, puis taille selon le préfixe du nom (voir CATEGORIES) ;
+5. personnages : le faisceau de lampe peint (clair, hors du contour noir) est retiré, le jeu
+   dessine le sien ; les taches détachées du corps (< 2 % de sa surface) sont effacées ;
+6. props à socle de dalles (SOCLE) : socle effacé depuis l'extérieur, ombre elliptique douce ;
+7. rognage au contenu, puis taille selon le préfixe du nom (voir CATEGORIES) ;
 6. floor_ : texture carrée vue de dessus -> losange isométrique de la taille des dalles du jeu
    (rotation 45°, écrasement vertical à Iso.RAPPORT) ;
 7. écriture dans le dossier de sortie (nom en minuscules, « - » -> « _ ») et mise à jour de
    manifest.json (taille, ancre aux pieds, coins au sol, anomalies).
-Besoin : Python 3, numpy, pillow.
+Besoin : Python 3, numpy, pillow, scipy.
 """
 import argparse
 import glob
@@ -36,6 +43,7 @@ import re
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+from scipy import ndimage
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAGENTA = np.array([255.0, 0.0, 255.0])
@@ -59,14 +67,30 @@ HAUTEURS = {"heros": 240, "heroine": 240, "survivor": 230, "zombie": 210}
 CATEGORIES = {
     "heros": "perso", "heroine": "perso", "zombie": "perso", "survivor": "perso",
     "item": "item", "icon": "icon", "prop": "prop", "base": "prop", "bg": "bg", "floor": "floor",
+    "map": "map", "wall": "wall",
 }
 COTE = {"item": 128, "icon": 192}        # plus grand côté
 BG_MAX = 2048
+MAP_LARGEUR = 400                        # vignettes de la carte (largeur)
+COTE_NOM = {"map_lock": 192}             # exceptions : plus grand côté
+# Murs : même échelle que le pan V2 « mur » de l'atlas (data/atlas.gd, 349 px de large pour un pan
+# de Mur.LONGUEUR_PANNEAU = 200 unités monde) : un wall_ = un pan.
+MUR_LARGEUR = 349
+# Mât très haut et fin : mis à l'échelle sur la hauteur (x base_shelter_1), pas sur la largeur
+HAUTEUR_RELATIVE = {"base_floodlight": ("base_shelter_1", 1.4)}
+
+# Fond accepté : rouge et bleu au-dessus du vert d'au moins FOND_ECART (magenta pur, délavé, mauve)
+FOND_ECART = 100
+# Props posés sur un socle de dalles bleu-gris (joints noirs) à effacer ; les base_ gardent leur tapis
+SOCLE = {"prop_sofa_2c", "prop_bed_2c", "prop_fridge", "prop_kitchen_table_2c", "prop_shelf_food_2c",
+         "prop_freezer", "prop_checkout_2c", "prop_pallet", "prop_neon"}
+SOCLE_COULEUR = np.array([52.0, 57.0, 82.0])
+TACHE_PART = 0.02                        # personnages : taches détachées < 2 % de la surface effacées
 
 # Mots de pose : ce qui les précède nomme le personnage (Heros-walk-a -> heros, même échelle
 # pour toutes ses poses : la hauteur médiane de ses poses vaut HAUTEURS[préfixe]).
 POSES = {"idle", "iddle", "walk", "run", "attack", "hit", "hurt", "death", "die", "dead",
-         "hide", "back", "front", "side", "a", "b", "c", "d", "1", "2", "3", "4"}
+         "hide", "hiding", "follow", "happy", "back", "front", "side", "a", "b", "c", "d", "1", "2", "3", "4"}
 
 
 def categorie(nom):
@@ -89,22 +113,28 @@ def personnage(nom):
 # --- Contrôle du fond ---------------------------------------------------------------------
 
 def examiner_fond(p, tolerance):
-    """Regarde une bande de 4 % sur les bords : 'magenta', 'damier' ou 'inconnu'."""
+    """Regarde une bande de 4 % sur les bords : ('magenta', couleur mesurée, part), ('damier', ...)
+    ou ('inconnu', ...). Couleur = médiane des 4 coins ; acceptée si au moins 60 % des bords en
+    sont proches et si elle est de teinte magenta (rouge et bleu > vert + FOND_ECART)."""
     h, w, _ = p.shape
     m = max(4, int(min(h, w) * 0.04))
     bord = np.concatenate([p[:m].reshape(-1, 3), p[-m:].reshape(-1, 3),
                            p[:, :m].reshape(-1, 3), p[:, -m:].reshape(-1, 3)])
-    dm = np.linalg.norm(bord - MAGENTA, axis=-1)
-    part_magenta = float((dm < tolerance).mean())
-    if part_magenta > 0.6:
-        return "magenta", part_magenta
+    coins = np.concatenate([p[:m, :m].reshape(-1, 3), p[:m, -m:].reshape(-1, 3),
+                            p[-m:, :m].reshape(-1, 3), p[-m:, -m:].reshape(-1, 3)])
+    couleur = np.median(coins, axis=0)
+    part = float((np.linalg.norm(bord - couleur, axis=-1) < tolerance / 2).mean())
+    teinte = couleur[0] - couleur[1] >= FOND_ECART and couleur[2] - couleur[1] >= FOND_ECART
+    if part > 0.6 and teinte:
+        return "magenta", couleur, part
+    part_magenta = float((np.linalg.norm(bord - MAGENTA, axis=-1) < tolerance).mean())
     # Damier : gris neutres clairs, sur deux niveaux, qui alternent
     neutre = (bord.max(-1) - bord.min(-1) < 24) & (bord.mean(-1) > 110)
     if neutre.mean() > 0.6:
         lum = bord[neutre].mean(-1)
         if np.percentile(lum, 90) - np.percentile(lum, 10) > 12:
-            return "damier", part_magenta
-    return "inconnu", part_magenta
+            return "damier", None, part_magenta
+    return "inconnu", None, part_magenta
 
 
 def damier_interieur(p, alpha):
@@ -122,15 +152,118 @@ def damier_interieur(p, alpha):
 
 # --- Détourage ------------------------------------------------------------------------------
 
-def detourer(p, tolerance, douceur):
-    """Clé couleur + démélange : renvoie rgb (float) et alpha (0..1)."""
-    dm = np.linalg.norm(p - MAGENTA, axis=-1)
+def detourer(p, fond, tolerance, douceur):
+    """Clé couleur sur le fond mesuré + démélange : renvoie rgb (float) et alpha (0..1)."""
+    dm = np.linalg.norm(p - fond, axis=-1)
     alpha = np.clip((dm - tolerance) / douceur, 0, 1)
     rgb = p.copy()
     partiel = (alpha > 0) & (alpha < 1)
     a = alpha[partiel][:, None]
-    rgb[partiel] = np.clip(MAGENTA + (p[partiel] - MAGENTA) / a, 0, 255)
+    rgb[partiel] = np.clip(fond + (p[partiel] - fond) / a, 0, 255)
     return rgb, alpha
+
+
+def ombres_violettes(p, fond, rgb, alpha):
+    """Ombres peintes en magenta sombre (ellipse sous l'objet) et fumée violette : chaque pixel de
+    teinte magenta (rouge et bleu nettement au-dessus du vert) relié au fond devient noir, d'opacité
+    = son assombrissement par rapport au fond (p = (1 - a) x fond + a x noir). Les pixels magenta
+    enfermés dans le dessin (contour noir) ne sont touchés que s'ils sont francs. Renvoie le masque."""
+    r, g, b = p[..., 0], p[..., 1], p[..., 2]
+    m = np.minimum(r, b)
+    violet = (m - g > 40) & (g < 0.4 * m)
+    etiquettes, _ = ndimage.label(violet | (alpha == 0), structure=np.ones((3, 3)))
+    relies = np.unique(etiquettes[alpha == 0])
+    # Enfermés dans le dessin (fond vu entre les barreaux d'un caddie) : teinte franche seulement
+    franc = (m - g > 60) & (g < 0.25 * m)
+    violet &= (np.isin(etiquettes, relies[relies > 0]) | franc) & (alpha > 0)
+    clarte = (r + b) / 2.0
+    a = np.clip(1.0 - clarte / ((fond[0] + fond[2]) / 2.0), 0, 1)
+    rgb[violet] = 0
+    alpha[violet] = a[violet]
+    return violet
+
+
+def devioler(p, rgb, alpha, violet, effacer):
+    """Teinte violette légère (bord du tapis de terre, ombre peinte en transparence sur le sol,
+    lueur rose autour d'un objet) reliée au fond : l'excès de rouge et de bleu sur le vert est
+    retiré (le pixel devient gris-brun), ou le pixel est effacé (« effacer » : lueur d'un item)."""
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    m = np.minimum(r, b)
+    teinte = (m - g > 25) & (alpha > 0) & ~violet
+    etiquettes, _ = ndimage.label(teinte | violet | (alpha == 0), structure=np.ones((3, 3)))
+    relies = np.unique(etiquettes[alpha == 0])
+    teinte &= np.isin(etiquettes, relies[relies > 0])
+    if effacer:
+        alpha[teinte] = 0
+    else:
+        exces = np.clip(m - g - 10, 0, None)[teinte]
+        rgb[..., 0][teinte] -= exces
+        rgb[..., 2][teinte] -= exces
+    return int(teinte.sum())
+
+
+def desaturer_mauve(rgb, alpha, sombre_seulement):
+    """Ombre violette peinte en transparence sur le tapis de terre (base_) ou vue à travers un
+    objet (sol du caddie) : enfermée dans le dessin, elle échappe aux deux passes précédentes.
+    Rouge et bleu tous deux au-dessus du vert de plus de 8 : ramenés vers le vert (gris-brun).
+    Props : seulement les pixels sombres (les emballages roses et violets clairs sont gardés)."""
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    exces = np.minimum(r, b) - g
+    mauve = (exces > 8) & (alpha > 0)
+    if sombre_seulement:
+        mauve &= rgb.max(-1) < 110
+    rgb[..., 0][mauve] -= exces[mauve]
+    rgb[..., 2][mauve] -= exces[mauve]
+    return int(mauve.sum())
+
+
+def taches(alpha, part):
+    """Efface les morceaux non reliés au corps (le plus grand) et plus petits que part x surface."""
+    etiquettes, n = ndimage.label(alpha > 0, structure=np.ones((3, 3)))
+    if n < 2:
+        return 0
+    surfaces = ndimage.sum(alpha > 0.5, etiquettes, index=np.arange(1, n + 1))
+    corps = int(np.argmax(surfaces)) + 1
+    petits = [i + 1 for i, s in enumerate(surfaces) if i + 1 != corps and s < part * surfaces.sum()]
+    retire = np.isin(etiquettes, petits)
+    alpha[retire] = 0
+    return int(retire.sum())
+
+
+def effacer_socle(p, rgb, alpha, violet):
+    """Socle de dalles bleu-gris (dessus ~63,68,99, tranche ~35,37,66, joints et contour noirs) :
+    remplissage depuis l'extérieur sur les pixels de cette teinte (bleu > rouge ~ vert, sombres),
+    l'ombre violette et les traits sombres qui les bordent ; le contour noir de l'objet (3 px contre
+    ses pixels propres) est rendu. Puis ombre elliptique noire douce sous l'objet."""
+    r, g, b = p[..., 0], p[..., 1], p[..., 2]
+    bleute = (b - r > 15) & (b - r < 55) & (np.abs(r - g) < 14) & (p.max(-1) < 115) & (alpha > 0)
+    sombre = (p.max(-1) < 75) & (alpha > 0)
+    passable = bleute | violet | (alpha == 0) | (sombre & dilater(bleute, 6))
+    etiquettes, _ = ndimage.label(passable)
+    relies = np.unique(etiquettes[alpha == 0])
+    retire = np.isin(etiquettes, relies[relies > 0]) & (alpha > 0)
+    objet = (alpha > 0.5) & ~retire & ~sombre
+    retire &= ~(sombre & ~violet & dilater(objet, 3))
+    alpha[retire] = 0
+    taches(alpha, 0.002)                 # miettes du socle restées collées au bord
+    plein = alpha > 0.5
+    if not plein.any():
+        return int(retire.sum())
+    ys, xs = np.nonzero(plein)
+    x0, x1, yb = xs.min(), xs.max(), ys.max()
+    larg = 0.85 * (x1 - x0)
+    haut = larg * ISO_RAPPORT * 0.55
+    larg, haut = float(larg), float(haut)
+    cx, cy = (x0 + x1) / 2.0, yb - haut * 0.4
+    h, w = alpha.shape
+    ombre = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(ombre).ellipse([cx - larg / 2, cy - haut / 2, cx + larg / 2, cy + haut / 2], fill=120)
+    ombre = np.asarray(ombre.filter(ImageFilter.GaussianBlur(float(haut * 0.18)))) / 255.0
+    total = alpha + ombre * (1 - alpha)
+    garde = total > 0
+    rgb[garde] *= (alpha[garde] / total[garde])[:, None]
+    alpha[:] = total
+    return int(retire.sum())
 
 
 def eroder(masque, rayon):
@@ -291,7 +424,7 @@ def traiter(chemin, args):
     p = np.asarray(source.convert("RGB")).astype(float)
 
     # Dalles et fonds remplissent souvent toute l'image : détourés seulement si bordés de magenta
-    fond, part = examiner_fond(p, args.tolerance)
+    fond, couleur, part = examiner_fond(p, args.tolerance)
     plein = cat in ("floor", "bg") and fond != "magenta"
     if fond == "damier" and cat != "floor":
         res["anomalies"].append("FAUX DAMIER de transparence au lieu du magenta : non traitée")
@@ -305,19 +438,44 @@ def traiter(chemin, args):
     if plein:
         rgb, alpha = p.copy(), np.ones(p.shape[:2])
     else:
-        rgb, alpha = detourer(p, args.tolerance, args.douceur)
+        rgb, alpha = detourer(p, couleur, args.tolerance, args.douceur)
+        res["fond"] = [int(round(c)) for c in couleur]
+        if np.linalg.norm(couleur - MAGENTA) > args.tolerance:
+            res["anomalies"].append("fond magenta délavé %s : détouré sur cette couleur" % res["fond"])
     if cat != "floor" and damier_interieur(p, alpha):
         res["anomalies"].append("FAUX DAMIER dans l'image (derrière le sujet) : à régénérer")
+    violet = np.zeros(alpha.shape, bool)
+    if not plein and cat != "floor":
+        violet = ombres_violettes(p, couleur, rgb, alpha)
+        if violet.any():
+            res["ombre_violette_px"] = int(violet.sum())
+        if cat in ("prop", "map", "wall", "item"):
+            teinte = devioler(p, rgb, alpha, violet, effacer=cat == "item")
+            if teinte:
+                res["teinte_violette_px"] = teinte
+        if cat == "prop":
+            res["mauve_desature_px"] = desaturer_mauve(rgb, alpha, sombre_seulement=prefixe != "base")
     if not plein:
         res["defrange_px"] = defranger(rgb, alpha)
         res["poussieres_px"] = nettoyer(alpha)
-    if cat == "perso":
+    if cat == "perso" and prefixe != "survivor":     # seuls le héros et les zombies V3 ont une lampe
         retire = retirer_faisceau(rgb, alpha)
         if retire:
             res["faisceau_retire_px"] = retire
             res["anomalies"].append("faisceau de lampe peint, retiré (%d px)" % retire)
     if cat != "floor" and not plein:
         res["traits_fins_px"] = ouvrir(alpha, args.ouverture)
+    if cat == "perso":
+        tache = taches(alpha, TACHE_PART)
+        if tache:
+            res["taches_px"] = tache
+            res["anomalies"].append("taches détachées du corps effacées (%d px)" % tache)
+    if sortie in SOCLE:
+        # Le socle montre l'emprise : l'échelle se calcule sur sa largeur, pas sur celle de l'objet
+        xs = np.nonzero((alpha > 8 / 255).any(axis=0))[0]
+        res["largeur_socle_source"] = int(xs.max() - xs.min() + 1)
+        res["socle_px"] = effacer_socle(p, rgb, alpha, violet)
+        res["anomalies"].append("socle de dalles effacé (%d px), ombre elliptique ajoutée" % res["socle_px"])
 
     image = vers_image(rgb, alpha)
     boite = boite_utile(image)
@@ -334,16 +492,26 @@ def traiter(chemin, args):
     return res, image
 
 
-def mettre_a_taille(res, image, echelles_perso):
+def mettre_a_taille(res, image, echelles_perso, hauteurs):
     cat = res["categorie"]
     if cat == "perso":
         e = echelles_perso[res["personnage"]]
+    elif res["nom"] in COTE_NOM:
+        e = echelle_vers(image, COTE_NOM[res["nom"]])
     elif cat in COTE:
         e = echelle_vers(image, COTE[cat])
+    elif cat == "map":
+        e = MAP_LARGEUR / image.width
+    elif cat == "wall":
+        e = MUR_LARGEUR / image.width
+    elif res["nom"] in HAUTEUR_RELATIVE:
+        ref, facteur = HAUTEUR_RELATIVE[res["nom"]]
+        e = facteur * hauteurs[ref] / image.height
+        res["hauteur_relative"] = [ref, facteur]
     elif cat == "prop":
         largeur, cases = taille_prop(res["nom"])
         res["emprise_cases"] = cases
-        e = largeur / image.width
+        e = largeur / res.get("largeur_socle_source", image.width)
     elif cat == "bg":
         e = min(1.0, BG_MAX / max(image.size))
     else:
@@ -358,11 +526,11 @@ def mettre_a_taille(res, image, echelles_perso):
     if cat == "floor":
         res["coins_sol"] = {"haut": [DALLE_LARGEUR // 2, 0], "gauche": [0, DALLE_HAUTEUR // 2],
                             "avant": [DALLE_LARGEUR // 2, DALLE_HAUTEUR], "droit": [DALLE_LARGEUR, DALLE_HAUTEUR // 2]}
-    elif cat in ("perso", "prop"):
+    elif cat in ("perso", "prop", "wall", "map"):
         a = ancres(image)
         if a:
             res["ancre_pieds"] = a["pieds"]
-            if cat == "prop":
+            if cat in ("prop", "wall"):
                 res["coins_sol"] = {k: a[k] for k in ("gauche", "avant", "droit")}
     return image
 
@@ -448,11 +616,16 @@ def main():
     for perso, liste in hauteurs.items():
         echelles[perso] = HAUTEURS[liste[0][0]] / float(np.median([h for _, h in liste]))
 
+    # Hauteurs de référence (HAUTEUR_RELATIVE) : images de ce lot d'abord, sinon le manifest
+    hauteurs = {k: v["taille"][1] for k, v in connues.items() if "taille" in v}
+    refs = {ref for ref, _ in HAUTEUR_RELATIVE.values()}
+    resultats.sort(key=lambda ri: ri[0]["nom"] not in refs)
     os.makedirs(args.sortie, exist_ok=True)
     traitees, anomalies = [], []
     for res, image in resultats:
         if image is not None:
-            image = mettre_a_taille(res, image, echelles)
+            image = mettre_a_taille(res, image, echelles, hauteurs)
+            hauteurs[res["nom"]] = image.height
             fichier = os.path.join(args.sortie, res["nom"] + ".png")
             image.save(fichier, optimize=True)
             res["fichier"] = os.path.relpath(fichier, RACINE)
