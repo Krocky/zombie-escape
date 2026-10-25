@@ -1,6 +1,7 @@
 extends SceneTree
 ## Lot 2 (b) : constructions de la base. Cartes (Construire actif seulement si assez d'objets, Construit),
 ## objets retirés, sauvegarde, effets dans le niveau (cœurs, dégâts de la batte, portée de la lampe).
+## Les cartes sont dans le tiroir de la base : il est ouvert avant chaque construction (il se referme après).
 var f := 0
 var partie
 var zombie
@@ -33,6 +34,7 @@ func _vers_supermarche(g):
 	if g == 18: _touch(Vector2.ZERO, false)
 func _physics_process(_d):
 	f += 1
+	if f in [8, 28, 42]: current_scene.ouvrir_tiroir(true)
 	if f == 20:
 		print("avant: ", _etat(), " (attendu les 3 actifs)")
 		var ecran = current_scene.get_viewport_rect()

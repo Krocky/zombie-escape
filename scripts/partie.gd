@@ -1,14 +1,15 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 5 : {"version": 5, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 6 : {"version": 6, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
 ## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
-## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus)}.
-## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 5.
+## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus),
+## "batiments_vus": [id, ...] bâtiments de la base déjà tombés du ciel (leur chute n'est montrée qu'une fois)}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 6.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 5
+const VERSION := 6
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -53,6 +54,8 @@ var prenom := ""
 ## Rescapés sauvés en tout, et lieux dont le rescapé est sauvé (clés de LIEUX)
 var rescapes := 0
 var lieux_sauves := []
+## Bâtiments de la base déjà apparus (ids de Base : "abri_1", "feu", "tente_1"...), pour ne montrer leur chute qu'une fois
+var batiments_vus := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false}
@@ -297,15 +300,24 @@ func portee_lampe() -> float:
 	return Reglages.LAMPE_PORTEE * (1.0 + Reglages.LAMPE_RENFORCEE_PORTEE / 100.0 if est_construit("lampe") else 1.0)
 
 
+## Vrai la première fois qu'un bâtiment de la base apparaît (il tombe du ciel) ; le retient et sauvegarde.
+func premiere_apparition(id: String) -> bool:
+	if id in batiments_vus:
+		return false
+	batiments_vus.append(id)
+	sauvegarder()
+	return true
+
+
 func sauvegarder() -> void:
 	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
 	if fichier:
 		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions,
 			"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
-			"rescapes": rescapes, "lieux_sauves": lieux_sauves}))
+			"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus}))
 
 
-## Lit la sauvegarde (version 1 à 5). Une version plus ancienne est aussitôt réécrite en version 5
+## Lit la sauvegarde (version 1 à 6). Une version plus ancienne est aussitôt réécrite en version 6
 ## (les fioles déjà rangées remplissent la jauge du remède).
 func charger() -> void:
 	if not FileAccess.file_exists(FICHIER):
@@ -331,6 +343,10 @@ func charger() -> void:
 		for id in donnees["lieux_sauves"]:
 			if not str(id) in lieux_sauves:
 				lieux_sauves.append(str(id))
+	if donnees.get("batiments_vus") is Array:
+		for id in donnees["batiments_vus"]:
+			if not str(id) in batiments_vus:
+				batiments_vus.append(str(id))
 	if int(donnees.get("version", 1)) < VERSION:
 		_remplir_remede()
 		sauvegarder()
