@@ -34,6 +34,12 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Oublie le doigt posé et revient au repos (le jeu se fige : son lever n'arrivera jamais jusqu'ici).
+func relacher() -> void:
+	_doigt = -1
+	_revenir_au_repos()
+
+
 func _deplacer_bouton(position_ecran: Vector2) -> void:
 	var decalage := (position_ecran - global_position - _centre).limit_length(RAYON_BASE)
 	_bouton = _centre + decalage

@@ -1,6 +1,6 @@
 extends Control
 ## Écran titre : le nom du jeu et le bouton Jouer (vers la base ; avant la première partie,
-## vers l'écran « Choisis ton héros »).
+## vers l'écran « Choisis ton héros »). Le geste « retour » d'Android n'y fait rien (quit_on_go_back désactivé).
 
 var _temps := 0.0
 

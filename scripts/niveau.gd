@@ -78,6 +78,9 @@ func _ready() -> void:
 	_heros.mort.connect(_sur_mort)
 	_heros.bruit.connect(_sur_bruit)
 	$HUD.cacher.connect(_sur_cacher)
+	$HUD.pause_demandee.connect(mettre_en_pause.bind(true))
+	$Pause.reprendre.connect(mettre_en_pause.bind(false))
+	$Pause.retour_base.connect(_abandonner)
 	# Limites de la caméra : le sol projeté, plus la hauteur des murs du fond
 	var gauche := Iso.ecran(Vector2(0, taille.y)).x
 	var droite := Iso.ecran(Vector2(taille.x, 0)).x
@@ -94,6 +97,29 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	Qualite.surveiller(false)
+	get_tree().paused = false
+
+
+## Geste « retour » d'Android : ouvre la pause (ou la referme).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready():
+		mettre_en_pause(not get_tree().paused)
+
+
+## Pause : tout le lieu est figé (zombies, héros, sons, animations), seul le menu Pause tourne.
+func mettre_en_pause(pause: bool) -> void:
+	if _fini and pause:
+		return
+	$HUD.relacher()
+	_heros.definir_direction(Vector2.ZERO)
+	get_tree().paused = pause
+	$Pause.ouvrir(pause)
+
+
+## « Retour à la base » dans la pause : défaite normale (moitié des objets ramassés perdus), écran de fin aussitôt.
+func _abandonner() -> void:
+	mettre_en_pause(false)
+	_finir(false, 0.0)
 
 
 func _physics_process(delta: float) -> void:
@@ -190,13 +216,17 @@ func _sur_mort() -> void:
 
 
 ## Fin de partie : on note le résultat, puis l'écran de fin s'affiche.
-func _finir(victoire: bool) -> void:
+## attente : secondes avant l'écran de fin (par défaut 0,5 en victoire, 2 en défaite) ; le délai ne compte pas en pause.
+func _finir(victoire: bool, attente := -1.0) -> void:
 	if _fini:
 		return
 	_fini = true
 	_heros.definir_direction(Vector2.ZERO)
 	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact())
-	await get_tree().create_timer(2.0 if not victoire else 0.5).timeout
+	if attente < 0.0:
+		attente = 0.5 if victoire else 2.0
+	if attente > 0.0:
+		await get_tree().create_timer(attente, false).timeout
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 
 

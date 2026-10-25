@@ -104,16 +104,13 @@ func sauvegarder() -> void:
 	for nom in _origine:
 		if est_change(nom):
 			changes[nom] = valeur(nom)
-	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
-	if fichier:
-		fichier.store_string(JSON.stringify(changes))
+	Fichier.ecrire_json(FICHIER, changes)   # .tmp puis renommage (écriture sûre)
 
 
 ## Lit les valeurs changées (une valeur inconnue ou hors limites est ignorée ou ramenée dans les limites).
+## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
-	if not FileAccess.file_exists(FICHIER):
-		return
-	var donnees = JSON.parse_string(FileAccess.get_file_as_string(FICHIER))
+	var donnees = Fichier.lire_json(FICHIER)
 	if not donnees is Dictionary:
 		return
 	for page in PAGES:

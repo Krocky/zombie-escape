@@ -7,6 +7,7 @@ config/name="Zombie Escape"
 run/main_scene="res://scenes/titre.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [autoload]
 

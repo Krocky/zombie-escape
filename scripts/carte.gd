@@ -120,6 +120,12 @@ func _y_aller() -> void:
 	get_tree().change_scene_to_file(Partie.scene_lieu())
 
 
+## Geste « retour » d'Android : écran précédent (la base), comme « Retour ».
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_retour()
+
+
 func _retour() -> void:
 	get_tree().change_scene_to_file("res://scenes/base.tscn")
 

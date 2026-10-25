@@ -139,6 +139,7 @@ func attaquer() -> void:
 ## Appelé par le niveau : le héros entre dans une cachette (invisible, immobile, silencieux).
 func se_cacher() -> void:
 	_cache = true
+	_recul = Vector2.ZERO    # un coup reçu juste avant ne le fait pas glisser hors de la cachette
 	_lampe.enabled = false   # lampe éteinte dans la cachette
 	collision_layer = 0
 	_vue.queue_redraw()

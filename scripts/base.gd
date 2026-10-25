@@ -73,6 +73,7 @@ var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 func _ready() -> void:
 	if Partie.annoncer_remede():
 		get_tree().change_scene_to_file.call_deferred("res://scenes/remede.tscn")
+		return   # les chutes se verront au retour sur la base (sinon elles seraient marquées vues pour rien)
 	$Haut/Titre.add_theme_color_override("font_color", Palette.LAMPE)
 	$Haut/Titre.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Haut/Inventaire.draw.connect(_dessiner_inventaire)
@@ -203,6 +204,12 @@ func _titre() -> String:
 		return "La base"
 	var voyelle := prenom.left(1).to_lower() in ["a", "e", "i", "o", "u", "y", "h", "é", "è", "ê", "à", "â", "î", "ô", "û"]
 	return "La base " + ("d'" if voyelle else "de ") + prenom
+
+
+## Geste « retour » d'Android : écran précédent (le titre).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		get_tree().change_scene_to_file("res://scenes/titre.tscn")
 
 
 func _changer_heros() -> void:

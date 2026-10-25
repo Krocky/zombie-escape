@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/niveau.gd" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/heros.tscn" id="3_heros"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://scenes/brouillard.tscn" id="9_brouillard"]
 [ext_resource type="PackedScene" path="res://scenes/vignette.tscn" id="10_vignette"]
+[ext_resource type="PackedScene" path="res://scenes/pause.tscn" id="11_pause"]
 
 [node name="Niveau" type="Node2D"]
 script = ExtResource("1_niveau")
@@ -34,3 +35,5 @@ force = 0.6
 [node name="Vignette" parent="." instance=ExtResource("10_vignette")]
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="Pause" parent="." instance=ExtResource("11_pause")]

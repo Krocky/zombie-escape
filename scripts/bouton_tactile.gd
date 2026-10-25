@@ -14,7 +14,7 @@ signal appuye
 @export var couleur := Color.WHITE
 ## Taille du texte des boutons en pilule (les ronds gardent leur taille).
 @export var taille_texte := 40
-## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages" ou rien.
+## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause" ou rien.
 @export var icone := "":
 	set(valeur):
 		if icone != valeur:
@@ -64,6 +64,12 @@ func _input(event: InputEvent) -> void:
 	elif not event.pressed and event.index == _doigt:
 		_doigt = -1
 		queue_redraw()
+
+
+## Oublie le doigt posé (le jeu se fige : son lever n'arrivera jamais jusqu'ici).
+func relacher() -> void:
+	_doigt = -1
+	queue_redraw()
 
 
 func _rond() -> bool:
@@ -191,6 +197,10 @@ func _icone(c: Vector2, r: float, encre: Color) -> void:
 				draw_line(c + Vector2.from_angle(a) * r * 0.5, c + Vector2.from_angle(a) * r * 0.95, encre, r * 0.32)
 			draw_circle(c, r * 0.68, encre)
 			draw_circle(c, r * 0.28, Palette.UI_BOUTON)
+		"pause":
+			# Deux barres verticales
+			for dx: float in [-r * 0.42, r * 0.42]:
+				Dessin.rect(self, Rect2(c + Vector2(dx - r * 0.22, -r * 0.75), Vector2(r * 0.44, r * 1.5)), encre)
 		"jouer":
 			Dessin.polygone(self, PackedVector2Array([c + Vector2(-r * 0.6, -r * 0.8), c + Vector2(r * 0.8, 0),
 				c + Vector2(-r * 0.6, r * 0.8)]), encre)

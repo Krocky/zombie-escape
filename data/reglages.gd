@@ -19,7 +19,7 @@ var LAMPE_ANGLE := 50.0             # largeur du faisceau, en degrés
 var NUIT_CLARTE := 1.0              # 1 = normal, 0.5 = deux fois plus sombre, 2 = deux fois plus clair
 var BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
 var CAMERA_AVANCE := 70.0          # la caméra regarde en avant du héros (pixels), 0 = centrée sur lui
-var AFFICHER_IPS := true            # true = affiche les images par seconde en haut (pour tester la fluidité)
+var AFFICHER_IPS := false           # true = affiche les images par seconde en haut (pour tester la fluidité)
 var QUALITE_AUTO := true            # true = passe en qualité basse si le jeu rame (moins net, plus fluide)
 var QUALITE_SEUIL_IPS := 30         # en dessous de ce nombre d'images par seconde...
 var QUALITE_DELAI := 3.0            # ... pendant ces secondes (dans un lieu) : qualité basse
@@ -94,6 +94,7 @@ var ZOMBIE_VUE_DISTANCE_POURSUITE := 600.0   # jusqu'où il voit quand il te pou
 var ZOMBIE_VUE_ANGLE := 100.0                # largeur du cône de vue, en degrés
 var ZOMBIE_DELAI_ABANDON := 2.0              # secondes sans te voir avant de te chercher
 var ZOMBIE_DELAI_RECHERCHE := 3.0            # secondes à te chercher avant de repartir
+var ZOMBIE_DELAI_BLOQUE := 1.0               # coincé contre le décor (en patrouille ou en rentrant) : il repart d'où il est
 var ZOMBIE_PORTEE_CONTACT := 45.0       # distance à laquelle il te touche
 var ZOMBIE_DELAI_DEGATS := 1.0          # secondes entre deux coups du même zombie
 var ZOMBIE_RECUL := 350.0               # force du recul quand tu le frappes

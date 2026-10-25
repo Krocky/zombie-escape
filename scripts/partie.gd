@@ -319,20 +319,17 @@ func premiere_apparition(id: String) -> bool:
 	return true
 
 
+## Écriture sûre (Fichier : .tmp puis renommage), l'ancienne sauvegarde reste entière si l'appli est tuée pendant l'écriture.
 func sauvegarder() -> void:
-	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
-	if fichier:
-		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions,
-			"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
-			"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus}))
+	Fichier.ecrire_json(FICHIER, {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
+		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
+		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus})
 
 
 ## Lit la sauvegarde (version 1 à 6). Une version plus ancienne est aussitôt réécrite en version 6
-## (les fioles déjà rangées remplissent la jauge du remède).
+## (les fioles déjà rangées remplissent la jauge du remède). Fichier illisible : on reprend le .tmp.
 func charger() -> void:
-	if not FileAccess.file_exists(FICHIER):
-		return
-	var donnees = JSON.parse_string(FileAccess.get_file_as_string(FICHIER))
+	var donnees = Fichier.lire_json(FICHIER)
 	if not donnees is Dictionary:
 		return
 	if donnees.get("inventaire") is Dictionary:

@@ -84,6 +84,12 @@ func _liste(types: Array) -> String:
 	return ", ".join(noms)
 
 
+## Geste « retour » d'Android : comme le bouton « Retour à la base ».
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_retour_base()
+
+
 func _retour_base() -> void:
 	get_tree().change_scene_to_file("res://scenes/base.tscn")
 

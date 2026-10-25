@@ -7,6 +7,7 @@ extends Control
 const ORDRE := ["heros", "heroine"]
 
 var _choisi := Partie.perso()
+var _depuis_base := Partie.skin != ""   # ouvert depuis la base (sinon depuis le titre, avant la première partie)
 var _temps := 0.0
 var _cartes := {}   # skin -> Rect2 à l'écran
 
@@ -63,6 +64,12 @@ func _input(event: InputEvent) -> void:
 			_choisi = skin
 			$Prenom.release_focus()
 			queue_redraw()
+
+
+## Geste « retour » d'Android : écran précédent sans changer de héros (la base, ou le titre avant la première partie).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		get_tree().change_scene_to_file("res://scenes/base.tscn" if _depuis_base else "res://scenes/titre.tscn")
 
 
 func _valider() -> void:

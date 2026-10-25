@@ -19,6 +19,12 @@ func _ready() -> void:
 	$Centre/Colonne/Continuer.appuye.connect(_continuer)
 
 
+## Geste « retour » d'Android : comme « Continuer » (vers la base).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_continuer()
+
+
 func _continuer() -> void:
 	get_tree().change_scene_to_file("res://scenes/base.tscn")
 

@@ -54,6 +54,7 @@ var _disparition := 0.0   # temps restant de l'animation où il bascule et s'eff
 var _delai_cri := 0.0     # évite qu'il crie en boucle
 var _charge := 0.0        # coureur : temps depuis le début de la charge
 var _souffle := 0.0       # coureur : temps restant essoufflé
+var _bloque := 0.0        # temps passé coincé contre le décor (patrouille, retour)
 # Yeux du dessin de secours (calculés pendant le dessin du corps)
 var _yeux_centre := Vector2.ZERO
 var _yeux_sens := 1.0
@@ -249,11 +250,33 @@ func _physics_process(delta: float) -> void:
 	velocity = direction * _vitesse() + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
+	_verifier_blocage(direction, delta)
 	if direction != Vector2.ZERO:
 		_regard = _regard.slerp(direction, minf(8.0 * delta, 1.0)).normalized()
 	_temps += delta * (2.0 if _etat == Etat.POURSUITE else 1.0)
 	_suivre()
 	_cone.queue_redraw()
+
+
+## Sans recherche de chemin, il peut rester coincé contre une étagère en patrouille ou en rentrant : s'il n'avance
+## presque plus (moins de 40 % de sa vitesse) pendant Reglages.ZOMBIE_DELAI_BLOQUE, il patrouille depuis l'endroit
+## où il est (nouveau départ ; coincé en allant au bout, ce bout devient sa place et il repart dans l'autre sens).
+func _verifier_blocage(direction: Vector2, delta: float) -> void:
+	if direction == Vector2.ZERO or not (_etat == Etat.PATROUILLE or _etat == Etat.RETOUR) \
+			or get_real_velocity().length() >= 0.4 * _vitesse():
+		_bloque = 0.0
+		return
+	_bloque += delta
+	if _bloque < Reglages.ZOMBIE_DELAI_BLOQUE:
+		return
+	_bloque = 0.0
+	if _etat == Etat.PATROUILLE and _vers_bout:
+		_depart = global_position - patrouille
+	else:
+		_depart = global_position
+	if _etat == Etat.RETOUR:
+		_vers_bout = true
+		_changer_etat(Etat.PATROUILLE)
 
 
 func _changer_etat(nouvel_etat: Etat) -> void:
@@ -262,6 +285,7 @@ func _changer_etat(nouvel_etat: Etat) -> void:
 	if nouvel_etat == Etat.ESSOUFFLE:
 		_souffle = Reglages.ZOMBIE_COUREUR_ESSOUFFLE
 	_etat = nouvel_etat
+	_bloque = 0.0
 	_temps_sans_voir = 0.0
 	_temps_recherche = 0.0
 

@@ -80,11 +80,11 @@ func _physics_process(_d):
 				print("interrupteur ips: '", ips[2].texte, "' valeur ", reg.AFFICHER_IPS)
 			if g == 30 or g == 36: _appui(_ligne(4)[2], 30)
 			if g == 60:
-				print("apres appui: '", _ligne(4)[2].texte, "' valeur ", reg.AFFICHER_IPS, " (attendu Non / false)")
+				print("apres appui: '", _ligne(4)[2].texte, "' valeur ", reg.AFFICHER_IPS, " (attendu Oui / true, origine false)")
 				_snap("page2")
 			if g == 70 or g == 76: _appui(current_scene.get_node("Remettre"), 70)
 			if g == 100:
-				print("valeurs d'origine (page 2): ips ", reg.AFFICHER_IPS, " (attendu true) ; page 1 gardee: vitesse ", reg.HEROS_VITESSE, " (attendu 290)")
+				print("valeurs d'origine (page 2): ips ", reg.AFFICHER_IPS, " (attendu false) ; page 1 gardee: vitesse ", reg.HEROS_VITESSE, " (attendu 290)")
 			if g == 110 or g == 116: _appui(current_scene.get_node("Precedent"), 110)
 			if g == 130 or g == 136: _appui(current_scene.get_node("Precedent"), 130)
 			if g == 160:

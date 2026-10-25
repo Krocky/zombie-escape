@@ -4,6 +4,10 @@ extends CanvasLayer
 signal deplacement(direction: Vector2)
 signal attaque
 signal cacher
+signal pause_demandee
+
+const BOUTON := preload("res://scenes/bouton_tactile.tscn")
+const TAILLE_PAUSE := Vector2(100, 100)
 
 var _attente_ips := 0.0
 var _pv := -1
@@ -13,6 +17,7 @@ var _ramasses := []
 var _nombre := 0
 var _rescape := Control.new()     # icône du rescapé, sous les cœurs
 var _rescape_suit := false
+var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
 
 
 func _ready() -> void:
@@ -49,6 +54,13 @@ func _ready() -> void:
 	_rescape.visible = false
 	_rescape.draw.connect(_dessiner_rescape)
 	add_child(_rescape)
+	_pause.texte = "Pause"
+	_pause.icone = "pause"
+	_pause.couleur = Palette.UI_BOUTON
+	_pause.custom_minimum_size = TAILLE_PAUSE   # la scène impose 140 x 140
+	_pause.appuye.connect(pause_demandee.emit)
+	add_child(_pause)   # après le joystick : il prend le doigt avant lui
+	_pause.size = TAILLE_PAUSE
 	$Objectif.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Objectif.visible = false
 	get_viewport().size_changed.connect(_placer_objectif)
@@ -156,6 +168,14 @@ func _placer_objectif() -> void:
 	var ecran := get_viewport().get_visible_rect().size
 	$Objectif.offset_top = 52.0 if ecran.x > ecran.y else 150.0
 	$Objectif.offset_bottom = $Objectif.offset_top + 48.0
+	_pause.position = Vector2((ecran.x - TAILLE_PAUSE.x) / 2.0, $Objectif.offset_bottom + 4.0)
+
+
+## Le jeu se fige : on oublie les doigts posés (joystick, boutons), leur lever n'arrivera pas.
+func relacher() -> void:
+	$Joystick.relacher()
+	for bouton in [$BoutonAttaquer, $BoutonCacher, _pause]:
+		bouton.relacher()
 
 
 func _dessiner_icones() -> void:

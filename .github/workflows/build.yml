@@ -65,6 +65,17 @@ jobs:
           test -s build/zombie-escape.apk
           ls -la build
 
+      - name: Tests automatiques (1280x800)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri >/dev/null
+          CAPTURES="$RUNNER_TEMP/captures" tests/lancer.sh 1280x800 2>&1 | tee "$RUNNER_TEMP/tests.log"
+          # Un test qui affiche ECHEC, une erreur de script ou un plantage fait échouer le build
+          if grep -nE "ECHEC|SCRIPT ERROR|Parse Error|handle_crash" "$RUNNER_TEMP/tests.log"; then
+            echo "::error::Des tests ont échoué (voir les lignes ci-dessus)"
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: zombie-escape-${{ github.run_number }}
