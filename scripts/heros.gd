@@ -1,6 +1,7 @@
 extends CharacterBody2D
 ## Le héros : capuche, sac à dos, batte, lampe torche.
-## Origine = aux pieds (coordonnées monde). Affichage isométrique : sprites V2 dans le calque Vue
+## Origine = aux pieds (coordonnées monde). Affichage isométrique dans le calque Vue : images V3 du héros
+## choisi (Partie.perso() : immobile, marche, coup de batte ; retournées pour la gauche), sinon sprites V2
 ## (4 directions en diagonale, 3 poses de marche), dessin en code si une image manque.
 
 ## La batte frappe : le niveau décide quels zombies sont touchés.
@@ -11,6 +12,7 @@ signal mort
 signal bruit(origine: Vector2, rayon: float)
 
 const DUREE_COUP := 0.2
+const DUREE_POSE_ATTAQUE := 0.3   # pose « attack » (images V3) pendant le coup
 const ECHELLE := 0.5            # images à 2x : taille à l'écran
 const CADENCE_MARCHE := 7.0     # poses par seconde
 const DUREE_FONDU := 0.25       # entrée / sortie de cachette
@@ -29,6 +31,8 @@ var _recul := Vector2.ZERO
 var _invulnerable := 0.0
 var _recharge_attaque := 0.0
 var _coup := 0.0   # temps restant de l'animation de coup de batte
+var _pose_attaque := 0.0
+var _perso := Partie.perso()   # skin choisi (images V3)
 var _cache := false
 var _temps_pas := 0.0
 var _regard := Vector2.RIGHT   # direction du regard et de la lampe (monde, 8 directions)
@@ -105,6 +109,7 @@ func attaquer() -> void:
 		return
 	_recharge_attaque = Reglages.ATTAQUE_DELAI
 	_coup = DUREE_COUP
+	_pose_attaque = DUREE_POSE_ATTAQUE
 	attaque.emit(global_position, _regard)
 	bruit.emit(global_position, Reglages.BRUIT_ATTAQUE)
 
@@ -151,6 +156,7 @@ func _physics_process(delta: float) -> void:
 	_invulnerable = maxf(_invulnerable - delta, 0.0)
 	_recharge_attaque = maxf(_recharge_attaque - delta, 0.0)
 	_coup = maxf(_coup - delta, 0.0)
+	_pose_attaque = maxf(_pose_attaque - delta, 0.0)
 	_secousse = maxf(_secousse - delta, 0.0)
 	_fondu = move_toward(_fondu, 0.0 if _cache else 1.0, delta / DUREE_FONDU)
 	var direction := _direction if _pv > 0 and not _cache else Vector2.ZERO
@@ -181,7 +187,12 @@ func _suivre() -> void:
 	_camera.offset = Vector2(randf_range(-force, force), randf_range(-force, force)) if _secousse > 0.0 else Vector2.ZERO
 	var nom := _pose()
 	var main := Vector2(regard.x * 30.0, -60.0)
-	if Images.existe(nom):
+	var anim := _anim_v3()
+	if anim["nom"] != "":
+		# Images V3 : la lampe est le pixel le plus à droite à hauteur de main
+		var v3: String = anim["nom"]
+		main = Images.v3_point(v3, Images.v3_lampe(v3), anim["decalage"], ECHELLE, regard.x < 0.0)
+	elif Images.existe(nom):
 		# La lampe est le point le plus à droite de l'image (ancre droite)
 		var a := Images.ancres(nom)
 		main = (a[2] - a[3]) * ECHELLE
@@ -192,7 +203,12 @@ func _suivre() -> void:
 	_vue.queue_redraw()
 
 
-## Nom de l'image à afficher selon la direction (face ou dos) et la marche.
+## Pose V3 du héros choisi (nom "" s'il n'a pas d'images V3).
+func _anim_v3() -> Dictionary:
+	return Images.v3_animation(_perso, _temps, _temps > 0.0, _pose_attaque > 0.0)
+
+
+## Nom de l'image V2 à afficher selon la direction (face ou dos) et la marche.
 func _pose() -> String:
 	var poses: Array = POSES["dos" if Iso.direction_ecran(_regard).y < -0.1 else "face"]
 	if _temps == 0.0:
@@ -215,7 +231,13 @@ func _dessiner() -> void:
 		base = Transform2D(-s * PI / 2.0, Vector2(0, -12))
 	v.draw_set_transform_matrix(base)
 	var nom := _pose()
-	if Images.existe(nom):
+	var anim := _anim_v3()
+	if anim["nom"] != "":
+		# Rebond et inclinaison autour des pieds (sans poses de marche)
+		var pose := base * Transform2D(anim["angle"], anim["decalage"])
+		v.draw_set_transform_matrix(pose)
+		Images.v3_dessiner(v, anim["nom"], Vector2.ZERO, ECHELLE, s < 0.0, Color.WHITE, pose)
+	elif Images.existe(nom):
 		Images.dessiner_pieds(v, nom, Vector2.ZERO, ECHELLE, s < 0.0, Color.WHITE, base)
 	else:
 		_dessiner_secours(s)

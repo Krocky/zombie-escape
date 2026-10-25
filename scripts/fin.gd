@@ -20,10 +20,11 @@ func _ready() -> void:
 	titre.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 
 	var lignes := []
+	var bravo := ("Bravo %s ! " % Partie.prenom) if Partie.prenom != "" else ""
 	if resultat["victoire"]:
-		lignes.append("Tu es sorti %s !" % Partie.LIEUX[Partie.lieu]["du"])
+		lignes.append(bravo + "Tu es %s %s !" % [Partie.accord("sorti", "sortie"), Partie.LIEUX[Partie.lieu]["du"]])
 	else:
-		lignes.append("Tu as été rattrapé... tes amis t'ont ramené à la base.")
+		lignes.append("Tu as été %s... tes amis t'ont %s à la base." % [Partie.accord("rattrapé", "rattrapée"), Partie.accord("ramené", "ramenée")])
 	if resultat["mission"]:
 		lignes.append("Objectif rempli ! Bonus : " + _liste(resultat["bonus"]))
 	elif Partie.total_objectif(Partie.lieu) > 0:

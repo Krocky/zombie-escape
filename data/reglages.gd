@@ -71,6 +71,15 @@ const ZOMBIE_RAPIDE_VITESSE_PATROUILLE := 80.0
 const ZOMBIE_RAPIDE_PV := 2
 const ZOMBIE_RAPIDE_DEGATS := 1
 
+# --- Zombie coureur (combinaison orange) : il fonce sur toi, puis s'arrête essoufflé ---
+# Il ne t'entend pas et ne te sent pas de dos : il te repère seulement dans son cône de vue.
+const ZOMBIE_COUREUR_PV := 1                   # un seul coup de batte suffit
+const ZOMBIE_COUREUR_VITESSE_FOIS := 1.8       # vitesse de charge = 1,8 x la vitesse du zombie lent (ZOMBIE_LENT_VITESSE)
+const ZOMBIE_COUREUR_VITESSE_PATROUILLE := 60.0
+const ZOMBIE_COUREUR_DEGATS := 1
+const ZOMBIE_COUREUR_DUREE_CHARGE := 2.0       # secondes de charge au maximum
+const ZOMBIE_COUREUR_ESSOUFFLE := 1.5          # secondes où il s'arrête, essoufflé, après chaque charge
+
 # --- Tous les zombies ---
 const ZOMBIE_VUE_DISTANCE := 380.0             # jusqu'où il voit quand il se promène
 const ZOMBIE_VUE_DISTANCE_POURSUITE := 600.0   # jusqu'où il voit quand il te poursuit

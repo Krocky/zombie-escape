@@ -4,12 +4,14 @@ extends CharacterBody2D
 ## Le niveau lui donne la position du héros (connaitre_heros) et les bruits (entendre).
 ## Origine = aux pieds (coordonnées monde). Affichage isométrique : sprites V2 dans le calque Vue,
 ## yeux sur l'enfant « Yeux » (non assombri par la nuit), cône de vue sur le calque du sol.
+## Le zombie COUREUR (images V3) ne repère le héros que dans son cône (ni bruit, ni contact de dos) :
+## il charge très vite, puis s'arrête ESSOUFFLE (immobile, inoffensif) avant de pouvoir recharger.
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
 
-enum Type { LENT, RAPIDE }
-enum Etat { PATROUILLE, POURSUITE, CHERCHE, RETOUR }
+enum Type { LENT, RAPIDE, COUREUR }
+enum Etat { PATROUILLE, POURSUITE, CHERCHE, RETOUR, ESSOUFFLE }
 
 const MASQUE_DECOR := 1   # couche physique des murs et cachettes (bloquent la vue)
 const SON_CRI_GROS := preload("res://sons/zombie_gros.mp3")
@@ -17,6 +19,7 @@ const SON_CRI_MAIGRE := preload("res://sons/zombie_maigre.mp3")
 const SONS_COUP := [preload("res://sons/taper1.mp3"), preload("res://sons/taper2.mp3"), preload("res://sons/taper3.mp3")]
 const ECHELLE := 0.5            # images à 2x : taille à l'écran
 const CADENCE_MARCHE := 5.0     # poses par seconde (en patrouille ; deux fois plus en poursuite)
+const PERSO_COUREUR := "zombie_runner"   # images V3 du coureur (elles regardent à gauche)
 ## Poses : immobile, puis cycle de marche. « gauche » : les images regardent à gauche.
 const POSES := {
 	Type.LENT: {"face": ["gros_face_2", ["gros_face_2", "gros_face_4", "gros_face_5", "gros_face_4"]],
@@ -24,6 +27,8 @@ const POSES := {
 	Type.RAPIDE: {"face": ["maigre_profil_2", ["maigre_profil_1", "maigre_profil_2", "maigre_profil_3", "maigre_profil_2"]],
 		"dos": ["maigre_dos_2", ["maigre_dos_1", "maigre_dos_2", "maigre_dos_3", "maigre_dos_2"]], "gauche": true},
 }
+## Le coureur sans images V3 : dessiné comme le maigre
+const POSES_SECOURS_COUREUR := Type.RAPIDE
 
 @export var type := Type.LENT
 ## Point de patrouille, relatif à la position de départ : il fait l'aller-retour.
@@ -47,6 +52,8 @@ var _flash := 0.0
 var _battu := false        # vrai pour toujours dès qu'il n'a plus de PV
 var _disparition := 0.0   # temps restant de l'animation où il bascule et s'efface
 var _delai_cri := 0.0     # évite qu'il crie en boucle
+var _charge := 0.0        # coureur : temps depuis le début de la charge
+var _souffle := 0.0       # coureur : temps restant essoufflé
 # Yeux du dessin de secours (calculés pendant le dessin du corps)
 var _yeux_centre := Vector2.ZERO
 var _yeux_sens := 1.0
@@ -69,8 +76,8 @@ func connaitre_heros(position_heros: Vector2, detectable: bool) -> void:
 
 ## Un bruit a été fait en « origine » ; il porte jusqu'à « rayon ».
 func entendre(origine: Vector2, rayon: float) -> void:
-	if _battu or _etat == Etat.POURSUITE:
-		return
+	if _battu or _etat == Etat.POURSUITE or type == Type.COUREUR:
+		return   # le coureur n'entend rien
 	if global_position.distance_to(origine) <= rayon:
 		_point_recherche = origine
 		_changer_etat(Etat.CHERCHE)
@@ -78,10 +85,10 @@ func entendre(origine: Vector2, rayon: float) -> void:
 
 func _ready() -> void:
 	_depart = global_position
-	_pv = Reglages.ZOMBIE_LENT_PV if type == Type.LENT else Reglages.ZOMBIE_RAPIDE_PV
+	_pv = [Reglages.ZOMBIE_LENT_PV, Reglages.ZOMBIE_RAPIDE_PV, Reglages.ZOMBIE_COUREUR_PV][type]
 	if patrouille != Vector2.ZERO:
 		_regard = patrouille.normalized()
-	$Cri.stream = SON_CRI_GROS if type == Type.LENT else SON_CRI_MAIGRE
+	$Cri.stream = SON_CRI_GROS if type == Type.LENT else SON_CRI_MAIGRE   # le coureur crie comme le maigre
 	$Cri.volume_db = Reglages.SONS_VOLUME
 	$Coup.volume_db = Reglages.SONS_VOLUME
 	# Le cône est dessiné au sol (calque du sol), les yeux par-dessus le corps, sans ombre
@@ -131,11 +138,18 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 
 
 func _degats() -> int:
-	return Reglages.ZOMBIE_LENT_DEGATS if type == Type.LENT else Reglages.ZOMBIE_RAPIDE_DEGATS
+	return [Reglages.ZOMBIE_LENT_DEGATS, Reglages.ZOMBIE_RAPIDE_DEGATS, Reglages.ZOMBIE_COUREUR_DEGATS][type]
 
 
 func _vitesse() -> float:
 	var poursuite := _etat == Etat.POURSUITE or _etat == Etat.CHERCHE
+	if type == Type.COUREUR:
+		# Il ne fonce qu'en charge ; il cherche et rentre à petite vitesse
+		if _etat == Etat.ESSOUFFLE:
+			return 0.0
+		if _etat == Etat.POURSUITE:
+			return Reglages.ZOMBIE_LENT_VITESSE * Reglages.ZOMBIE_COUREUR_VITESSE_FOIS
+		return Reglages.ZOMBIE_COUREUR_VITESSE_PATROUILLE
 	if type == Type.LENT:
 		return Reglages.ZOMBIE_LENT_VITESSE if poursuite else Reglages.ZOMBIE_LENT_VITESSE_PATROUILLE
 	return Reglages.ZOMBIE_RAPIDE_VITESSE if poursuite else Reglages.ZOMBIE_RAPIDE_VITESSE_PATROUILLE
@@ -153,7 +167,8 @@ func _voit_heros() -> bool:
 	var distance := vers_heros.length()
 	if distance > _portee_vue():
 		return false
-	var dans_cone := distance < Reglages.ZOMBIE_PORTEE_CONTACT * 1.5 \
+	# Tout près, il te sent même de dos (sauf le coureur : seulement dans son cône)
+	var dans_cone := (distance < Reglages.ZOMBIE_PORTEE_CONTACT * 1.5 and type != Type.COUREUR) \
 		or rad_to_deg(absf(_regard.angle_to(vers_heros))) <= Reglages.ZOMBIE_VUE_ANGLE / 2.0
 	if not dans_cone:
 		return false
@@ -180,7 +195,7 @@ func _physics_process(delta: float) -> void:
 	var voit := _voit_heros()
 	if voit:
 		_point_recherche = _position_heros
-		if _etat != Etat.POURSUITE:
+		if _etat != Etat.POURSUITE and _etat != Etat.ESSOUFFLE:
 			_changer_etat(Etat.POURSUITE)
 			# Il t'a vu : il pousse son cri
 			if _delai_cri == 0.0:
@@ -197,8 +212,16 @@ func _physics_process(delta: float) -> void:
 			# Il fonce vers le héros, ou vers l'endroit où il l'a vu pour la dernière fois
 			cible = _point_recherche
 			_temps_sans_voir = 0.0 if voit else _temps_sans_voir + delta
+			_charge += delta
 			if not voit and (_temps_sans_voir > Reglages.ZOMBIE_DELAI_ABANDON or global_position.distance_to(cible) < 10.0):
-				_changer_etat(Etat.CHERCHE)
+				_changer_etat(Etat.ESSOUFFLE if type == Type.COUREUR else Etat.CHERCHE)
+			elif type == Type.COUREUR and _charge >= Reglages.ZOMBIE_COUREUR_DUREE_CHARGE:
+				_changer_etat(Etat.ESSOUFFLE)
+		Etat.ESSOUFFLE:
+			# Coureur à bout de souffle : il ne bouge plus, puis recharge s'il te voit encore
+			_souffle = maxf(_souffle - delta, 0.0)
+			if _souffle == 0.0:
+				_changer_etat(Etat.POURSUITE if voit else Etat.CHERCHE)
 		Etat.CHERCHE:
 			# Il va voir, puis regarde autour de lui un moment
 			cible = _point_recherche
@@ -214,9 +237,11 @@ func _physics_process(delta: float) -> void:
 				_changer_etat(Etat.PATROUILLE)
 
 	if voit and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT \
-			and _delai_coup == 0.0 and _etourdi == 0.0:
+			and _delai_coup == 0.0 and _etourdi == 0.0 and _etat != Etat.ESSOUFFLE:
 		_delai_coup = Reglages.ZOMBIE_DELAI_DEGATS
 		touche_heros.emit(_degats(), global_position)
+		if type == Type.COUREUR:
+			_changer_etat(Etat.ESSOUFFLE)   # sa charge s'arrête sur toi
 
 	var direction := global_position.direction_to(cible) if global_position.distance_to(cible) > 4.0 else Vector2.ZERO
 	if _etourdi > 0.0:
@@ -232,6 +257,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _changer_etat(nouvel_etat: Etat) -> void:
+	if nouvel_etat == Etat.POURSUITE and _etat != Etat.POURSUITE:
+		_charge = 0.0
+	if nouvel_etat == Etat.ESSOUFFLE:
+		_souffle = Reglages.ZOMBIE_COUREUR_ESSOUFFLE
 	_etat = nouvel_etat
 	_temps_sans_voir = 0.0
 	_temps_recherche = 0.0
@@ -245,16 +274,21 @@ func _suivre() -> void:
 
 
 ## Nom de l'image à afficher (face ou dos, marche) et retournement.
+## Coureur : [pose V3, miroir, true, transformation du rebond] (images V3, un seul profil qui regarde à gauche).
 func _pose() -> Array:
 	var regard := Iso.direction_ecran(_regard)
-	var poses: Dictionary = POSES[type]
+	if type == Type.COUREUR:
+		var anim := Images.v3_animation(PERSO_COUREUR, _temps, velocity.length() > 5.0 and not _battu, false, CADENCE_MARCHE)
+		if anim["nom"] != "":
+			return [anim["nom"], regard.x > 0.0, true, Transform2D(anim["angle"], anim["decalage"])]
+	var poses: Dictionary = POSES[POSES_SECOURS_COUREUR if type == Type.COUREUR else type]
 	var liste: Array = poses["dos" if regard.y < -0.1 else "face"]
 	var nom: String = liste[0]
 	if velocity.length() > 5.0 and not _battu:
 		var cycle: Array = liste[1]
 		nom = cycle[int(_temps * CADENCE_MARCHE) % cycle.size()]
 	var miroir: bool = (regard.x > 0.0) if poses["gauche"] else (regard.x < 0.0)
-	return [nom, miroir]
+	return [nom, miroir, false, Transform2D.IDENTITY]
 
 
 func _dessiner() -> void:
@@ -271,7 +305,12 @@ func _dessiner() -> void:
 	Dessin.ombre(v, Rect2(-rayon_ombre, -10, rayon_ombre * 2.0, 20))
 	var pose := _pose()
 	var haut := -120.0
-	if Images.existe(pose[0]):
+	if pose[2]:
+		var base: Transform2D = Transform2D(_corps_rotation, Vector2.ZERO) * pose[3]
+		v.draw_set_transform_matrix(base)
+		Images.v3_dessiner(v, pose[0], Vector2.ZERO, ECHELLE, pose[1], Color.WHITE, base)
+		haut = -Images.v3_taille(pose[0]).y * ECHELLE - 8.0
+	elif Images.existe(pose[0]):
 		var base := Transform2D(_corps_rotation, Vector2.ZERO)
 		v.draw_set_transform_matrix(base)
 		Images.dessiner_pieds(v, pose[0], Vector2.ZERO, ECHELLE, pose[1], Color.WHITE, base)
@@ -356,6 +395,8 @@ func _dessiner_icone() -> void:
 	_yeux.draw_set_transform(Vector2.ZERO)
 	if _etourdi > 0.0:
 		_dessiner_etoiles(Vector2(0, _haut_icone))
+	elif _etat == Etat.ESSOUFFLE:
+		_dessiner_essouffle(Vector2(0, _haut_icone))
 	elif _etat == Etat.POURSUITE:
 		_dessiner_alerte(Vector2(0, _haut_icone))
 	elif _etat == Etat.CHERCHE:
@@ -370,6 +411,18 @@ func _dessiner_yeux() -> void:
 		return
 	_dessiner_icone()
 	var pose := _pose()
+	if pose[2]:
+		# Image V3 : on redessine seulement ses yeux jaunes, sans ombre, avec leur lueur
+		var zone := Images.v3_yeux(pose[0])
+		if zone.size == Vector2.ZERO:
+			return
+		var base_v3: Transform2D = Transform2D(_corps_rotation, Vector2.ZERO) * pose[3]
+		_yeux.draw_set_transform_matrix(base_v3)
+		var centre := Images.v3_point(pose[0], zone.get_center(), Vector2.ZERO, ECHELLE, pose[1])
+		_yeux.draw_circle(centre, 16.0, Palette.ZOMBIE_YEUX_LUEUR)
+		_yeux.draw_circle(centre, 9.0, Palette.ZOMBIE_YEUX_LUEUR)
+		Images.v3_dessiner(_yeux, pose[0], Vector2.ZERO, ECHELLE, pose[1], Color.WHITE, base_v3, zone)
+		return
 	var nom_yeux: String = pose[0] + "_yeux"
 	if Images.existe(pose[0]):
 		if not Images.existe(nom_yeux):
@@ -395,6 +448,19 @@ func _dessiner_alerte(p: Vector2) -> void:
 	Dessin.polygone(_yeux, PackedVector2Array([
 		p + Vector2(-7, -26), p + Vector2(7, -26), p + Vector2(4, -4), p + Vector2(-4, -4)]), Palette.LAMPE)
 	Dessin.cercle(_yeux, p + Vector2(0, 5), 5, Palette.LAMPE)
+
+
+func _dessiner_essouffle(p: Vector2) -> void:
+	# Gouttes de sueur qui sautent de sa tête : il reprend son souffle
+	for i in 3:
+		var vie := fmod(_temps * 1.5 + i / 3.0, 1.0)
+		var c := p + Vector2((i - 1) * 20.0, 10.0 - vie * 24.0)
+		var goutte := PackedVector2Array([c + Vector2(0, -14), c + Vector2(7, 0), c + Vector2(0, 7), c + Vector2(-7, 0)])
+		var couleur := Palette.LUNE.lightened(0.4)
+		couleur.a = 1.0 - vie * 0.6
+		_yeux.draw_colored_polygon(goutte, couleur)
+		goutte.append(goutte[0])
+		_yeux.draw_polyline(goutte, Color(Palette.CONTOUR, couleur.a), 2.0, true)
 
 
 func _dessiner_etoiles(p: Vector2) -> void:

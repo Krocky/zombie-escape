@@ -1,7 +1,7 @@
 extends Control
 ## Écran Base (pas un niveau jouable) : l'abri en planches et le feu de camp, la nuit,
 ## l'inventaire (une icône par type d'objet avec son nombre), une carte par construction, la jauge du remède
-## et le bouton Partir. Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
+## le bouton Partir et le bouton Héros (changer de héros ou de prénom). Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
 ## Tout est dessiné en code, en formes simples avec contour épais. Les constructions faites apparaissent dans le décor.
 
 const CARTE := preload("res://scenes/carte_construction.tscn")
@@ -34,6 +34,10 @@ func _ready() -> void:
 	$Partir.couleur = Palette.LAMPE
 	$Partir.icone = "jouer"
 	$Partir.appuye.connect(_partir)
+	$Heros.couleur = Palette.UI_BOUTON
+	$Heros.icone = "heros"
+	$Heros.appuye.connect(_changer_heros)
+	$Haut/Titre.text = _titre()
 	for construction in Partie.CONSTRUCTIONS:
 		var carte := CARTE.instantiate()
 		carte.construction = construction
@@ -69,6 +73,19 @@ func _construire(construction: String) -> void:
 	for carte in $Constructions.get_children():
 		carte.actualiser()
 	$Haut/Inventaire.queue_redraw()
+
+
+## « La base d'Eliott », « La base de Lou », ou « La base » sans prénom.
+func _titre() -> String:
+	var prenom := Partie.prenom
+	if prenom == "":
+		return "La base"
+	var voyelle := prenom.left(1).to_lower() in ["a", "e", "i", "o", "u", "y", "h", "é", "è", "ê", "à", "â", "î", "ô", "û"]
+	return "La base " + ("d'" if voyelle else "de ") + prenom
+
+
+func _changer_heros() -> void:
+	get_tree().change_scene_to_file("res://scenes/choix_heros.tscn")
 
 
 func _partir() -> void:
@@ -242,11 +259,10 @@ func _image_au_sol(nom: String, pieds: Vector2, hauteur: float) -> void:
 	Images.dessiner_pieds(self, nom, pieds, hauteur / Images.region(nom).size.y, false, Color(0.62, 0.58, 0.72))
 
 
-## Le héros debout près du feu, tourné vers lui, éclairé d'un côté.
+## Le héros choisi debout près du feu, tourné vers lui, éclairé d'un côté.
 func _heros(pieds: Vector2, e: float, miroir: bool) -> void:
 	Dessin.ombre(self, Rect2(pieds - Vector2(50, 14) * e, Vector2(100, 28) * e))
-	if Images.existe("profil_1"):
-		Images.dessiner_pieds(self, "profil_1", pieds, e * 0.9, miroir, Color(1.0, 0.9, 0.8))
+	DecorEcran.dessiner_heros(self, Partie.perso(), pieds, e * 0.9, miroir, Color(1.0, 0.9, 0.8))
 
 
 ## Feu de camp : pierres en cercle, bûches croisées, trois flammes qui dansent et des étincelles.

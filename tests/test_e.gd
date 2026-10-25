@@ -3,6 +3,7 @@ var f := 0
 func _initialize():
 	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
 	root.get_node("Partie").inventaire = {}
+	root.get_node("Partie").skin = "heros"   # héros déjà choisi : Jouer mène à la base
 	change_scene_to_file("res://scenes/titre.tscn")
 func _touch(pos, pressed):
 	var e = InputEventScreenTouch.new(); e.index = 0; e.position = pos; e.pressed = pressed

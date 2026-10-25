@@ -146,3 +146,8 @@ patrouille = Vector2(800, 0)
 position = Vector2(1500, 350)
 type = 1
 patrouille = Vector2(550, 0)
+
+[node name="ZombieCoureur" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(1450, 1120)
+type = 2
+patrouille = Vector2(600, 0)

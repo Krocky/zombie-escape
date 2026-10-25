@@ -1,12 +1,13 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 3 : {"version": 3, "inventaire": {type: nombre}, "constructions": [nom, ...],
-## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu}.
-## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 3.
+## Sauvegarde version 4 : {"version": 4, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
+## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 4.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 3
+const VERSION := 4
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -20,6 +21,10 @@ const CONSTRUCTIONS := {
 	"atelier": "Atelier",
 	"lampe": "Lampe renforcée",
 }
+## Héros au choix (écran « Choisis ton héros ») : skin -> nom affiché. Images : images/v3/<skin>_<pose>.png
+const SKINS := {"heros": "Garçon", "heroine": "Fille"}
+const PRENOM_MAX := 12
+
 ## Lieux de la carte, dans l'ordre : id -> nom, « sortir de... » (écran de fin), scène.
 ## Sans scène, le lieu est affiché « Bientôt » sur la carte.
 const LIEUX := {
@@ -37,6 +42,10 @@ var constructions := []
 var remede := 0
 ## Vrai quand l'écran « Remède trouvé ! » a été montré (une seule fois)
 var remede_annonce := false
+## Héros choisi (clé de SKINS), "" tant que le joueur n'a pas choisi
+var skin := ""
+## Prénom du joueur ("" s'il n'en a pas mis)
+var prenom := ""
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0}
@@ -67,6 +76,24 @@ func terminer(victoire: bool, ramasses: Array) -> void:
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
 		"fioles": _remplir_remede()}
 	sauvegarder()
+
+
+# --- Héros choisi ---
+
+## Skin à dessiner (garçon par défaut tant que le joueur n'a pas choisi).
+func perso() -> String:
+	return skin if SKINS.has(skin) else "heros"
+
+
+func choisir_heros(nouveau_skin: String, nouveau_prenom: String) -> void:
+	skin = nouveau_skin if SKINS.has(nouveau_skin) else "heros"
+	prenom = nouveau_prenom.strip_edges().left(PRENOM_MAX)
+	sauvegarder()
+
+
+## Accord selon le héros : accord("sorti", "sortie").
+func accord(masculin: String, feminin: String) -> String:
+	return feminin if perso() == "heroine" else masculin
 
 
 func nom(type: String) -> String:
@@ -255,10 +282,10 @@ func sauvegarder() -> void:
 	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
 	if fichier:
 		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions,
-			"remede": remede, "remede_annonce": remede_annonce}))
+			"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom}))
 
 
-## Lit la sauvegarde (version 1, 2 ou 3). Une version plus ancienne est aussitôt réécrite en version 3
+## Lit la sauvegarde (version 1 à 4). Une version plus ancienne est aussitôt réécrite en version 4
 ## (les fioles déjà rangées remplissent la jauge du remède).
 func charger() -> void:
 	if not FileAccess.file_exists(FICHIER):
@@ -275,6 +302,10 @@ func charger() -> void:
 				constructions.append(str(nom_construction))
 	remede = int(donnees.get("remede", 0))
 	remede_annonce = bool(donnees.get("remede_annonce", false))
+	skin = str(donnees.get("skin", ""))
+	if not SKINS.has(skin):
+		skin = ""
+	prenom = str(donnees.get("prenom", "")).left(PRENOM_MAX)
 	if int(donnees.get("version", 1)) < VERSION:
 		_remplir_remede()
 		sauvegarder()

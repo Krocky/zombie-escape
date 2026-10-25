@@ -328,7 +328,10 @@ func _dessiner_fiche() -> void:
 		var pieds := Vector2(x + 40 + i * 76, 202 + dy)
 		var image := "gros_face_2" if zombies[i] == 0 else "maigre_profil_2"
 		Dessin.ombre(fiche, Rect2(pieds - Vector2(30, 8), Vector2(60, 16)))
-		if Images.existe(image):
+		var coureur := Images.v3_pose("zombie_runner", "idle") if zombies[i] == 2 else ""
+		if coureur != "":
+			Images.v3_dessiner(fiche, coureur, pieds, HAUTEUR_ZOMBIE / Images.v3_taille(coureur).y)
+		elif Images.existe(image):
 			var echelle := HAUTEUR_ZOMBIE / Images.region(image).size.y
 			Images.dessiner_pieds(fiche, image, pieds, echelle)
 			if Images.existe(image + "_yeux"):

@@ -13,6 +13,8 @@ func _initialize():
 	partie.charger()
 	print("reprise v1: ", partie.inventaire, " constructions: ", partie.constructions)
 	print("reecrite: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+	partie.skin = "heros"   # héros déjà choisi : Jouer mène à la base (écran de choix : test_m)
+	partie.sauvegarder()
 	change_scene_to_file("res://scenes/titre.tscn")
 func _touch(pos, pressed):
 	var e = InputEventScreenTouch.new(); e.index = 0; e.position = pos; e.pressed = pressed

@@ -90,3 +90,170 @@ func _dessiner(ci: CanvasItem, nom: String, cible: Rect2, miroir: bool, couleur:
 	ci.draw_set_transform_matrix(base * Transform2D(Vector2(-1, 0), Vector2(0, 1), Vector2(2.0 * centre, 0)))
 	ci.draw_texture_rect_region(texture(nom), cible, region(nom), couleur)
 	ci.draw_set_transform_matrix(base)
+
+
+# --- Images V3 (une image par fichier, tools/process_assets.py) ---
+## Poses d'un personnage V3 : images/v3/<perso>_<pose>.png, ancre aux pieds dans images/v3/manifest.json.
+## Les images regardent vers la droite (héros) ou vers la gauche (zombie coureur, voir V3_GAUCHE).
+
+const DOSSIER_V3 := "res://images/v3/"
+const V3_GAUCHE := ["zombie_runner"]
+## Noms de pose acceptés pour l'immobile (la source s'appelle « iddle »)
+const POSES_IMMOBILE := ["idle", "iddle"]
+
+var _v3 = null           # nom -> infos du manifest (null tant qu'il n'est pas lu)
+var _v3_textures := {}   # nom -> Texture2D
+var _v3_lampes := {}     # nom -> position de la lampe (pixels de l'image)
+var _v3_yeux := {}       # nom -> Rect2 des yeux jaunes (pixels de l'image), vide s'il n'y en a pas
+
+
+func _manifest_v3() -> Dictionary:
+	if _v3 == null:
+		_v3 = {}
+		var texte := FileAccess.get_file_as_string(DOSSIER_V3 + "manifest.json")
+		var donnees = JSON.parse_string(texte) if texte != "" else null
+		if donnees is Dictionary and donnees.get("images") is Dictionary:
+			_v3 = donnees["images"]
+	return _v3
+
+
+func v3_existe(nom: String) -> bool:
+	return _manifest_v3().has(nom) and v3_texture(nom) != null
+
+
+func v3_texture(nom: String) -> Texture2D:
+	if not _v3_textures.has(nom):
+		var chemin := DOSSIER_V3 + nom + ".png"
+		_v3_textures[nom] = load(chemin) if ResourceLoader.exists(chemin) else null
+	return _v3_textures[nom]
+
+
+## Pose « pose » du personnage, ou "" si l'image n'existe pas.
+func v3_pose(perso: String, pose: String) -> String:
+	var noms := POSES_IMMOBILE if pose in POSES_IMMOBILE else [pose]
+	for p in noms:
+		if v3_existe(perso + "_" + p):
+			return perso + "_" + p
+	return ""
+
+
+## Poses de marche du personnage (walk_a / walk_b, ou run_a / run_b), vide s'il n'y en a pas.
+func v3_marche(perso: String) -> Array:
+	for paire in [["walk_a", "walk_b"], ["run_a", "run_b"]]:
+		var a := v3_pose(perso, paire[0])
+		var b := v3_pose(perso, paire[1])
+		if a != "" and b != "":
+			return [a, b]
+	return []
+
+
+func v3_taille(nom: String) -> Vector2:
+	return v3_texture(nom).get_size()
+
+
+func v3_pieds(nom: String) -> Vector2:
+	var a: Array = _manifest_v3()[nom].get("ancre_pieds", [])
+	if a.size() < 2:
+		return Vector2(v3_taille(nom).x / 2.0, v3_taille(nom).y)
+	return Vector2(a[0], a[1])
+
+
+## Lampe torche : le pixel visible le plus à droite, à hauteur de main (entre 35 et 65 % de la hauteur).
+func v3_lampe(nom: String) -> Vector2:
+	if not _v3_lampes.has(nom):
+		var image := v3_texture(nom).get_image()
+		var t := v3_taille(nom)
+		var lampe := Vector2(t.x, t.y * 0.5)
+		if image:
+			if image.is_compressed():
+				image.decompress()
+			var trouve := false
+			for x in range(int(t.x) - 1, -1, -1):
+				for y in range(int(t.y * 0.35), int(t.y * 0.65)):
+					if image.get_pixel(x, y).a > 0.5:
+						lampe = Vector2(x, y)
+						trouve = true
+						break
+				if trouve:
+					break
+		_v3_lampes[nom] = lampe
+	return _v3_lampes[nom]
+
+
+## Yeux jaunes (zombie) : rectangle des pixels jaunes vifs dans le tiers haut de l'image.
+func v3_yeux(nom: String) -> Rect2:
+	if not _v3_yeux.has(nom):
+		var zone := Rect2()
+		var image := v3_texture(nom).get_image()
+		if image:
+			if image.is_compressed():
+				image.decompress()
+			var t := v3_taille(nom)
+			var premier := true
+			for y in int(t.y * 0.35):
+				for x in int(t.x):
+					var c := image.get_pixel(x, y)
+					if c.a > 0.8 and c.r > 0.8 and c.g > 0.75 and c.b < 0.45:
+						if premier:
+							zone = Rect2(x, y, 1, 1)
+							premier = false
+						else:
+							zone = zone.expand(Vector2(x + 1, y + 1)).expand(Vector2(x, y))
+		_v3_yeux[nom] = zone
+	return _v3_yeux[nom]
+
+
+## Coin haut gauche de l'image (à l'échelle) pour que ses pieds soient sur « pieds ».
+func _v3_coin(nom: String, pieds: Vector2, echelle: float, miroir: bool) -> Vector2:
+	var p := v3_pieds(nom)
+	var x := (v3_taille(nom).x - p.x) if miroir else p.x
+	return pieds - Vector2(x, p.y) * echelle
+
+
+## Dessine une pose V3, pieds sur « pieds ». Si « zone » est donnée (pixels de l'image), seule cette partie est dessinée.
+func v3_dessiner(ci: CanvasItem, nom: String, pieds: Vector2, echelle: float, miroir := false, couleur := Color.WHITE, base := Transform2D.IDENTITY, zone := Rect2()) -> void:
+	var t := v3_taille(nom)
+	if zone.size == Vector2.ZERO:
+		zone = Rect2(Vector2.ZERO, t)
+	var coin := _v3_coin(nom, pieds, echelle, miroir)
+	var cible := Rect2(coin + zone.position * echelle, zone.size * echelle)
+	if miroir:
+		cible.position.x = coin.x + (t.x - zone.end.x) * echelle
+		var centre := cible.position.x + cible.size.x / 2.0
+		ci.draw_set_transform_matrix(base * Transform2D(Vector2(-1, 0), Vector2(0, 1), Vector2(2.0 * centre, 0)))
+	ci.draw_texture_rect_region(v3_texture(nom), cible, zone, couleur)
+	if miroir:
+		ci.draw_set_transform_matrix(base)
+
+
+## Point de l'image (pixels) à l'écran, pour une pose dessinée par v3_dessiner.
+func v3_point(nom: String, point: Vector2, pieds: Vector2, echelle: float, miroir := false) -> Vector2:
+	var p := point - v3_pieds(nom)
+	if miroir:
+		p.x = -p.x
+	return pieds + p * echelle
+
+
+## Animation d'un personnage V3 : poses de marche alternées si elles existent, sinon la pose immobile
+## qui rebondit et se penche un peu ; pose « attack » pendant un coup.
+const CADENCE_V3 := 6.0         # poses de marche par seconde
+const REBOND_V3 := 7.0          # hauteur du rebond (pixels à l'écran), sans poses de marche
+const INCLINAISON_V3 := 0.07    # inclinaison du rebond (radians, ~4°)
+
+
+## {"nom": pose à dessiner ("" si le personnage n'a pas d'image V3), "decalage": Vector2, "angle": float}
+func v3_animation(perso: String, temps: float, marche: bool, attaque := false, cadence := CADENCE_V3) -> Dictionary:
+	var anim := {"nom": v3_pose(perso, "idle"), "decalage": Vector2.ZERO, "angle": 0.0}
+	if attaque and v3_pose(perso, "attack") != "":
+		anim["nom"] = v3_pose(perso, "attack")
+		return anim
+	if not marche or anim["nom"] == "":
+		return anim
+	var cycle := v3_marche(perso)
+	if cycle.size() == 2:
+		anim["nom"] = cycle[int(temps * cadence) % 2]
+	else:
+		var phase := temps * cadence * PI / 2.0
+		anim["decalage"] = Vector2(0, -absf(sin(phase)) * REBOND_V3)
+		anim["angle"] = sin(phase) * INCLINAISON_V3
+	return anim

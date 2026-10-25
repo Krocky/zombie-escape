@@ -1,5 +1,5 @@
 class_name DecorEcran
-## Fond illustré des écrans titre et fin : sol en dalles dans la nuit, le héros et sa lampe,
+## Fond illustré des écrans titre et fin : sol en dalles dans la nuit, le héros choisi et sa lampe,
 ## des zombies aux yeux qui brillent (ou la porte de sortie verte après une victoire).
 ## Les personnages sont sur les côtés en paysage, en bas en portrait, pour laisser le texte lisible.
 
@@ -24,14 +24,22 @@ static func dessiner(ci: CanvasItem, taille: Vector2, temps: float, scene := Sce
 		# La lampe est tombée par terre : son faisceau rase le sol
 		_faisceau(ci, pieds + Vector2(70, -12) * e, Vector2.from_angle(0.04), taille.x * 0.45, e)
 	else:
-		_faisceau(ci, _lampe(pieds, e), Vector2.from_angle(-0.12 + 0.1 * sin(temps * 0.8)), taille.x * 0.55, e)
+		_faisceau(ci, lampe_heros(Partie.perso(), pieds, e * 0.9), Vector2.from_angle(-0.12 + 0.1 * sin(temps * 0.8)), taille.x * 0.55, e)
 	if scene != Scene.VICTOIRE:
 		_zombie(ci, "gros_face_2", autres[0] * taille, e * 0.95, temps)
 		_zombie(ci, "maigre_profil_2", autres[1] * taille, e * 0.95, temps + 1.7)
+	Dessin.ombre(ci, Rect2(pieds - Vector2(50, 14) * e, Vector2(100, 28) * e))
 	if scene == Scene.DEFAITE:
-		_personnage(ci, "profil_1", pieds, e, false, SOMBRE, -PI / 2.0)
+		dessiner_heros(ci, Partie.perso(), pieds, e * 0.9, false, SOMBRE, -PI / 2.0)
 	else:
-		_personnage(ci, "profil_1", pieds, e, false, Color.WHITE, 0.0)
+		dessiner_heros(ci, Partie.perso(), pieds, e * 0.9, false, Color.WHITE, 0.0)
+	_voile(ci, taille)
+
+
+## Fond seul (sol en dalles dans la nuit, haut assombri), sans personnages : écran de choix du héros.
+static func fond(ci: CanvasItem, taille: Vector2) -> void:
+	ci.draw_rect(Rect2(Vector2.ZERO, taille), Palette.FOND_NUIT)
+	_sol(ci, taille, taille.y * (0.5 if taille.x > taille.y else 0.62), minf(taille.x, taille.y) / 720.0)
 	_voile(ci, taille)
 
 
@@ -54,12 +62,28 @@ static func _sol(ci: CanvasItem, taille: Vector2, horizon: float, e: float) -> v
 				Color(clarte, clarte * 1.02, clarte * 1.3))
 
 
-## Position de la lampe dans la main du héros debout : ancre la plus à droite de l'image (comme dans le jeu).
-static func _lampe(pieds: Vector2, e: float) -> Vector2:
+## Le héros choisi debout (image V3 immobile, sinon V2), pieds sur « pieds », tourné de « angle ».
+## Aussi utilisé par la base et l'écran de choix du héros.
+static func dessiner_heros(ci: CanvasItem, perso: String, pieds: Vector2, echelle: float, miroir: bool, couleur: Color, angle := 0.0) -> void:
+	var base := Transform2D(angle, pieds)
+	ci.draw_set_transform_matrix(base)
+	var nom := Images.v3_pose(perso, "idle")
+	if nom != "":
+		Images.v3_dessiner(ci, nom, Vector2.ZERO, echelle, miroir, couleur, base)
+	elif Images.existe("profil_1"):
+		Images.dessiner_pieds(ci, "profil_1", Vector2.ZERO, echelle, miroir, couleur, base)
+	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+
+
+## Position de la lampe dans la main du héros debout (comme dans le jeu).
+static func lampe_heros(perso: String, pieds: Vector2, echelle: float) -> Vector2:
+	var nom := Images.v3_pose(perso, "idle")
+	if nom != "":
+		return Images.v3_point(nom, Images.v3_lampe(nom), pieds, echelle)
 	if not Images.existe("profil_1"):
-		return pieds + Vector2(80, -120) * e
+		return pieds + Vector2(90, -130) * echelle
 	var a := Images.ancres("profil_1")
-	return pieds + (a[2] - a[3]) * e * 0.9
+	return pieds + (a[2] - a[3]) * echelle
 
 
 ## Cône de lumière jaune qui part de la lampe, en dégradé.
