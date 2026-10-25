@@ -11,6 +11,8 @@ const MUR := Color("2a2438")              # murs
 const MUR_FACE := Color("211a21")         # face avant des murs
 const MUR_COTE := Color("1a1520")         # côté des murs (plus sombre)
 const FENETRE := Color("6890c5")          # fenêtre éclairée par la lune
+const FENETRE_REFLET := Color("a9c4ea")   # reflet de la lune sur la vitre (murs V3)
+const FENETRE_CADRE := Color("4a4258")    # cadre des fenêtres peintes sur les murs V3
 const ETAGERE := Color("3b3550")          # étagères métal
 const ETAGERE_FACE := Color("2a2540")
 const ETAGERE_COTE := Color("221e34")
@@ -39,6 +41,29 @@ const OMBRE := Color(0.05, 0.04, 0.09, 0.6)
 const NUIT := Color(0.13, 0.13, 0.24)     # assombrit tout le niveau (CanvasModulate)
 const VIGNETTE := Color(0.03, 0.02, 0.07, 0.85)   # bords de l'écran assombris
 const LUNE := Color("8aa8e0")             # lumière froide qui tombe des fenêtres
+# Ambiance de chaque lieu (Niveau.ambiance) : nuit et faisceau de la lampe. Les nuits gardent à peu près
+# la clarté de NUIT (luminance ~0,14) : seule la teinte change, le niveau reste aussi sombre.
+const NUIT_MAISON := Color(0.2, 0.13, 0.11)          # nuit chaude, ambrée
+const NUIT_SUPERMARCHE := Color(0.09, 0.15, 0.17)    # nuit froide, vert-cyan (néons)
+const FAISCEAU_MAISON := Color("ffb84a")             # lampe plus orangée, comme une ampoule
+const FAISCEAU_SUPERMARCHE := Color("fff0a0")        # lampe plus blanche sous les néons
+const NEON := Color("b8f5e0")                        # tube néon qui grésille (supermarché)
+## Images V3 bien plus claires que les V2 (sol blanc, mur carrelé...) : leurs couleurs sont multipliées par
+## ce facteur au chargement, pour que la nuit reste aussi sombre qu'avec les dalles et murs V2.
+const CLARTE_V3 := {
+	"floor_market_tiles": 0.4,
+	"floor_house_wood": 0.7,
+	"floor_house_kitchen": 0.55,
+	"wall_market": 0.45,
+	"wall_house": 0.65,
+	"prop_freezer": 0.75,
+	"prop_checkout_2c": 0.8,
+}
+## ambiance -> [nuit, faisceau]
+const AMBIANCES := {
+	"maison": [NUIT_MAISON, FAISCEAU_MAISON],
+	"supermarche": [NUIT_SUPERMARCHE, FAISCEAU_SUPERMARCHE],
+}
 
 # Lampe torche
 const LAMPE := Color("f8e989")

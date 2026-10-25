@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/niveau.tscn" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
@@ -7,9 +7,12 @@
 [ext_resource type="PackedScene" path="res://scenes/objet.tscn" id="7_objet"]
 [ext_resource type="PackedScene" path="res://scenes/sortie.tscn" id="8_sortie"]
 [ext_resource type="PackedScene" path="res://scenes/rescape.tscn" id="9_rescape"]
+[ext_resource type="PackedScene" path="res://scenes/neon.tscn" id="10_neon"]
 
 [node name="Supermarche" instance=ExtResource("1_niveau")]
 taille = Vector2(2400, 1600)
+ambiance = "supermarche"
+sol = "floor_market_tiles"
 graine = 7
 nombre_debris = 26
 
@@ -23,6 +26,7 @@ hauteur = 120.0
 style = 0
 fenetres = PackedFloat32Array(-500, 100, 700)
 portes = PackedFloat32Array(-900)
+image = "wall_market"
 
 [node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1200, 1600)
@@ -36,6 +40,7 @@ position = Vector2(20, 1560)
 taille = Vector2(40, 1400)
 hauteur = 30.0
 style = 0
+image = "wall_market"
 
 [node name="MurDroit" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(2380, 1560)
@@ -46,33 +51,38 @@ rebord = true
 
 [node name="Etagere1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(650, 560)
-taille = Vector2(560, 50)
+taille = Vector2(560, 35.4)
 hauteur = 80.0
 style = 1
+image = "prop_shelf_food_2c"
 
 [node name="Etagere2" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1550, 560)
-taille = Vector2(560, 50)
+taille = Vector2(560, 35.4)
 hauteur = 80.0
 style = 1
+image = "prop_shelf_food_2c"
 
 [node name="Etagere3" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(650, 940)
-taille = Vector2(560, 50)
+taille = Vector2(560, 35.4)
 hauteur = 80.0
 style = 1
+image = "prop_shelf_food_2c"
 
 [node name="Etagere4" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1550, 940)
-taille = Vector2(560, 50)
+taille = Vector2(560, 35.4)
 hauteur = 80.0
 style = 1
+image = "prop_shelf_food_2c"
 
 [node name="Etagere5" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(2150, 760)
-taille = Vector2(50, 400)
+taille = Vector2(33.7, 400)
 hauteur = 80.0
 style = 1
+image = "prop_shelf_food_2c"
 
 [node name="Caisse1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(300, 1300)
@@ -86,17 +96,50 @@ taille = Vector2(110, 110)
 hauteur = 70.0
 style = 2
 
-[node name="Caisse3" parent="Monde" instance=ExtResource("2_mur")]
-position = Vector2(1150, 1250)
-taille = Vector2(110, 110)
+[node name="Caddie" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1100, 1280)
+taille = Vector2(62.2, 120)
 hauteur = 70.0
 style = 2
+image = "prop_cart"
 
-[node name="Caisse4" parent="Monde" instance=ExtResource("2_mur")]
+[node name="Palette1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1900, 1350)
-taille = Vector2(110, 110)
+taille = Vector2(110, 92.5)
 hauteur = 70.0
 style = 2
+image = "prop_pallet"
+
+[node name="Palette2" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 1420)
+taille = Vector2(92.5, 110)
+hauteur = 70.0
+style = 2
+image = "prop_pallet"
+
+[node name="CaisseEnregistreuse1" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(480, 440)
+taille = Vector2(66, 170)
+hauteur = 70.0
+style = 2
+image = "prop_checkout_2c"
+
+[node name="CaisseEnregistreuse2" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(660, 440)
+taille = Vector2(66, 170)
+hauteur = 70.0
+style = 2
+image = "prop_checkout_2c"
+
+[node name="CaisseEnregistreuse3" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(840, 440)
+taille = Vector2(66, 170)
+hauteur = 70.0
+style = 2
+image = "prop_checkout_2c"
+
+[node name="Neon" parent="Monde" instance=ExtResource("10_neon")]
+position = Vector2(1100, 880)
 
 [node name="Caisse5" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1100, 330)
@@ -113,7 +156,7 @@ position = Vector2(250, 870)
 [node name="Congelateur" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(1600, 1320)
 style = 1
-taille = Vector2(180, 95)
+taille = Vector2(180, 88.4)
 hauteur = 60.0
 
 [node name="Sortie" parent="Monde" instance=ExtResource("8_sortie")]

@@ -1,6 +1,7 @@
 extends StaticBody2D
 ## Une cachette : carton ou congélateur (supermarché), armoire, dessous de lit ou baignoire (maison).
-## Le héros s'y cache tout près. Les styles sans image V2 sont dessinés en code (formes simples).
+## Le héros s'y cache tout près. Image V3 (meubles), sinon V2 (carton, congélateur), sinon dessin en code
+## (formes simples). Avec une image, l'emprise (collision) prend ses proportions (même grand côté).
 ## position = milieu du bord bas de l'emprise au sol (coordonnées monde).
 ## Affichage isométrique (voir Iso) : le niveau place visuels() dans ses calques.
 
@@ -10,6 +11,23 @@ enum Style { CARTON, CONGELATEUR, ARMOIRE, LIT, BAIGNOIRE }
 @export var taille := Vector2(110, 70)   # emprise au sol (collision)
 @export var hauteur := 70.0              # hauteur du dessin de secours (pixels d'écran)
 
+## Images de chaque style, la première qui existe est utilisée.
+const IMAGES := {
+	Style.CARTON: ["carton"],
+	Style.CONGELATEUR: ["prop_freezer", "congelateur"],
+	Style.ARMOIRE: ["prop_wardrobe"],
+	Style.LIT: ["prop_bed_2c"],
+	Style.BAIGNOIRE: ["prop_bathtub_2c"],
+}
+## Où se montrent les yeux du héros caché, en pixels de l'image V3 (non retournée) : entre les portes
+## de l'armoire, en bas du cadre du lit, au-dessus du bord de la baignoire, sous le couvercle du congélateur.
+const YEUX := {
+	"prop_wardrobe": Vector2(300, 330),
+	"prop_bed_2c": Vector2(455, 512),
+	"prop_bathtub_2c": Vector2(450, 960),
+	"prop_freezer": Vector2(228, 168),
+}
+
 var _occupee := false
 var _temps := 0.0
 var _vue := Node2D.new()      # dans le calque Vue (trié en profondeur)
@@ -17,6 +35,7 @@ var _sol := Node2D.new()      # dans le calque du sol (ombre)
 var _dessus := Node2D.new()   # par-dessus la cachette : les yeux du héros caché
 var _haut_dessus := Vector2.ZERO   # milieu du dessus, à l'écran
 var _secousse := 0.0
+var _image_ecran := Rect2()   # image à l'écran (transparence quand le héros est derrière)
 
 
 ## Distance entre un point et le bord de la cachette (0 si dedans).
@@ -38,6 +57,12 @@ func visuels() -> Dictionary:
 
 
 func _ready() -> void:
+	var nom := ""
+	for n: String in IMAGES[style]:
+		if nom == "" and Images.existe(n):
+			nom = n
+	if Images.v3_existe(nom):
+		taille = Iso.taille_image(nom, taille)[0]
 	var forme := RectangleShape2D.new()
 	forme.size = taille
 	var collision := CollisionShape2D.new()
@@ -47,11 +72,12 @@ func _ready() -> void:
 	var emprise := Rect2(global_position + Vector2(-taille.x / 2.0, -taille.y), taille)
 	var c := Iso.coins(emprise)
 	_vue.y_sort_enabled = true
-	_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise, 0.8))
-	var nom := "carton" if style == Style.CARTON else "congelateur" if style == Style.CONGELATEUR else ""
+	if not Images.v3_existe(nom):   # les images V3 ont déjà leur ombre
+		_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise, 0.8))
 	var haut_image := hauteur
-	if Images.existe(nom):
-		Iso.habiller(nom, emprise, _vue, Iso.miroir_pour(nom, taille.x >= taille.y))
+	var miroir := Iso.miroir_pour(nom, taille.x >= taille.y) if nom != "" else false
+	if nom != "":
+		_image_ecran = Iso.habiller(nom, emprise, _vue, miroir)
 		haut_image = Iso.hauteur_image(nom, emprise) * 0.62
 	else:
 		var boite := Node2D.new()
@@ -61,11 +87,23 @@ func _ready() -> void:
 	# Les yeux se dessinent juste après la cachette (trié un pixel plus bas que son coin avant)
 	_dessus.position = c[1] + Vector2(0, 1)
 	_haut_dessus = (c[0] + c[2]) * 0.5 - Vector2(0, haut_image) - _dessus.position
-	if style == Style.LIT:
+	if YEUX.has(nom):
+		_haut_dessus = Iso.point_image(nom, emprise, YEUX[nom], miroir) - _dessus.position
+	elif style == Style.LIT:
 		# Sous le lit : les yeux dépassent en bas, sous le matelas
 		_haut_dessus = (c[0] + c[1]) * 0.5 - Vector2(0, 9) - _dessus.position
 	_dessus.draw.connect(_dessiner_dessus)
 	_vue.add_child(_dessus)
+
+
+## Appelé par le niveau à chaque pas : la cachette devient transparente quand le héros est caché derrière.
+## `pieds` = pieds du héros à l'écran (Vector2.INF s'il n'y a rien à montrer).
+func voir_a_travers(pieds: Vector2, delta: float) -> void:
+	if _image_ecran.size == Vector2.ZERO:
+		return
+	var emprise := Rect2(global_position + Vector2(-taille.x / 2.0, -taille.y), taille)
+	var vise := Iso.opacite_devant(_image_ecran, Iso.coins(emprise), pieds)
+	_vue.modulate.a = move_toward(_vue.modulate.a, vise, delta * 3.0)
 
 
 func _process(delta: float) -> void:

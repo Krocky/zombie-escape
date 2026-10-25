@@ -10,6 +10,12 @@
 
 [node name="Maison" instance=ExtResource("1_niveau")]
 taille = Vector2(1600, 1200)
+ambiance = "maison"
+sol = "floor_house_wood"
+zones_sol = {
+"floor_house_kitchen": [Rect2(800, 660, 800, 540)],
+"floor_market_tiles": [Rect2(800, 0, 800, 660)]
+}
 graine = 11
 nombre_debris = 12
 
@@ -23,6 +29,7 @@ hauteur = 120.0
 style = 0
 fenetres = PackedFloat32Array(-300, 300)
 portes = PackedFloat32Array(-500)
+image = "wall_house"
 
 [node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(800, 1200)
@@ -36,6 +43,7 @@ position = Vector2(20, 1160)
 taille = Vector2(40, 1000)
 hauteur = 30.0
 style = 0
+image = "wall_house"
 
 [node name="MurDroit" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1580, 1160)
@@ -50,6 +58,7 @@ taille = Vector2(30, 220)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonB" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(800, 675)
@@ -57,6 +66,7 @@ taille = Vector2(30, 135)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonC" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(800, 860)
@@ -64,6 +74,7 @@ taille = Vector2(30, 185)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonD" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(800, 1160)
@@ -71,6 +82,7 @@ taille = Vector2(30, 140)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonE" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(170, 675)
@@ -78,6 +90,7 @@ taille = Vector2(260, 30)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonF" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(622.5, 675)
@@ -85,6 +98,7 @@ taille = Vector2(325, 30)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonG" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(957.5, 675)
@@ -92,6 +106,7 @@ taille = Vector2(285, 30)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
 [node name="CloisonH" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1410, 675)
@@ -99,41 +114,59 @@ taille = Vector2(300, 30)
 hauteur = 30.0
 style = 0
 rebord = true
+cloison = true
 
-[node name="Etagere" parent="Monde" instance=ExtResource("2_mur")]
+[node name="Canape" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(450, 1000)
-taille = Vector2(280, 50)
-hauteur = 80.0
+taille = Vector2(200, 70.4)
+hauteur = 70.0
+style = 2
+image = "prop_sofa_2c"
+
+[node name="Bibliotheque" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(620, 725)
+taille = Vector2(120, 48.5)
+hauteur = 120.0
 style = 1
+image = "prop_bookshelf"
 
-[node name="Caisse1" parent="Monde" instance=ExtResource("2_mur")]
-position = Vector2(1050, 900)
-taille = Vector2(110, 110)
+[node name="TableCuisine" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1050, 940)
+taille = Vector2(150, 104.7)
 hauteur = 70.0
 style = 2
+image = "prop_kitchen_table_2c"
 
-[node name="Caisse2" parent="Monde" instance=ExtResource("2_mur")]
-position = Vector2(1450, 1150)
-taille = Vector2(110, 110)
-hauteur = 70.0
+[node name="Frigo" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(847, 840)
+taille = Vector2(63.5, 100)
+hauteur = 120.0
 style = 2
+image = "prop_fridge"
+
+[node name="EtagereBois" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(71, 620)
+taille = Vector2(61.1, 160)
+hauteur = 90.0
+style = 1
+image = "prop_shelf_wood"
 
 [node name="Lit" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(625, 370)
 style = 3
-taille = Vector2(130, 200)
+taille = Vector2(98.3, 200)
 hauteur = 40.0
 
 [node name="Armoire" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(80, 890)
 style = 2
-taille = Vector2(70, 140)
+taille = Vector2(52.3, 140)
 hauteur = 130.0
 
 [node name="Baignoire" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(1310, 280)
 style = 4
-taille = Vector2(220, 110)
+taille = Vector2(220, 129.3)
 hauteur = 45.0
 
 [node name="Sortie" parent="Monde" instance=ExtResource("8_sortie")]
