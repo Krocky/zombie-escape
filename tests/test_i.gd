@@ -62,18 +62,18 @@ func _physics_process(_d):
 	if f == 104:
 		print("scene: ", current_scene.name, " (attendu Supermarche)")
 		var h = current_scene.get_node("Monde/Heros")
-		print("coeurs: ", h._pv, "/", h._pv_max, " (attendu ", Reglages.HEROS_PV + Reglages.BARRICADE_COEURS, ")")
-		print("lampe: portee ", partie.portee_lampe(), " (attendu ", Reglages.LAMPE_PORTEE, " sans lampe renforcee)")
+		print("coeurs: ", h._pv, "/", h._pv_max, " (attendu ", root.get_node("Reglages").HEROS_PV + root.get_node("Reglages").BARRICADE_COEURS, ")")
+		print("lampe: portee ", partie.portee_lampe(), " (attendu ", root.get_node("Reglages").LAMPE_PORTEE, " sans lampe renforcee)")
 		for z in get_nodes_in_group("zombies"): z.position = Vector2(2300, 1550); z._depart = z.position; z.patrouille = Vector2.ZERO
 		zombie = get_nodes_in_group("zombies")[0]
 		zombie.position = h.position + h._regard * 50.0; zombie._depart = zombie.position
 		pv_zombie = zombie._pv
 		h.attaquer()
 	if f == 108:
-		print("coup de batte: zombie ", pv_zombie, " -> ", zombie._pv, " PV (attendu -", Reglages.ATTAQUE_DEGATS + Reglages.ATELIER_DEGATS, ")")
+		print("coup de batte: zombie ", pv_zombie, " -> ", zombie._pv, " PV (attendu -", root.get_node("Reglages").ATTAQUE_DEGATS + root.get_node("Reglages").ATELIER_DEGATS, ")")
 		_snap("niveau")
 		partie.constructions.append("lampe")
-		print("portee avec lampe renforcee: ", partie.portee_lampe(), " (attendu ", Reglages.LAMPE_PORTEE * (1 + Reglages.LAMPE_RENFORCEE_PORTEE / 100.0), ")")
+		print("portee avec lampe renforcee: ", partie.portee_lampe(), " (attendu ", root.get_node("Reglages").LAMPE_PORTEE * (1 + root.get_node("Reglages").LAMPE_RENFORCEE_PORTEE / 100.0), ")")
 		change_scene_to_file("res://scenes/lieux/supermarche.tscn")
 	if f == 124:
 		var h = current_scene.get_node("Monde/Heros")

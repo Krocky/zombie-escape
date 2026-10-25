@@ -152,6 +152,8 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Animation V3 (`Images.v3_animation`) : walk_a / walk_b (ou run_a / run_b) alternés en marche, sinon pose immobile avec rebond + inclinaison ; pose attack pendant `DUREE_POSE_ATTAQUE` (0,3 s) après un coup.
 - Zombie coureur (`Type.COUREUR`, images `zombie_runner_*`, regardent à gauche), supermarché seulement (allée du bas). Réglages `ZOMBIE_COUREUR_*` : 1 PV, charge à 1,8 x `ZOMBIE_LENT_VITESSE` (« zombie de base » = le lent : 252, juste sous le héros), seulement la vue en cône (n'entend pas, ne sent pas de dos), charge de 2 s au plus, puis état `ESSOUFFLE` 1,5 s (immobile, inoffensif, gouttes de sueur) ; une charge s'arrête aussi au contact ou s'il te perd. Cri du maigre.
 
+- Écran Réglages (demande du père) : bouton rond « Réglages » de la base (en haut à droite en paysage, en bas à droite en portrait) -> scène `Parametres`. Les valeurs de `Reglages` sont des `var` (plus des `const`) ; `data/reglages.gd` garde les valeurs d'origine. Autoload `ParametresJeu` (juste après `Reglages`) : `PAGES` = 5 pages, 26 réglages choisis [nom, libellé, pas, min, max] (pas 0 = interrupteur Oui/Non) ; libellés recopiés à la main (le fichier n'est pas lisible dans l'APK) : un nouveau réglage à rendre modifiable s'ajoute dans `PAGES`. Valeurs changées dans `user://reglages.json` ({nom: valeur}, seulement celles qui diffèrent), relues au démarrage et ramenées dans les limites. « Valeurs d'origine » remet seulement la page affichée. Les changements comptent à la partie suivante (le volume de la musique tout de suite). Coûts et objectifs (dictionnaires) pas dans l'écran. Faisceau recalculé si `LAMPE_ANGLE` change.
+
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
 - Lot 1 / étape (b) : orientation portrait + paysage ; zombies lent (gros) et rapide (maigre), patrouille, poursuite avec « ! », abandon puis retour au point de départ.
@@ -168,6 +170,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Lot 2 / étape (e) : objectifs par lieu (fiche de la carte + HUD), « Mission réussie ! » avec 1 objet bonus, jauge du remède à la base (fioles versées, plus dans l'inventaire), écran « Remède trouvé ! » à 3 fioles (une fois), sauvegarde version 3, 2e bandage dans la maison ; test `test_l` (efface la sauvegarde à la fin). Fin du lot 2.
 
 - Héros au choix + zombie coureur (images V3) : écran « Choisis ton héros » avec prénom, skin partout, animation marche / coup, zombie coureur au supermarché ; test `test_m` (efface la sauvegarde à la fin).
+- Écran Réglages : 26 réglages modifiables dans le jeu (5 pages), sauvegardés à part ; test `test_n` (efface `user://reglages.json` à la fin).
 - Performance (après le lot 2) : brume en petit + tuiles, sol en blocs, bandes du décor recadrées, qualité basse automatique, outil `tests/mesure_perf.gd`.
 
 ## Refonte visuelle (après le lot 1, demande du père)

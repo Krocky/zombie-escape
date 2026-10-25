@@ -75,10 +75,12 @@ func visuels() -> Dictionary:
 ## La pointe du cône est au bord gauche de l'image, le faisceau part vers la droite.
 ## Calculé une seule fois (gardé pour les parties suivantes).
 static var _faisceau: ImageTexture
+static var _faisceau_angle := 0.0   # recalculé si l'angle change (écran Réglages)
 
 func _texture_faisceau() -> ImageTexture:
-	if _faisceau:
+	if _faisceau and _faisceau_angle == Reglages.LAMPE_ANGLE:
 		return _faisceau
+	_faisceau_angle = Reglages.LAMPE_ANGLE
 	var taille := 256
 	var image := Image.create(taille, taille, false, Image.FORMAT_LA8)
 	var demi_angle := deg_to_rad(Reglages.LAMPE_ANGLE / 2.0)

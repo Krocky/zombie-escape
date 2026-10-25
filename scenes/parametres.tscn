@@ -1,0 +1,56 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parametres.gd" id="1_param"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+
+[node name="Parametres" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_param")
+
+[node name="Titre" type="Label" parent="."]
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 100.0
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 46
+text = "Réglages"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Precedent" parent="." instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+texte = "<"
+
+[node name="Suivant" parent="." instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+texte = ">"
+
+[node name="Lignes" type="Control" parent="."]
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Retour" parent="." instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(260, 104)
+layout_mode = 0
+offset_right = 260.0
+offset_bottom = 104.0
+texte = "Retour"
+
+[node name="Remettre" parent="." instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(380, 104)
+layout_mode = 0
+offset_right = 380.0
+offset_bottom = 104.0
+taille_texte = 32
+texte = "Valeurs d'origine"

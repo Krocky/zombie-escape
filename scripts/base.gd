@@ -1,7 +1,8 @@
 extends Control
 ## Écran Base (pas un niveau jouable) : l'abri en planches et le feu de camp, la nuit,
 ## l'inventaire (une icône par type d'objet avec son nombre), une carte par construction, la jauge du remède
-## le bouton Partir et le bouton Héros (changer de héros ou de prénom). Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
+## le bouton Partir, le bouton Héros (changer de héros ou de prénom) et le bouton Réglages
+## (en haut à droite en paysage, en bas à droite en portrait). Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
 ## Tout est dessiné en code, en formes simples avec contour épais. Les constructions faites apparaissent dans le décor.
 
 const CARTE := preload("res://scenes/carte_construction.tscn")
@@ -37,6 +38,9 @@ func _ready() -> void:
 	$Heros.couleur = Palette.UI_BOUTON
 	$Heros.icone = "heros"
 	$Heros.appuye.connect(_changer_heros)
+	$Reglages.couleur = Palette.UI_BOUTON
+	$Reglages.icone = "reglages"
+	$Reglages.appuye.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/parametres.tscn"))
 	$Haut/Titre.text = _titre()
 	for construction in Partie.CONSTRUCTIONS:
 		var carte := CARTE.instantiate()
@@ -61,6 +65,9 @@ func _placer_cartes() -> void:
 	$Remede.size = TAILLE_JAUGE[paysage]
 	$Remede.position = Vector2(size.x - $Remede.size.x - 24, size.y - $Remede.size.y - 34) if paysage \
 		else Vector2((size.x - $Remede.size.x) / 2.0, 612)
+	$Reglages.size = $Reglages.custom_minimum_size
+	$Reglages.position = Vector2(size.x - $Reglages.size.x - 24, 24) if paysage \
+		else Vector2(size.x - $Reglages.size.x - 24, size.y - $Reglages.size.y - 44)
 	$Constructions.vertical = not paysage
 	$Constructions.add_theme_constant_override("separation", 14 if paysage else 10)
 	for carte in $Constructions.get_children():
