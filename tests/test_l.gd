@@ -30,7 +30,7 @@ func _physics_process(_d):
 		_snap("fiche_supermarche")
 		_touch(current_scene._place("maison"), true)
 	if f == 28: _touch(Vector2.ZERO, false)
-	if f == 34: print("fiche ouverte: ", current_scene._choisi, " (attendu maison)")
+	if f == 50: print("fiche ouverte: ", current_scene._choisi, " (attendu maison)")
 	if f == 70:
 		_snap("fiche_maison")
 		_touch(current_scene._place("supermarche"), true)

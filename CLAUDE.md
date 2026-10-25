@@ -63,6 +63,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Lancer : `GODOT=<godot 4.4.1> CAPTURES=<dossier> tests/lancer.sh 1280x800` puis `800x1280` (besoin de `xvfb-run` ; le son passe par un pilote factice, donc les sons ne sont pas vraiment testés).
 - Les tests comptent des pas de physique (`_physics_process`, 60 par seconde), pas des images : le rendu logiciel du serveur est lent (5 à 20 ips) et ne doit pas changer le résultat. Laisser au moins 6 pas entre un appui et son relâchement simulés.
 - Les captures ont du retard sur la logique (rendu à quelques ips) : attendre ~30 pas après un changement avant de capturer.
+- La carte agit au LEVER du doigt (pour distinguer un toucher d'un glissement) : vérifier l'effet d'un toucher au moins ~20 pas après le relâchement simulé (une capture bloque une image et 8 pas de physique peuvent passer avant que le relâchement soit livré).
 - Les tests qui passent par la base remettent `Partie.remede` à 0 (sinon une jauge pleine laissée par un autre test ouvrirait l'écran « Remède trouvé ! »).
 - `test_e` efface la sauvegarde `user://` de l'environnement de test (pas celle de la tablette).
 - `tests/` est exclu de l'export APK (`exclude_filter` dans export_presets.cfg).
