@@ -1,6 +1,6 @@
 extends Control
 ## Bouton tactile qui marche avec plusieurs doigts (le joystick peut rester appuyé).
-## Rond si la taille est carrée, sinon pilule (Jouer, Rejouer). Style « bouton de jeu » :
+## Rond si la taille est carrée, sinon pilule (Jouer, Partir, Retour à la base). Style « bouton de jeu » :
 ## socle sombre, dessus coloré qui s'enfonce quand on appuie, reflet, icône dessinée en code.
 
 signal appuye

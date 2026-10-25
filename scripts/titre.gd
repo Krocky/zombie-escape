@@ -1,5 +1,5 @@
 extends Control
-## Écran titre : le nom du jeu et le bouton Jouer.
+## Écran titre : le nom du jeu et le bouton Jouer (vers la base).
 
 var _temps := 0.0
 
@@ -14,7 +14,7 @@ func _ready() -> void:
 
 
 func _jouer() -> void:
-	get_tree().change_scene_to_file("res://scenes/niveau.tscn")
+	get_tree().change_scene_to_file("res://scenes/base.tscn")
 
 
 func _process(delta: float) -> void:

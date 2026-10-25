@@ -1,8 +1,10 @@
 extends Node
-## Résultat de la dernière partie et inventaire sauvegardé (user://).
-## La base n'existe pas encore : l'inventaire est juste affiché sur l'écran de fin.
+## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
+## Sauvegarde version 2 : {"version": 2, "inventaire": {type: nombre}, "constructions": [nom, ...]}.
+## Une sauvegarde version 1 (sans constructions) est reprise telle quelle, puis réécrite en version 2.
 
 const FICHIER := "user://sauvegarde.json"
+const VERSION := 2
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -13,6 +15,8 @@ const NOMS := {
 
 ## Objets rangés à la base, cumulés sur toutes les parties : { type: nombre }
 var inventaire := {}
+## Constructions faites à la base (noms), remplies à l'étape (b) du lot 2
+var constructions := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array)
 var resultat := {"victoire": false, "rapportes": [], "perdus": []}
 
@@ -42,13 +46,22 @@ func nom(type: String) -> String:
 func sauvegarder() -> void:
 	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
 	if fichier:
-		fichier.store_string(JSON.stringify({"version": 1, "inventaire": inventaire}))
+		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions}))
 
 
+## Lit la sauvegarde (version 1 ou 2). Une version 1 est aussitôt réécrite en version 2.
 func charger() -> void:
 	if not FileAccess.file_exists(FICHIER):
 		return
 	var donnees = JSON.parse_string(FileAccess.get_file_as_string(FICHIER))
-	if donnees is Dictionary and donnees.get("inventaire") is Dictionary:
+	if not donnees is Dictionary:
+		return
+	if donnees.get("inventaire") is Dictionary:
 		for type in donnees["inventaire"]:
 			inventaire[type] = int(donnees["inventaire"][type])
+	if donnees.get("constructions") is Array:
+		for nom_construction in donnees["constructions"]:
+			if not nom_construction in constructions:
+				constructions.append(str(nom_construction))
+	if int(donnees.get("version", 1)) < VERSION:
+		sauvegarder()

@@ -46,7 +46,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - Sauvegarde locale (inventaire) dans `user://`.
 - Fichiers `.uid` générés par Godot 4.4 : à committer.
 
-## Lot 2 : proposé (option A : Base + Carte), en attente du choix d'Eliott
+## Lot 2 : option A (Base + Carte), en cours
 Étapes : (a) écran Base + inventaire, (b) 3 constructions (barricade, atelier, lampe renforcée), (c) carte avec 2 lieux,
 (d) 2e lieu : la maison, (e) objectifs de mission + jauge du remède.
 Prompts complets, un par session : `docs/lot2-prompts.md` (valeurs entre crochets = propositions modifiables par Eliott).
@@ -95,9 +95,11 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Objets : ramassés automatiquement en marchant dessus (pas de bouton). 5 objets : conserve, eau, bandage, piles, fiole de remède. Ils ne servent à rien en jeu au lot 1 (pas de soin) : ils vont dans l'inventaire.
 - Sortie : toujours ouverte ; l'atteindre = Victoire, avec tous les objets ramassés (pas d'objet obligatoire).
 - Mort : on perd la moitié des objets ramassés, au hasard, arrondi en dessous (1 objet -> rien de perdu ; 3 -> 1 perdu).
-- Enchaînement : Titre -> Niveau -> Fin (Victoire / Retour à la base) -> Rejouer -> Niveau. L'autoload `Partie` garde le résultat et l'inventaire.
-- Sauvegarde : `user://sauvegarde.json` = `{"version": 1, "inventaire": {type: nombre}}`, cumulée sur toutes les parties, affichée sur l'écran de fin.
-- Écrans titre/fin : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée). Fond illustré commun `DecorEcran` (classe utilitaire) : dalles, héros et faisceau, zombies aux yeux qui brillent, porte verte (victoire), héros couché (défaite) ; personnages sur les côtés en paysage, en bas en portrait.
+- Enchaînement (lot 2 a) : Titre -> Base -> Partir -> Niveau -> Fin (Victoire / Retour à la base) -> bouton « Retour à la base » -> Base. L'autoload `Partie` garde le résultat, l'inventaire et les constructions.
+- Sauvegarde (lot 2 a) : `user://sauvegarde.json` = `{"version": 2, "inventaire": {type: nombre}, "constructions": [nom, ...]}`, inventaire cumulé sur toutes les parties. `constructions` = liste des noms construits (vide jusqu'à l'étape b). Une version 1 (sans `constructions`) est lue telle quelle puis réécrite aussitôt en version 2.
+- Écran Base (lot 2 a, scène `Base`) : écran fixe, pas un niveau. Décor en code dans `base.gd` (ciel étoilé, lune, ruines à l'horizon, abri en planches à toit de tôle, feu de camp animé, héros debout près du feu, caisse et carton V2) ; couleurs ajoutées à `Palette` (BOIS, TOLE, TERRE, PIERRE, FEU...). Emplacements dans `PLACES` (paysage / portrait). Inventaire : cadre en haut avec les 5 types toujours affichés (grisés à x0), via `Dessin.objet_compte` (icône + « xN », aussi utilisé par l'écran de fin). Bouton « Partir » en bas au centre.
+- Écran de fin : il garde son résumé et l'inventaire de la base ; seul le bouton change (« Retour à la base », sans icône, 480x110).
+- Écrans titre/fin/base : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée). Fond illustré commun `DecorEcran` (classe utilitaire) : dalles, héros et faisceau, zombies aux yeux qui brillent, porte verte (victoire), héros couché (défaite) ; personnages sur les côtés en paysage, en bas en portrait.
 - Sons (fournis par le père, rangés dans `sons/` car `docs/` est ignoré par Godot) : cri `zombie_gros` / `zombie_maigre` quand un zombie voit le héros (passage en POURSUITE, au plus un cri toutes les `ZOMBIE_DELAI_CRI` s) ; `taper1..3` au hasard quand la batte touche un zombie. Sons spatialisés (AudioStreamPlayer2D) ; écouteur = `AudioListener2D` sur le héros, dans le monde (la caméra est à l'écran). Volume global : `Reglages.SONS_VOLUME`.
 - Zombie battu : drapeau `_battu` définitif (il ne bouge plus jamais), invisible jusqu'à la fin du son de coup, puis enlevé. (Bug corrigé : sans ce drapeau, il « renaissait » pendant le son.)
 - Nuit : `CanvasModulate` (`Palette.NUIT` x `Reglages.NUIT_CLARTE`) dans le niveau, très sombre (demande d'Eliott : on ne voit les zombies au loin que dans le faisceau) ; le HUD (CanvasLayer 10) n'est pas assombri.
@@ -134,6 +136,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Lot 1 / étape (f) : nuit (CanvasModulate), lampe torche (halo + faisceau qui suit la direction), brouillard, sons des zombies (cri quand ils te voient) et des coups de batte.
 - Lot 1 / retours de test : volume -6 dB, nuit beaucoup plus sombre + réglage `NUIT_CLARTE`, lumière verte sur la sortie, correction des zombies qui renaissaient.
 - Clôture lot 1 : tests automatiques ajoutés au dépôt (`tests/`), prompts du lot 2 rédigés (`docs/lot2-prompts.md`).
+- Lot 2 / étape (a) : écran Base (abri, feu de camp, inventaire en icônes), enchaînement Titre -> Base -> Supermarché -> Fin -> Base, sauvegarde version 2 (place pour les constructions) avec reprise de la version 1, test `test_h`.
 
 ## Refonte visuelle (après le lot 1, demande du père)
 Lots (plan révisé après les planches V2) : 1 volumes 3/4 (remplacé par l'isométrique), 2 éclairage, 3 préparation des images V2, 4 passage en ISOMÉTRIQUE + décor + personnages en images V2, 5 ambiance (brume, lisibilité), 6 objets + retours de jeu, 7 UI.

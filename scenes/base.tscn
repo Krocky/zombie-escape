@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/base.gd" id="1_base"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+
+[node name="Base" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_base")
+
+[node name="Haut" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 24.0
+offset_bottom = 230.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Titre" type="Label" parent="Haut"]
+layout_mode = 2
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 64
+text = "La base"
+horizontal_alignment = 1
+
+[node name="Inventaire" type="Control" parent="Haut"]
+custom_minimum_size = Vector2(640, 110)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+
+[node name="Partir" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -180.0
+offset_top = -150.0
+offset_right = 180.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+texte = "Partir"

@@ -1,5 +1,6 @@
 extends Control
 ## Écran de fin : Victoire ou Retour à la base, objets rapportés ou perdus, inventaire de la base.
+## Le bouton « Retour à la base » ramène à l'écran Base.
 ## Fond illustré (DecorEcran) et icônes des objets (Dessin.icone_objet).
 
 const TAILLE_ICONE := 54.0
@@ -34,9 +35,8 @@ func _ready() -> void:
 	$Centre/Colonne/Inventaire.text = "Inventaire de la base :\n" + (", ".join(stock) if stock else "vide")
 	$Centre/Colonne/Inventaire.add_theme_color_override("font_color", Palette.UI_BORD)
 
-	$Centre/Colonne/Rejouer.couleur = Palette.LAMPE
-	$Centre/Colonne/Rejouer.icone = "jouer"
-	$Centre/Colonne/Rejouer.appuye.connect(_rejouer)
+	$Centre/Colonne/RetourBase.couleur = Palette.LAMPE
+	$Centre/Colonne/RetourBase.appuye.connect(_retour_base)
 	$Centre/Colonne/Resume.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Centre/Colonne/Resume.add_theme_constant_override("outline_size", 6)
 	$Centre/Colonne/Inventaire.add_theme_color_override("font_outline_color", Palette.CONTOUR)
@@ -60,8 +60,8 @@ func _liste(types: Array) -> String:
 	return ", ".join(noms)
 
 
-func _rejouer() -> void:
-	get_tree().change_scene_to_file("res://scenes/niveau.tscn")
+func _retour_base() -> void:
+	get_tree().change_scene_to_file("res://scenes/base.tscn")
 
 
 func _process(delta: float) -> void:
@@ -98,10 +98,5 @@ func _dessiner_base() -> void:
 			types.append(type)
 	var pas := TAILLE_ICONE + 56
 	var x0 := _base.size.x / 2.0 - (types.size() - 1) * pas / 2.0
-	var police := ThemeDB.fallback_font
 	for i in types.size():
-		var pieds := Vector2(x0 + i * pas - 16, TAILLE_ICONE + 6)
-		Dessin.icone_objet(_base, types[i], pieds, TAILLE_ICONE)
-		var texte := "x%d" % Partie.inventaire[types[i]]
-		_base.draw_string_outline(police, pieds + Vector2(26, -6), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, 6, Palette.CONTOUR)
-		_base.draw_string(police, pieds + Vector2(26, -6), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)
+		Dessin.objet_compte(_base, types[i], Vector2(x0 + i * pas - 16, TAILLE_ICONE + 6), TAILLE_ICONE, Partie.inventaire[types[i]])

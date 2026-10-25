@@ -14,21 +14,29 @@ func _physics_process(_d):
 	if f == 20:
 		_snap("titre")
 		_touch(_centre(current_scene.get_node("Centre/Colonne/Jouer")), true)
-	if f == 22: _touch(Vector2.ZERO, false)
-	if f == 40:
+	if f == 28: _touch(Vector2.ZERO, false)
+	if f == 34:
+		print("scene: ", current_scene.name)
+		_touch(_centre(current_scene.get_node("Partir")), true)
+	if f == 40: _touch(Vector2.ZERO, false)
+	if f == 50:
 		print("scene: ", current_scene.name)
 		var h = current_scene.get_node("Monde/Heros")
 		for z in get_nodes_in_group("zombies"): z.position = Vector2(2300, 1550); z._depart = z.position; z.patrouille = Vector2.ZERO
 		h.position = current_scene.get_node("Monde/ObjetFiole").position
-	if f == 45: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
-	if f == 50: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetPiles").position
-	if f == 52: _snap("hud"); print("hud: ", current_scene.get_node("HUD/CompteurObjets").text)
-	if f == 55: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
+	if f == 55: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
+	if f == 60: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetPiles").position
+	if f == 62: _snap("hud"); print("hud: ", current_scene.get_node("HUD/CompteurObjets").text)
+	if f == 65: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
 	if f == 120:
 		print("scene: ", current_scene.name, " resultat: ", root.get_node("Partie").resultat)
 		_snap("victoire")
-		_touch(_centre(current_scene.get_node("Centre/Colonne/Rejouer")), true)
-	if f == 122: _touch(Vector2.ZERO, false)
+		_touch(_centre(current_scene.get_node("Centre/Colonne/RetourBase")), true)
+	if f == 128: _touch(Vector2.ZERO, false)
+	if f == 132:
+		print("scene: ", current_scene.name)
+		_touch(_centre(current_scene.get_node("Partir")), true)
+	if f == 138: _touch(Vector2.ZERO, false)
 	if f == 140:
 		print("scene: ", current_scene.name)
 		var h = current_scene.get_node("Monde/Heros")

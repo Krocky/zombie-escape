@@ -64,3 +64,14 @@ const COEUR := Color("e0566b")
 const COEUR_VIDE := Color("3a2433")        # cœur perdu (sombre)
 const DEGATS := Color(0.85, 0.08, 0.12, 0.75)   # bords rouges quand le héros est touché
 const SORTIE := Color("7ed38f")            # panneau et lumière de la sortie
+
+# Base (abri en planches et feu de camp)
+const BOIS := Color("6b4e45")              # planches de l'abri
+const BOIS_CLAIR := Color("7d5d50")
+const BOIS_SOMBRE := Color("3f2d2e")       # bûches, poutres
+const TOLE := Color("4c5070")              # toit en tôle
+const TERRE := Color("2b2a3c")             # sol de la base, autour du feu
+const PIERRE := Color("5d5f78")            # pierres autour du feu
+const FEU := Color("f08a3c")               # flammes
+const FEU_COEUR := Color("ffd25a")         # cœur des flammes
+const FEU_LUEUR := Color(1.0, 0.62, 0.25, 0.16)   # lumière chaude du feu sur le sol

@@ -94,3 +94,14 @@ static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: f
 			rect(ci, Rect2(-5, -17, 10, 12), Palette.UI_TEXTE * couleur)
 			ci.draw_circle(Vector2(-4, 2), 3.5, Color(1, 1, 1, 0.7 * couleur.a))
 	ci.draw_set_transform(Vector2.ZERO)
+
+
+## Icône d'un objet suivie de « xN » (inventaire de la base). Un objet absent (0) est grisé.
+static func objet_compte(ci: CanvasItem, type: String, pieds: Vector2, hauteur: float, nombre: int) -> void:
+	var gris := Color(0.55, 0.55, 0.65, 0.6)
+	icone_objet(ci, type, pieds, hauteur, Color.WHITE if nombre > 0 else gris)
+	var police := ThemeDB.fallback_font
+	var texte := "x%d" % nombre
+	var p := pieds + Vector2(hauteur * 0.48, -6)
+	ci.draw_string_outline(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, 6, Palette.CONTOUR)
+	ci.draw_string(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE if nombre > 0 else Palette.UI_BORD)
