@@ -61,17 +61,40 @@ func habiller(nom: String, emprise: Rect2, conteneur: Node2D, miroir := false, c
 		var source := r.size.x - ix1 if miroir else ix0
 		var xc := (x0 + x1) * 0.5
 		var cle := bord_avant(c, xc)
+		# Bande recadrée en hauteur sur ses pixels visibles : moins de pixels transparents à dessiner
+		# et à éclairer (une bande de mur en biais est vide en haut et en bas)
+		var vide := _vide_vertical(nom, Rect2(r.position.x + source, r.position.y, ix1 - ix0, r.size.y))
 		var bande := Sprite2D.new()
 		bande.texture = Images.texture(nom)
 		bande.region_enabled = true
-		bande.region_rect = Rect2(r.position.x + source, r.position.y, ix1 - ix0, r.size.y)
+		bande.region_rect = Rect2(r.position.x + source, r.position.y + vide.x, ix1 - ix0, r.size.y - vide.x - vide.y)
 		bande.flip_h = miroir
 		bande.centered = false
 		bande.scale = Vector2(e, e)
 		bande.position = Vector2(xc, cle)
-		bande.offset = Vector2((x0 - xc) / e, (origine.y - cle) / e)
+		bande.offset = Vector2((x0 - xc) / e, (origine.y - cle) / e + vide.x)
 		bande.modulate = couleur
 		conteneur.add_child(bande)
+
+
+var _vides := {}   # bande de l'atlas -> lignes transparentes (haut, bas), calculé une fois
+
+
+## Lignes entièrement transparentes en haut (x) et en bas (y) d'une bande de l'atlas.
+## Une ligne de marge est gardée de chaque côté (filtrage).
+func _vide_vertical(nom: String, bande: Rect2) -> Vector2:
+	var zone := Rect2i(Vector2i(bande.position.floor()), Vector2i.ZERO)
+	zone.end = Vector2i(bande.end.ceil())
+	if _vides.has(zone):
+		return _vides[zone]
+	var vide := Vector2.ZERO
+	var image := Images.image(nom)
+	if image:
+		var utile := image.get_region(zone).get_used_rect()
+		if utile.size.y > 0:
+			vide = Vector2(maxi(utile.position.y - 1, 0), maxi(zone.size.y - utile.end.y - 1, 0))
+	_vides[zone] = vide
+	return vide
 
 
 ## Hauteur à l'écran du bord avant d'une emprise (coins), à l'abscisse x.

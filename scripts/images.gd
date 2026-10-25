@@ -5,6 +5,7 @@ extends Node
 const ATLAS := preload("res://data/atlas.gd")
 
 var _textures := {}   # famille -> Texture2D (un atlas par famille)
+var _images := {}     # famille -> Image (pixels de l'atlas, lus à la demande)
 
 
 func existe(nom: String) -> bool:
@@ -16,6 +17,15 @@ func texture(nom: String) -> Texture2D:
 	if not _textures.has(famille):
 		_textures[famille] = load("res://images/%s.png" % famille) if ResourceLoader.exists("res://images/%s.png" % famille) else null
 	return _textures[famille]
+
+
+## Pixels de l'atlas de « nom » (pour trouver ses parties transparentes), null si illisibles.
+func image(nom: String) -> Image:
+	var famille: String = ATLAS.REGIONS[nom][0]
+	if not _images.has(famille):
+		var t := texture(nom)
+		_images[famille] = t.get_image() if t else null
+	return _images[famille]
 
 
 func region(nom: String) -> Rect2:
