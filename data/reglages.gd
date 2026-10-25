@@ -41,6 +41,7 @@ var RESCAPE_VITESSE := 230.0        # sa vitesse quand il te suit (un peu moins 
 var RESCAPE_PORTEE := 60.0          # distance pour le toucher et qu'il te suive
 var RESCAPE_DISTANCE := 70.0        # il reste à cette distance derrière toi
 var RESCAPE_DISTANCE_MAX := 400.0   # bloqué plus loin que ça : il réapparaît juste derrière toi
+var RESCAPE_OBJETS := 1             # objets (au hasard, jamais de fiole) rapportés par chaque rescapé sauvé, à chaque retour
 
 # --- Attaque du héros (batte) ---
 var ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup

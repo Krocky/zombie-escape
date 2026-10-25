@@ -1,6 +1,7 @@
 extends Control
 ## Écran Carte : plan de la ville la nuit (image V3 bg_map, défilable au doigt quand elle dépasse l'écran),
 ## avec la base et les lieux (Partie.LIEUX) en vignettes V3 (map_*), reliés à la base par des pointillés animés.
+## Au pied de chaque lieu disponible et dans sa fiche : son meilleur nombre d'étoiles (Partie.meilleures_etoiles), les autres grises.
 ## Toucher un lieu disponible ouvre sa fiche (nom, objectif, danger = zombies, rescapé, objets à trouver, « Y aller ») ;
 ## un lieu sans scène est grisé, marqué d'un cadenas et de « Bientôt », et ne réagit pas. « Retour » ramène à la base.
 ## Sans les images : ville dessinée en code (pâtés de maisons tirés avec une graine fixe) et petits bâtiments dessinés.
@@ -11,6 +12,8 @@ const TAILLE_ICONE := 46.0      # objets, dans la fiche
 const HAUTEUR_ZOMBIE := 84.0    # zombies, dans la fiche
 const LARGEUR_VIGNETTE := 160.0 # vignettes map_* (à l'échelle 1)
 const CADENAS := 64.0           # hauteur de map_lock sur un lieu « Bientôt »
+const ETOILE_CARTE := 28.0      # étoiles (meilleur score) au pied de la vignette, à l'échelle 1
+const ETOILE_FICHE := 40.0      # étoiles sur la ligne du nom, dans la fiche
 const SEUIL_GLISSE := 20.0      # au-delà (pixels parcourus), le doigt fait défiler la carte au lieu de toucher
 const VITESSE_POINTILLES := 30.0   # pixels par seconde, de la base vers le lieu
 ## Vignette de chaque lieu (et de la base)
@@ -345,6 +348,9 @@ func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 				_maison(pieds, e, teinte)
 			"pharmacie":
 				_pharmacie(pieds, e, teinte)
+	# Meilleur score posé au pied de la vignette, juste au-dessus du nom (en portrait, un autre lieu est juste dessous)
+	if dispo:
+		_etoiles(self, c + Vector2(0, 45) * e, ETOILE_CARTE * e, Partie.meilleures_etoiles(id))
 	var nom: String = Partie.LIEUX[id]["nom"]
 	_etiquette(c + Vector2(0, 78) * e, nom, Palette.LAMPE if dispo else Palette.UI_BORD, 24)
 	if not dispo:
@@ -353,6 +359,23 @@ func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 			var taille := t * CADENAS * e / t.y
 			draw_texture_rect(Images.v3_texture("map_lock"), Rect2(c + Vector2(0, -8) * e - taille / 2.0, taille), false)
 		_etiquette(c + Vector2(0, 116) * e, "Bientôt", Palette.UI_TEXTE, 18)
+
+
+## Trois étoiles icon_star côte à côte centrées sur c : les « gagnees » premières en couleur, les autres grises
+## (sans l'image : étoiles dessinées en code).
+func _etoiles(cible: CanvasItem, c: Vector2, taille: float, gagnees: int) -> void:
+	for i in 3:
+		var centre := c + Vector2((i - 1) * taille * 1.1, 0)
+		if Images.v3_existe("icon_star"):
+			var texture := Images.v3_texture("icon_star") if i < gagnees else Images.v3_gris("icon_star")
+			var t := texture.get_size()
+			var k := taille / maxf(t.x, t.y)
+			cible.draw_texture_rect(texture, Rect2(centre - t * k / 2.0, t * k), false)
+		else:
+			var points := PackedVector2Array()
+			for j in 10:
+				points.append(centre + Vector2.from_angle(-PI / 2.0 + j * PI / 5.0) * taille * (0.5 if j % 2 == 0 else 0.22))
+			Dessin.polygone(cible, points, Palette.LAMPE if i < gagnees else Palette.UI_FOND)
 
 
 ## Supermarché : grand bâtiment plat, vitrine, enseigne « SUPER » et un caddie.
@@ -410,8 +433,13 @@ func _dessiner_fiche() -> void:
 	var x := 24.0
 	var largeur := fiche.size.x - 2 * x
 	var nom: String = Partie.LIEUX[_choisi]["nom"]
-	fiche.draw_string_outline(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, 8, Palette.CONTOUR)
-	fiche.draw_string(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Palette.LAMPE)
+	# Nom réduit s'il toucherait les étoiles (paysage : fiche étroite)
+	var taille_nom := 44
+	while taille_nom > 28 and police.get_string_size(nom, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_nom).x > largeur - ETOILE_FICHE * 3.4 - 12:
+		taille_nom -= 2
+	fiche.draw_string_outline(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_nom, 8, Palette.CONTOUR)
+	fiche.draw_string(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_nom, Palette.LAMPE)
+	_etoiles(fiche, Vector2(fiche.size.x - x - ETOILE_FICHE * 1.6, 44), ETOILE_FICHE, Partie.meilleures_etoiles(_choisi))
 	# Objectif sur deux lignes : « Objectif : » en jaune, puis le texte
 	var objectif := Partie.texte_objectif(_choisi) if Partie.total_objectif(_choisi) > 0 else "explorer le lieu"
 	fiche.draw_string(police, Vector2(x, 102), "Objectif :", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)

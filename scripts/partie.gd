@@ -1,15 +1,16 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 6 : {"version": 6, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 7 : {"version": 7, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
 ## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
 ## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus),
-## "batiments_vus": [id, ...] bâtiments de la base déjà tombés du ciel (leur chute n'est montrée qu'une fois)}.
-## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 6.
+## "batiments_vus": [id, ...] bâtiments de la base déjà tombés du ciel (leur chute n'est montrée qu'une fois),
+## "etoiles": {id: meilleur nombre d'étoiles (1 à 3) gagné dans ce lieu}}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 7.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 6
+const VERSION := 7
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -59,11 +60,14 @@ var rescapes := 0
 var lieux_sauves := []
 ## Bâtiments de la base déjà apparus (ids de Base : "abri_1", "feu", "tente_1"...), pour ne montrer leur chute qu'une fois
 var batiments_vus := []
+## Meilleur nombre d'étoiles gagné dans chaque lieu : { id: 1 à 3 } (lieu absent = pas encore d'étoile)
+var etoiles_lieux := {}
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
-## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array)
+## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array),
+## trouvailles (objets rapportés par les rescapés de la base, Array)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
-	"intact": false, "jardin": []}
+	"intact": false, "jardin": [], "trouvailles": []}
 
 
 func _ready() -> void:
@@ -81,18 +85,22 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 			perdus.append(rapportes.pop_back())
 	# Objectif rempli en sortant vivant : bonus d'objets au hasard (jamais de fiole, elle se mérite)
 	var mission := victoire and objectif_rempli(lieu, rapportes)
+	var types := NOMS.keys()
+	types.erase("fiole")
 	var bonus := []
 	if mission:
-		var types := NOMS.keys()
-		types.erase("fiole")
 		for i in Reglages.MISSION_BONUS:
 			bonus.append(types.pick_random())
+	# Rescapés au travail : chacun de ceux qui étaient déjà à la base rapporte des objets (jamais de fiole), à chaque retour
+	var trouvailles := []
+	for i in rescapes * Reglages.RESCAPE_OBJETS:
+		trouvailles.append(types.pick_random())
 	# Jardin construit : des conserves à chaque retour, mission gagnée ou perdue
 	var jardin := []
 	if est_construit("jardin"):
 		for i in Reglages.JARDIN_CONSERVES:
 			jardin.append("conserve")
-	for type in rapportes + bonus + jardin:
+	for type in rapportes + bonus + jardin + trouvailles:
 		inventaire[type] = inventaire.get(type, 0) + 1
 	var sauve := victoire and rescape and not rescape_sauve(lieu)
 	if sauve:
@@ -100,7 +108,10 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 		lieux_sauves.append(lieu)
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
 		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact,
-		"jardin": jardin}
+		"jardin": jardin, "trouvailles": trouvailles}
+	# Meilleur nombre d'étoiles du lieu (gardé s'il n'est pas battu)
+	if etoiles() > meilleures_etoiles(lieu):
+		etoiles_lieux[lieu] = etoiles()
 	sauvegarder()
 
 
@@ -109,6 +120,11 @@ func etoiles() -> int:
 	if not resultat["victoire"]:
 		return 0
 	return 1 + int(resultat["mission"]) + int(resultat.get("rescape", false) or resultat.get("intact", false))
+
+
+## Meilleur nombre d'étoiles gagné dans un lieu (0 s'il n'a jamais été réussi).
+func meilleures_etoiles(id: String) -> int:
+	return etoiles_lieux.get(id, 0)
 
 
 # --- Héros choisi ---
@@ -344,10 +360,10 @@ func premiere_apparition(id: String) -> bool:
 func sauvegarder() -> void:
 	Fichier.ecrire_json(FICHIER, {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
 		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
-		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus})
+		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux})
 
 
-## Lit la sauvegarde (version 1 à 6). Une version plus ancienne est aussitôt réécrite en version 6
+## Lit la sauvegarde (version 1 à 7). Une version plus ancienne est aussitôt réécrite en version 7
 ## (les fioles déjà rangées remplissent la jauge du remède). Fichier illisible : on reprend le .tmp.
 func charger() -> void:
 	var donnees = Fichier.lire_json(FICHIER)
@@ -375,6 +391,9 @@ func charger() -> void:
 		for id in donnees["batiments_vus"]:
 			if not str(id) in batiments_vus:
 				batiments_vus.append(str(id))
+	if donnees.get("etoiles") is Dictionary:
+		for id in donnees["etoiles"]:
+			etoiles_lieux[str(id)] = clampi(int(donnees["etoiles"][id]), 0, 3)
 	if int(donnees.get("version", 1)) < VERSION:
 		_remplir_remede()
 		sauvegarder()

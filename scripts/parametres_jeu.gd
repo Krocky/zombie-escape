@@ -54,6 +54,7 @@ const PAGES := [
 		["RESCAPE_PORTEE", "Distance pour le toucher", 10.0, 30.0, 200.0],
 		["RESCAPE_DISTANCE", "Distance derrière le héros", 10.0, 30.0, 300.0],
 		["RESCAPE_DISTANCE_MAX", "Réapparaît s'il est bloqué à", 50.0, 150.0, 1500.0],
+		["RESCAPE_OBJETS", "Objets trouvés par rescapé", 1, 0, 5],
 	]],
 ]
 

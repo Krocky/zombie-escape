@@ -57,6 +57,8 @@ func _ready() -> void:
 		lignes.append("Objectif pas rempli : " + Partie.texte_objectif(Partie.lieu))
 	if not resultat.get("jardin", []).is_empty():
 		lignes.append("Le jardin te donne : " + _liste(resultat["jardin"]))
+	if not resultat.get("trouvailles", []).is_empty():
+		lignes.append("Tes rescapés ont trouvé : " + _liste(resultat["trouvailles"]))
 	if resultat["fioles"] > 0:
 		lignes.append("%s dans la jauge du remède : %d / %d" % ["Fiole versée" if resultat["fioles"] == 1 else "Fioles versées",
 			Partie.remede, Reglages.REMEDE_FIOLES])
@@ -116,7 +118,7 @@ func _placer() -> void:
 		var gauche := Rect2(30, 120, _cadre.position.x - 60, size.y - 290)
 		var droite := Rect2(_cadre.end.x + 30, 120, size.x - _cadre.end.x - 60, size.y - 290)
 		_etoiles = Vector2(gauche.get_center().x, gauche.position.y + 70)
-		_poser($Resume, Rect2(gauche.position.x, gauche.position.y + 192, gauche.size.x, 150), 22)
+		_poser($Resume, Rect2(gauche.position.x, gauche.position.y + 192, gauche.size.x, gauche.size.y - 192), 22)
 		_sac = Vector2(droite.get_center().x, droite.position.y + 70)
 		_objets.position = Vector2(droite.position.x, droite.position.y + 150)
 		_objets.size = Vector2(droite.size.x, 2 * PAS_ICONE)
@@ -125,11 +127,13 @@ func _placer() -> void:
 	else:
 		_poser($Titre, Rect2(0, 12, size.x, 96), 64)
 		_etoiles = Vector2(size.x / 2.0, 170)
-		var bas := size.y - 134 - 90 - 160 - 150
+		# Plus de 4 lignes de résumé : l'illustration rapetisse pour leur laisser la place
+		var hauteur_resume := maxf(150.0, ($Resume.text.count("\n") + 1) * 36.0)
+		var bas := size.y - 134 - 90 - 160 - hauteur_resume
 		_cadre = _vignette(Vector2(size.x / 2.0, (290 + bas) / 2.0), bas - 290, size.x - 80)
-		_poser($Resume, Rect2(40, bas + 4, size.x - 80, 150), 24)
-		_sac = Vector2(110, bas + 230)
-		_objets.position = Vector2(200, bas + 170)
+		_poser($Resume, Rect2(40, bas + 4, size.x - 80, hauteur_resume), 24)
+		_sac = Vector2(110, bas + hauteur_resume + 80)
+		_objets.position = Vector2(200, bas + hauteur_resume + 20)
 		_objets.size = Vector2(size.x - 230, 2 * PAS_ICONE)
 		_stock.position = Vector2(30, size.y - 134 - 96)
 		_stock.size = Vector2(size.x - 60, 90)
@@ -141,6 +145,10 @@ func _poser(label: Label, rect: Rect2, taille_police: int) -> void:
 	label.position = rect.position
 	label.size = rect.size
 	label.add_theme_font_size_override("font_size", taille_police)
+	# Texte trop long pour sa zone (beaucoup de lignes : jardin, rescapés, remède...) : police réduite
+	while label == $Resume and taille_police > 16 and label.get_line_count() * label.get_line_height() > rect.size.y:
+		taille_police -= 2
+		label.add_theme_font_size_override("font_size", taille_police)
 
 
 ## Rectangle de l'illustration de victoire centré sur c, de hauteur h au plus (largeur au plus l), aux proportions de l'image.
