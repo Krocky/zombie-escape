@@ -5,6 +5,8 @@ extends Node2D
 @export_enum("conserve", "eau", "bandage", "piles", "fiole", "clef") var type := "conserve"
 ## Teinte de l'étiquette d'une clef (clé de Palette.CLEF), pour de futures portes verrouillées.
 @export_enum("rouge", "bleue", "verte") var teinte := "rouge"
+## Autres places possibles (monde, hors des obstacles) : le niveau en tire une au hasard à chaque partie.
+@export var places := PackedVector2Array()
 
 const HAUTEUR_ICONE := 46.0   # pixels d'écran
 const DUREE_RAMASSAGE := 0.5

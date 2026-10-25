@@ -18,6 +18,9 @@ const PERSO := "survivor"       # images V3 (elles regardent à droite)
 const DELAI_BLOQUE := 0.6       # secondes sans avancer avant de réapparaître près du héros (ou à sa cachette)
 const VITESSE_RETOUR_FOIS := 1.2   # il court se cacher un peu plus vite
 
+## Autres cachettes possibles (monde) : le niveau en tire une au hasard à chaque partie.
+@export var places := PackedVector2Array()
+
 var _etat := Etat.CACHE
 var _depart := Vector2.ZERO
 var _position_heros := Vector2.ZERO

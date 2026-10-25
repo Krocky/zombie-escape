@@ -43,6 +43,9 @@ const LIEUX := {
 
 ## Lieu choisi sur la carte (clé de LIEUX)
 var lieu := "supermarche"
+## Dernier tirage des places de chaque lieu (lieu -> liste d'indices, en mémoire seulement) : la partie
+## suivante dans ce lieu en tire un autre (Niveau._tirer_places).
+var derniers_tirages := {}
 ## Objets rangés à la base, cumulés sur toutes les parties : { type: nombre }
 var inventaire := {}
 ## Constructions faites à la base (noms, voir CONSTRUCTIONS)

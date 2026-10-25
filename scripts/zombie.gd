@@ -36,6 +36,9 @@ const POSES_SECOURS_COUREUR := Type.RAPIDE
 @export var type := Type.LENT
 ## Point de patrouille, relatif à la position de départ : il fait l'aller-retour.
 @export var patrouille := Vector2(300, 0)
+## Autres départs possibles (monde) et leur patrouille (même ordre) : le niveau en tire un à chaque partie.
+@export var places := PackedVector2Array()
+@export var patrouilles := PackedVector2Array()
 
 var _etat := Etat.PATROUILLE
 var _depart := Vector2.ZERO

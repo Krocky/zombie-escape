@@ -4,7 +4,7 @@ Propositions issues de `docs/revue.md`. Un bloc = une nouvelle discussion Claude
 Chaque bloc est complet (règles de session comprises) : il suffit de le copier en entier.
 Les valeurs entre crochets [ ] sont des propositions : Eliott peut les changer avant d'envoyer le prompt.
 
-Avancement : [x] L3-a [x] L3-b [x] L3-c [ ] L3-d [x] L3-e [ ] L3-f1 [ ] L3-f2
+Avancement : [x] L3-a [x] L3-b [x] L3-c [x] L3-d [x] L3-e [ ] L3-f1 [ ] L3-f2
 
 ---
 

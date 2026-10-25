@@ -175,26 +175,32 @@ position = Vector2(300, 165)
 [node name="ObjetFiole" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(1480, 560)
 type = "fiole"
+places = PackedVector2Array(720, 600, 1000, 230)
 
 [node name="ObjetConserve" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(1480, 760)
 type = "conserve"
+places = PackedVector2Array(1480, 1120, 900, 1120)
 
 [node name="ObjetEau" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(300, 500)
 type = "eau"
+places = PackedVector2Array(500, 600, 150, 300)
 
 [node name="ObjetBandage" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(950, 300)
 type = "bandage"
+places = PackedVector2Array(1100, 600, 1250, 450)
 
 [node name="ObjetBandage2" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(700, 1100)
 type = "bandage"
+places = PackedVector2Array(740, 820)
 
 [node name="ObjetPiles" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(200, 1100)
 type = "piles"
+places = PackedVector2Array(550, 1130, 380, 760)
 
 [node name="ZombieLent1" parent="Monde" instance=ExtResource("5_zombie")]
 position = Vector2(300, 800)
@@ -208,6 +214,9 @@ patrouille = Vector2(500, 0)
 position = Vector2(450, 280)
 type = 1
 patrouille = Vector2(0, 300)
+places = PackedVector2Array(150, 1120)
+patrouilles = PackedVector2Array(500, 0)
 
 [node name="Rescape" parent="Monde" instance=ExtResource("9_rescape")]
 position = Vector2(1500, 320)
+places = PackedVector2Array(450, 900)

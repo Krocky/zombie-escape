@@ -49,12 +49,13 @@ const PAGES := [
 		["ZOMBIE_COUREUR_DUREE_CHARGE", "Durée de la charge (s)", 0.25, 0.5, 5.0],
 		["ZOMBIE_COUREUR_ESSOUFFLE", "Essoufflé pendant (s)", 0.25, 0.0, 5.0],
 	]],
-	["Rescapé", [
+	["Rescapé et lieux", [
 		["RESCAPE_VITESSE", "Vitesse", 10.0, 50.0, 500.0],
 		["RESCAPE_PORTEE", "Distance pour le toucher", 10.0, 30.0, 200.0],
 		["RESCAPE_DISTANCE", "Distance derrière le héros", 10.0, 30.0, 300.0],
 		["RESCAPE_DISTANCE_MAX", "Réapparaît s'il est bloqué à", 50.0, 150.0, 1500.0],
 		["RESCAPE_OBJETS", "Objets trouvés par rescapé", 1, 0, 5],
+		["LIEUX_VARIES", "Places qui changent à chaque partie", 0, false, true],
 	]],
 ]
 

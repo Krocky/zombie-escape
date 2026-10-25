@@ -37,16 +37,55 @@ var _cachette_occupee: Node2D = null
 var _meubles: Array = []   # décor qui devient transparent quand le héros est derrière
 var _bandages_soin := Partie.bandages_infirmerie()   # bandages de l'infirmerie (pas des objets à rapporter)
 var _soins := 0            # soins déjà faits dans cette mission
+var _places_objets: Array = []   # toutes les places possibles des objets (les débris les évitent toutes)
 
 @onready var _heros := $Monde/Heros
 
 
 ## Avant le _ready des brouillards : ils couvrent tout le sol projeté.
+## Avant le _ready des entités : elles retiennent leur place de départ.
 func _enter_tree() -> void:
+	_tirer_places()
 	var gauche := Iso.ecran(Vector2(0, taille.y)).x
 	for brume in [$BrumeSol, $Brouillard]:
 		brume.position = Vector2(gauche, 0)
 		brume.taille = Vector2(Iso.ecran(Vector2(taille.x, 0)).x - gauche, floorf(Iso.ecran(taille).y))
+
+
+## Variété : chaque objet, rescapé ou zombie qui a d'autres `places` en prend une au hasard
+## (0 = sa place dans la scène) ; au moins un objet change de place par rapport à la partie précédente dans ce lieu.
+## Un zombie prend aussi la patrouille qui va avec (`patrouilles`, même ordre).
+func _tirer_places() -> void:
+	var entites := []
+	for entite in $Monde.get_children():
+		if "places" in entite and not entite.places.is_empty():
+			entites.append(entite)
+			if not entite is CharacterBody2D:
+				_places_objets.append(entite.position)
+				_places_objets.append_array(entite.places)
+	if not Reglages.LIEUX_VARIES or entites.is_empty():
+		return
+	var ancien: Array = Partie.derniers_tirages.get(Partie.lieu, [])
+	var tirage := []
+	for essai in 20:
+		tirage = entites.map(func(e: Node2D) -> int: return randi() % (e.places.size() + 1))
+		if ancien.size() != tirage.size():
+			break
+		# Au moins un objet (pas seulement le rescapé ou le zombie) change de place
+		var change := false
+		for i in entites.size():
+			change = change or (not entites[i] is CharacterBody2D and tirage[i] != ancien[i])
+		if change:
+			break
+	Partie.derniers_tirages[Partie.lieu] = tirage
+	for i in entites.size():
+		var entite: Node2D = entites[i]
+		var choix: int = tirage[i] - 1
+		if choix < 0:
+			continue
+		entite.position = entite.places[choix]
+		if "patrouilles" in entite and choix < entite.patrouilles.size():
+			entite.patrouille = entite.patrouilles[choix]
 
 
 func _ready() -> void:
@@ -344,6 +383,8 @@ func _tirer_debris(rng: RandomNumberGenerator) -> void:
 			interdits.append(Rect2(entite.position + Vector2(-entite.taille.x / 2.0, -entite.taille.y), entite.taille).grow(50))
 		elif entite is Node2D and not entite is CharacterBody2D:
 			interdits.append(Rect2(entite.position - Vector2(70, 70), Vector2(140, 140)))
+	for p in _places_objets:
+		interdits.append(Rect2(p - Vector2(70, 70), Vector2(140, 140)))
 	var places := 0
 	for essai in nombre_debris * 10:
 		if places >= nombre_debris:
