@@ -100,6 +100,11 @@ func _texture_faisceau() -> ImageTexture:
 	return _faisceau
 
 
+## Appelé par le niveau : couleur du faisceau propre au lieu (Palette.AMBIANCES).
+func couleur_lampe(couleur: Color) -> void:
+	_lampe.color = couleur
+
+
 ## Direction du regard dans le monde (le rescapé se place derrière).
 func regard() -> Vector2:
 	return _regard

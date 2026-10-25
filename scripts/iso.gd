@@ -44,13 +44,15 @@ func miroir_pour(nom: String, long_en_x: bool) -> bool:
 
 ## Habille une emprise au sol avec l'image « nom », découpée en bandes verticales : chaque bande
 ## est triée selon le bord avant de l'emprise sous elle, pour que les personnages passent
-## correctement devant ou derrière. L'image est mise à la largeur de l'emprise à l'écran,
-## son point le plus bas posé sur le coin avant. Les bandes sont ajoutées à `conteneur`.
-func habiller(nom: String, emprise: Rect2, conteneur: Node2D, miroir := false, couleur := Color.WHITE) -> void:
+## correctement devant ou derrière. Les coins gauche et droit de l'image (ancres) sont posés sur ceux
+## de l'emprise à l'écran, son coin avant à la hauteur du coin avant. Les bandes sont ajoutées à `conteneur`.
+## Renvoie le rectangle de l'image à l'écran.
+func habiller(nom: String, emprise: Rect2, conteneur: Node2D, miroir := false, couleur := Color.WHITE) -> Rect2:
 	var c := coins(emprise)
 	var r := Images.region(nom)
-	var e := (c[2].x - c[0].x) / r.size.x
-	var origine := Vector2(c[0].x, c[1].y - Images.ancres(nom)[1].y * e)
+	var place := placement(nom, emprise, miroir)
+	var origine := place.position
+	var e := place.size.x
 	var largeur := r.size.x * e
 	var n := maxi(int(ceil(largeur / LARGEUR_BANDE)), 1)
 	for i in n:
@@ -75,6 +77,56 @@ func habiller(nom: String, emprise: Rect2, conteneur: Node2D, miroir := false, c
 		bande.offset = Vector2((x0 - xc) / e, (origine.y - cle) / e + vide.x)
 		bande.modulate = couleur
 		conteneur.add_child(bande)
+	return Rect2(origine, r.size * e)
+
+
+## Placement de l'image « nom » sur l'emprise (voir habiller) : position = coin haut gauche de l'image
+## à l'écran, size.x = échelle.
+func placement(nom: String, emprise: Rect2, miroir := false) -> Rect2:
+	var c := coins(emprise)
+	var r := Images.region(nom)
+	var a := Images.ancres(nom)
+	var e := (c[2].x - c[0].x) / maxf(a[2].x - a[0].x, 1.0)
+	var gauche := (r.size.x - a[2].x) if miroir else a[0].x
+	return Rect2(Vector2(c[0].x - gauche * e, c[1].y - a[1].y * e), Vector2(e, e))
+
+
+## Point de l'image « nom » (pixels de l'image non retournée) à l'écran, quand elle habille cette emprise.
+func point_image(nom: String, emprise: Rect2, point: Vector2, miroir := false) -> Vector2:
+	var place := placement(nom, emprise, miroir)
+	if miroir:
+		point.x = Images.region(nom).size.x - point.x
+	return place.position + point * place.size.x
+
+
+## Emprise au sol aux proportions de l'image « nom » : même grand côté que `taille` (dans le même sens),
+## petit côté recalculé. Si `taille` est bien plus longue que l'image, elle est découpée en `n` morceaux
+## (rayons) : le petit côté suit alors la longueur d'un morceau. Renvoie [taille, n].
+func taille_image(nom: String, taille: Vector2) -> Array:
+	var a := Images.ancres(nom)
+	var cotes := Vector2(a[1].x - a[0].x, a[2].x - a[1].x)   # côtés de l'image : x, y du monde (non retournée)
+	var rapport := minf(cotes.x, cotes.y) / maxf(maxf(cotes.x, cotes.y), 1.0)
+	var longueur := maxf(taille.x, taille.y)
+	var court := minf(taille.x, taille.y)
+	var n := maxi(roundi(longueur * rapport / maxf(court, 1.0)), 1)
+	court = longueur / n * rapport
+	return [Vector2(longueur, court) if taille.x >= taille.y else Vector2(court, longueur), n]
+
+
+## Grand meuble devant le héros : il devient transparent tant que le héros est derrière lui et caché
+## par son image. `image` = rectangle de l'image à l'écran, `c` = coins de son emprise, `pieds` = pieds
+## du héros à l'écran (Vector2.INF : pas de héros à montrer). Renvoie l'opacité visée.
+const TRANSPARENCE := 0.45
+const HAUTEUR_HEROS := 110.0   # hauteur du héros à l'écran, à peu près
+
+
+func opacite_devant(image: Rect2, c: PackedVector2Array, pieds: Vector2) -> float:
+	if pieds == Vector2.INF or pieds.x < c[0].x - 10.0 or pieds.x > c[2].x + 10.0:
+		return 1.0
+	if pieds.y >= bord_avant(c, pieds.x):
+		return 1.0   # devant : rien ne le cache
+	var corps := Rect2(pieds.x - 22.0, pieds.y - HAUTEUR_HEROS, 44.0, HAUTEUR_HEROS - 30.0)
+	return TRANSPARENCE if image.intersects(corps) else 1.0
 
 
 var _vides := {}   # bande de l'atlas -> lignes transparentes (haut, bas), calculé une fois
@@ -107,9 +159,7 @@ func bord_avant(c: PackedVector2Array, x: float) -> float:
 
 ## Hauteur à l'écran, en pixels, de l'image « nom » quand elle habille cette emprise.
 func hauteur_image(nom: String, emprise: Rect2) -> float:
-	var c := coins(emprise)
-	var r := Images.region(nom)
-	return r.size.y * (c[2].x - c[0].x) / r.size.x
+	return Images.region(nom).size.y * placement(nom, emprise).size.x
 
 
 ## Ombre douce au sol sous une emprise (dessinée sur ci, en coordonnées écran).

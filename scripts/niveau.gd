@@ -16,6 +16,12 @@ const BLOC := 2
 ## Sol et débris : toujours le même tirage pour un lieu.
 @export var graine := 7
 @export var nombre_debris := 26
+## Ambiance du lieu (Palette.AMBIANCES) : couleur de la nuit et du faisceau ; vide = nuit et lampe habituelles.
+@export var ambiance := ""
+## Sol en images V3 (« floor_... », une image par case) ; vide = dalles V2 tirées au hasard (DALLES).
+@export var sol := ""
+## Zones de sol différent (ex. carrelage de la cuisine) : image -> liste de Rect2 du monde, par-dessus `sol`.
+@export var zones_sol := {}
 ## Dalles : nom et poids du tirage (la dalle propre est la plus fréquente).
 const DALLES := {"dalle": 16, "dalle_fissuree": 2, "dalle_tache": 2, "dalle_flaque": 1, "dalle_gravats": 1, "dalle_papiers": 1}
 const DEBRIS := ["debris_papiers", "debris_bout", "debris_planche", "debris_planches", "debris_carton"]
@@ -27,6 +33,7 @@ var _ramasses: Array = []
 var _total_objets := 0
 var _cachette_proche: Node2D = null
 var _cachette_occupee: Node2D = null
+var _meubles: Array = []   # décor qui devient transparent quand le héros est derrière
 
 @onready var _heros := $Monde/Heros
 
@@ -40,7 +47,10 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
-	$Nuit.color = Palette.NUIT * Color(Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, 1.0)
+	var nuit: Color = Palette.AMBIANCES[ambiance][0] if Palette.AMBIANCES.has(ambiance) else Palette.NUIT
+	$Nuit.color = nuit * Color(Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, 1.0)
+	if Palette.AMBIANCES.has(ambiance):
+		_heros.couleur_lampe(Palette.AMBIANCES[ambiance][1])
 	# Affichage isométrique : chaque entité donne ses nœuds d'affichage
 	$Monde.visible = false
 	# Rescapé déjà sauvé : il ne réapparaît plus dans ce lieu
@@ -52,6 +62,8 @@ func _ready() -> void:
 		else:
 			rescape.suit_change.connect(_sur_rescape)
 	for entite in $Monde.get_children():
+		if entite.has_method("voir_a_travers"):
+			_meubles.append(entite)
 		if entite.has_method("visuels"):
 			var visuels: Dictionary = entite.visuels()
 			if visuels.has("sol"):
@@ -84,7 +96,7 @@ func _exit_tree() -> void:
 	Qualite.surveiller(false)
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	# Chaque zombie connaît la position du héros (il décide lui-même s'il le voit).
 	var detectable := not _heros_mort and _cachette_occupee == null
 	for zombie in get_tree().get_nodes_in_group("zombies"):
@@ -106,6 +118,10 @@ func _physics_process(_delta: float) -> void:
 				_cachette_proche = cachette
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
 	$HUD.afficher_recharge(_heros.recharge())
+	# Un grand meuble devant le héros devient transparent : on le voit toujours
+	var pieds := Iso.ecran(_heros.global_position) if not _heros_mort and _cachette_occupee == null else Vector2.INF
+	for meuble in _meubles:
+		meuble.voir_a_travers(pieds, delta)
 	if _heros_mort or _fini or _cachette_occupee:
 		return
 	# Objets ramassés en marchant dessus
@@ -185,6 +201,7 @@ func _finir(victoire: bool) -> void:
 
 
 # Sol tiré une fois, par bloc : bloc (Vector2i) -> [[nom, rectangle à l'écran, retourné], ...]
+# (sol V3 : [nom, rectangle du monde, coin de sa case])
 var _dalles := {}
 var _debris := {}
 
@@ -192,6 +209,42 @@ var _debris := {}
 func _tirer_sol() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = graine
+	if sol != "" and Images.existe(sol):
+		_tirer_sol_v3()
+	else:
+		_tirer_dalles(rng)
+	_tirer_debris(rng)
+
+
+## Sol en images V3 : chaque case reçoit l'image de `sol`, ou celle de la zone qui la couvre ; une case à
+## cheval sur une zone est coupée (rectangles du monde, projetés avec leur morceau de l'image).
+func _tirer_sol_v3() -> void:
+	var colonnes := int(taille.x / CASE)
+	var lignes := int(taille.y / CASE)
+	for j in lignes:
+		for i in colonnes:
+			var case := Rect2(Vector2(i, j) * CASE, Vector2(CASE, CASE))
+			var bloc := Vector2i(i, j) / BLOC
+			if not _dalles.has(bloc):
+				_dalles[bloc] = []
+			var couverte := false
+			var morceaux := []
+			for nom in zones_sol:
+				if not Images.existe(nom):
+					continue
+				for zone: Rect2 in zones_sol[nom]:
+					if zone.encloses(case):
+						couverte = true
+						morceaux = [[nom, case]]
+					elif zone.intersects(case) and not couverte:
+						morceaux.append([nom, zone.intersection(case)])
+			if not couverte:
+				morceaux.push_front([sol, case])
+			for m in morceaux:
+				_dalles[bloc].append([m[0], m[1], case.position])
+
+
+func _tirer_dalles(rng: RandomNumberGenerator) -> void:
 	var total := 0
 	for nom in DALLES:
 		total += DALLES[nom]
@@ -222,6 +275,9 @@ func _tirer_sol() -> void:
 				_dalles[bloc].append([nom, Rect2(haut - Vector2(r.size.x * e / 2.0, 0), r.size * e), rng.randf() < 0.5])
 			else:
 				_dalles[bloc].append(["", Rect2(haut, Vector2(CASE, CASE)), false])
+
+
+func _tirer_debris(rng: RandomNumberGenerator) -> void:
 	# Débris au sol, hors des obstacles et loin des objets et de la sortie
 	var interdits := []
 	for entite in $Monde.get_children():
@@ -263,8 +319,39 @@ func _tirer_sol() -> void:
 				position_sol += 1
 
 
+## Coins (haut, droit, avant, gauche) d'une image de sol V3 en coordonnées de texture (0 à 1), un peu
+## rentrés pour ne pas prendre le bord transparent du losange (sinon un joint sombre entre les cases).
+const SOL_V3_UV := [Vector2(0.5, 0.008), Vector2(0.992, 0.5), Vector2(0.5, 0.992), Vector2(0.008, 0.5)]
+
+
 func _dessiner_sol(noeud: Node2D, morceaux: Array) -> void:
+	# Sol V3 : morceaux [nom, rectangle du monde, coin de sa case], un tableau de triangles par image
+	# (une seule commande de dessin par image et par bloc)
+	var tableaux := {}   # nom -> [points, uvs, indices]
 	for morceau in morceaux:
+		if not (morceau.size() == 3 and morceau[2] is Vector2):
+			continue
+		if not tableaux.has(morceau[0]):
+			tableaux[morceau[0]] = [PackedVector2Array(), PackedVector2Array(), PackedInt32Array()]
+		var t: Array = tableaux[morceau[0]]
+		var r: Rect2 = morceau[1]
+		var debut: int = t[0].size()
+		for p in [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]:
+			t[0].append(Iso.ecran(p))
+			var u: Vector2 = (p - morceau[2]) / CASE   # (0,0) haut, (1,0) droit, (0,1) gauche
+			t[1].append(SOL_V3_UV[0] + (SOL_V3_UV[1] - SOL_V3_UV[0]) * u.x + (SOL_V3_UV[3] - SOL_V3_UV[0]) * u.y)
+		for i in [0, 1, 2, 0, 2, 3]:
+			t[2].append(debut + i)
+	for nom in tableaux:
+		var t: Array = tableaux[nom]
+		var blanc := PackedColorArray()
+		blanc.resize(t[0].size())
+		blanc.fill(Color.WHITE)
+		RenderingServer.canvas_item_add_triangle_array(noeud.get_canvas_item(), t[2], t[0], blanc, t[1],
+			PackedInt32Array(), PackedFloat32Array(), Images.texture(nom).get_rid())
+	for morceau in morceaux:
+		if morceau.size() == 3 and morceau[2] is Vector2:
+			continue
 		if morceau[0] != "":
 			Images.dessiner(noeud, morceau[0], morceau[1], morceau[2])
 		else:
