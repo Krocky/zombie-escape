@@ -1,14 +1,20 @@
 extends Control
 ## Écran Base (pas un niveau jouable) : l'abri en planches et le feu de camp, la nuit,
-## l'inventaire (une icône par type d'objet avec son nombre) et le bouton Partir (vers le supermarché).
-## Tout est dessiné en code, en formes simples avec contour épais.
+## l'inventaire (une icône par type d'objet avec son nombre), une carte par construction et le bouton Partir.
+## Tout est dessiné en code, en formes simples avec contour épais. Les constructions faites apparaissent dans le décor.
+
+const CARTE := preload("res://scenes/carte_construction.tscn")
 
 const TAILLE_ICONE := 54.0
-## Emplacements (fraction de l'écran) : horizon, abri, feu, héros ; en paysage puis en portrait
+## Emplacements (fraction de l'écran) : horizon, abri, feu, héros, constructions ; en paysage puis en portrait
 const PLACES := {
-	true: {"horizon": 0.56, "abri": Vector2(0.19, 0.84), "feu": Vector2(0.5, 0.7), "heros": Vector2(0.69, 0.77)},
-	false: {"horizon": 0.42, "abri": Vector2(0.5, 0.66), "feu": Vector2(0.36, 0.83), "heros": Vector2(0.8, 0.84)},
+	true: {"horizon": 0.56, "abri": Vector2(0.19, 0.84), "feu": Vector2(0.5, 0.7), "heros": Vector2(0.65, 0.77),
+		"atelier": Vector2(0.78, 0.74), "barricade": Vector2(0.92, 0.8)},
+	false: {"horizon": 0.55, "abri": Vector2(0.5, 0.74), "feu": Vector2(0.36, 0.83), "heros": Vector2(0.8, 0.84),
+		"atelier": Vector2(0.13, 0.77), "barricade": Vector2(0.86, 0.73)},
 }
+## Taille des cartes de construction : en ligne (paysage), en colonne (portrait, coût sur la ligne du nom)
+const TAILLE_CARTE := {true: Vector2(400, 130), false: Vector2(680, 112)}
 
 var _temps := 0.0
 var _etoiles := PackedVector2Array()    # positions en fraction de l'écran
@@ -22,6 +28,14 @@ func _ready() -> void:
 	$Partir.couleur = Palette.LAMPE
 	$Partir.icone = "jouer"
 	$Partir.appuye.connect(_partir)
+	for construction in Partie.CONSTRUCTIONS:
+		var carte := CARTE.instantiate()
+		carte.construction = construction
+		carte.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		carte.construire.connect(_construire)
+		$Constructions.add_child(carte)
+	resized.connect(_placer_cartes)
+	_placer_cartes()
 	# Ciel et ruines tirés une fois, avec une graine fixe
 	var hasard := RandomNumberGenerator.new()
 	hasard.seed = 7
@@ -29,6 +43,23 @@ func _ready() -> void:
 		_etoiles.append(Vector2(hasard.randf(), hasard.randf() * 0.5))
 	for i in 14:
 		_immeubles.append(Vector2(hasard.randf_range(0.06, 0.12), hasard.randf_range(0.06, 0.18)))
+
+
+## Cartes en ligne en paysage, en colonne en portrait.
+func _placer_cartes() -> void:
+	var paysage := size.x > size.y
+	$Constructions.vertical = not paysage
+	$Constructions.add_theme_constant_override("separation", 14 if paysage else 10)
+	for carte in $Constructions.get_children():
+		carte.custom_minimum_size = TAILLE_CARTE[paysage]
+
+
+func _construire(construction: String) -> void:
+	if not Partie.construire(construction):
+		return
+	for carte in $Constructions.get_children():
+		carte.actualiser()
+	$Haut/Inventaire.queue_redraw()
 
 
 func _partir() -> void:
@@ -52,7 +83,13 @@ func _draw() -> void:
 	var vacille := 1.0 + 0.05 * sin(_temps * 7.0) + 0.03 * sin(_temps * 13.0)
 	for r: float in [330.0, 220.0, 130.0]:
 		_ellipse_pleine(feu, Vector2(r, r * 0.45) * e * vacille, Palette.FEU_LUEUR)
+	if Partie.est_construit("barricade"):
+		_barricade(places["barricade"] * size, e)
 	_abri(places["abri"] * size, e)
+	if Partie.est_construit("lampe"):
+		_lampe(places["abri"] * size, e)
+	if Partie.est_construit("atelier"):
+		_atelier(places["atelier"] * size, e)
 	_heros(places["heros"] * size, e, places["heros"].x > places["feu"].x)
 	_feu(feu, e)
 	# Haut assombri pour que le titre et l'inventaire ressortent
@@ -74,7 +111,7 @@ func _ciel(horizon: float, e: float) -> void:
 		var p := _etoiles[i] * Vector2(size.x, horizon)
 		var a := 0.35 + 0.3 * sin(_temps * 1.5 + i * 1.7)
 		draw_circle(p, 2.0 * e, Color(Palette.UI_TEXTE, a))
-	var lune := Vector2(size.x * 0.88, size.y * (0.13 if size.x > size.y else 0.26))
+	var lune := Vector2(size.x * 0.88, size.y * (0.13 if size.x > size.y else 0.06))
 	draw_circle(lune, 70.0 * e, Color(Palette.LUNE, 0.12))
 	Dessin.cercle(self, lune, 34.0 * e, Palette.LUNE)
 	draw_circle(lune + Vector2(-10, -6) * e, 7.0 * e, Palette.LUNE.darkened(0.15))
@@ -126,6 +163,68 @@ func _abri(pieds: Vector2, e: float) -> void:
 	# Caisse et carton posés contre l'abri (images V2, assombries par la nuit)
 	_image_au_sol("caisse", pieds + Vector2(-l * 0.58, 6 * e), 95.0 * e)
 	_image_au_sol("carton", pieds + Vector2(l * 0.55, 10 * e), 70.0 * e)
+
+
+## Barricade : palissade de pieux taillés en pointe, tenus par deux planches en travers.
+func _barricade(pieds: Vector2, e: float) -> void:
+	var l := 200.0 * e
+	Dessin.ombre(self, Rect2(pieds - Vector2(l * 0.6, 18 * e), Vector2(l * 1.2, 36 * e)))
+	var n := 6
+	for k in n:
+		var x0 := pieds.x - l / 2.0 + k * l / n
+		var haut := pieds.y - (110.0 + (k % 2) * 16.0) * e
+		var pointe := haut - 22.0 * e
+		Dessin.polygone(self, PackedVector2Array([Vector2(x0 + 3 * e, haut), Vector2(x0 + l / n / 2.0, pointe),
+			Vector2(x0 + l / n - 3 * e, haut), Vector2(x0 + l / n - 3 * e, pieds.y), Vector2(x0 + 3 * e, pieds.y)]),
+			Palette.BOIS if k % 2 == 0 else Palette.BOIS_CLAIR)
+	for y: float in [-80.0, -30.0]:
+		var a := pieds + Vector2(-l * 0.55, y * e)
+		var b := pieds + Vector2(l * 0.55, (y - 10.0) * e)
+		draw_line(a, b, Palette.CONTOUR, 18.0 * e)
+		draw_line(a, b, Palette.BOIS_SOMBRE, 11.0 * e)
+
+
+## Lampe renforcée : un projecteur sur un poteau au coin du toit de l'abri, qui éclaire le sol devant.
+func _lampe(abri: Vector2, e: float) -> void:
+	var bas := abri + Vector2(212 * e, 0)
+	var tete := bas + Vector2(0, -225 * e)
+	# Lumière au sol, qui vacille un peu
+	var force := 0.16 + 0.02 * sin(_temps * 3.0)
+	draw_colored_polygon(PackedVector2Array([tete + Vector2(-10, 10) * e, tete + Vector2(18, 10) * e,
+		bas + Vector2(150, 30) * e, bas + Vector2(-60, 30) * e]), Color(Palette.LAMPE_FAISCEAU, force))
+	_ellipse_pleine(bas + Vector2(45, 28) * e, Vector2(115, 26) * e, Color(Palette.LAMPE_FAISCEAU, force))
+	draw_line(bas, tete, Palette.CONTOUR, 14.0 * e)
+	draw_line(bas, tete, Palette.TOLE.darkened(0.2), 7.0 * e)
+	var corps := PackedVector2Array([tete + Vector2(-22, -16) * e, tete + Vector2(22, -10) * e,
+		tete + Vector2(26, 14) * e, tete + Vector2(-18, 14) * e])
+	Dessin.polygone(self, corps, Palette.TOLE)
+	draw_circle(tete + Vector2(4, 6) * e, 26.0 * e, Color(Palette.LAMPE, 0.25))
+	Dessin.ellipse(self, tete + Vector2(4, 12) * e, Vector2(18, 7) * e, Palette.LAMPE)
+
+
+## Atelier : établi en bois avec un étau, un marteau et une scie posés dessus.
+func _atelier(pieds: Vector2, e: float) -> void:
+	var l := 150.0 * e
+	var h := 70.0 * e
+	Dessin.ombre(self, Rect2(pieds - Vector2(l * 0.62, 16 * e), Vector2(l * 1.24, 32 * e)))
+	for x: float in [-0.42, 0.36]:
+		Dessin.rect(self, Rect2(pieds + Vector2(l * x, -h), Vector2(14 * e, h)), Palette.BOIS_SOMBRE)
+	Dessin.rect(self, Rect2(pieds + Vector2(-l * 0.42, -h * 0.4), Vector2(l * 0.84, 10 * e)), Palette.BOIS_SOMBRE)
+	var plateau := Rect2(pieds + Vector2(-l / 2.0, -h - 18 * e), Vector2(l, 18 * e))
+	Dessin.rect(self, plateau, Palette.BOIS_CLAIR)
+	# Étau à gauche
+	Dessin.rect(self, Rect2(plateau.position + Vector2(6, -22) * e, Vector2(26, 22) * e), Palette.PIERRE)
+	draw_line(plateau.position + Vector2(0, -12) * e, plateau.position + Vector2(38, -12) * e, Palette.CONTOUR, 5.0 * e)
+	# Marteau
+	var m := plateau.position + Vector2(l * 0.45, 0)
+	draw_line(m, m + Vector2(34, -30) * e, Palette.CONTOUR, 9.0 * e)
+	draw_line(m, m + Vector2(34, -30) * e, Palette.BATTE, 5.0 * e)
+	Dessin.polygone(self, PackedVector2Array([m + Vector2(22, -42) * e, m + Vector2(46, -22) * e,
+		m + Vector2(40, -16) * e, m + Vector2(16, -36) * e]), Palette.PIERRE)
+	# Scie accrochée au bord du plateau
+	var s := plateau.position + Vector2(l * 0.7, plateau.size.y)
+	Dessin.polygone(self, PackedVector2Array([s, s + Vector2(30, 0) * e, s + Vector2(30, 34) * e]), Palette.UI_BORD)
+	Dessin.rect(self, Rect2(s + Vector2(-12, -2) * e, Vector2(14, 12) * e), Palette.BOIS_SOMBRE)
 
 
 func _image_au_sol(nom: String, pieds: Vector2, hauteur: float) -> void:

@@ -35,6 +35,15 @@ const ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 const ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche
 const ATTAQUE_DELAI := 0.5            # secondes entre deux coups
 
+# --- Constructions de la base (chacune se construit une seule fois) ---
+# Coût : { objet: nombre }. Objets : "conserve", "eau", "bandage", "piles" (pas "fiole" : elle sert au remède).
+const BARRICADE_COUT := {"conserve": 2, "eau": 1}
+const BARRICADE_COEURS := 1             # cœurs en plus pour le héros
+const ATELIER_COUT := {"piles": 2, "conserve": 1}
+const ATELIER_DEGATS := 1               # dégâts en plus à chaque coup de batte
+const LAMPE_RENFORCEE_COUT := {"piles": 2}
+const LAMPE_RENFORCEE_PORTEE := 40      # faisceau de la lampe plus long, en pourcentage
+
 # --- Joystick ---
 const JOYSTICK_ZONE_MORTE := 0.2      # entre 0 et 1 : en dessous, le héros ne bouge pas
 

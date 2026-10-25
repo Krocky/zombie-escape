@@ -12,10 +12,16 @@ const NOMS := {
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
 }
+## Constructions de la base, dans l'ordre des cartes : nom -> nom affiché (coûts et effets dans Reglages)
+const CONSTRUCTIONS := {
+	"barricade": "Barricade",
+	"atelier": "Atelier",
+	"lampe": "Lampe renforcée",
+}
 
 ## Objets rangés à la base, cumulés sur toutes les parties : { type: nombre }
 var inventaire := {}
-## Constructions faites à la base (noms), remplies à l'étape (b) du lot 2
+## Constructions faites à la base (noms, voir CONSTRUCTIONS)
 var constructions := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array)
 var resultat := {"victoire": false, "rapportes": [], "perdus": []}
@@ -41,6 +47,71 @@ func terminer(victoire: bool, ramasses: Array) -> void:
 
 func nom(type: String) -> String:
 	return NOMS.get(type, type)
+
+
+# --- Constructions ---
+
+## Objets à donner pour construire : { type: nombre }.
+func cout(construction: String) -> Dictionary:
+	match construction:
+		"barricade":
+			return Reglages.BARRICADE_COUT
+		"atelier":
+			return Reglages.ATELIER_COUT
+		"lampe":
+			return Reglages.LAMPE_RENFORCEE_COUT
+	return {}
+
+
+## L'effet en une phrase (carte de la base).
+func effet(construction: String) -> String:
+	match construction:
+		"barricade":
+			return "+%d cœur%s pour le héros" % [Reglages.BARRICADE_COEURS, "s" if Reglages.BARRICADE_COEURS > 1 else ""]
+		"atelier":
+			return "La batte fait +%d dégât%s" % [Reglages.ATELIER_DEGATS, "s" if Reglages.ATELIER_DEGATS > 1 else ""]
+		"lampe":
+			return "Lampe +%d %% plus loin" % Reglages.LAMPE_RENFORCEE_PORTEE
+	return ""
+
+
+func est_construit(construction: String) -> bool:
+	return construction in constructions
+
+
+func peut_construire(construction: String) -> bool:
+	if est_construit(construction):
+		return false
+	var c := cout(construction)
+	for type in c:
+		if inventaire.get(type, 0) < c[type]:
+			return false
+	return true
+
+
+## Retire les objets de l'inventaire, ajoute la construction et sauvegarde. Faux si impossible.
+func construire(construction: String) -> bool:
+	if not peut_construire(construction):
+		return false
+	var c := cout(construction)
+	for type in c:
+		inventaire[type] -= c[type]
+	constructions.append(construction)
+	sauvegarder()
+	return true
+
+
+## Effets des constructions dans le niveau
+func heros_pv() -> int:
+	return Reglages.HEROS_PV + (Reglages.BARRICADE_COEURS if est_construit("barricade") else 0)
+
+
+func degats_batte() -> int:
+	return Reglages.ATTAQUE_DEGATS + (Reglages.ATELIER_DEGATS if est_construit("atelier") else 0)
+
+
+func portee_lampe() -> float:
+	return Reglages.LAMPE_PORTEE * (1.0 + Reglages.LAMPE_RENFORCEE_PORTEE / 100.0 if est_construit("lampe") else 1.0)
 
 
 func sauvegarder() -> void:

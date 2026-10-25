@@ -11,6 +11,8 @@ signal appuye
 			texte = valeur
 			queue_redraw()
 @export var couleur := Color.WHITE
+## Taille du texte des boutons en pilule (les ronds gardent leur taille).
+@export var taille_texte := 40
 ## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer" ou rien.
 @export var icone := "":
 	set(valeur):
@@ -95,9 +97,9 @@ func _draw() -> void:
 		var milieu := Vector2(size.x / 2.0, enfonce + (size.y - PROFONDEUR) / 2.0)
 		if icone != "":
 			_icone(milieu + Vector2(-size.x * 0.28, 0), 24.0, couleur_texte)
-			_texte(milieu + Vector2(size.x * 0.06, 14), 40, couleur_texte)
+			_texte(milieu + Vector2(size.x * 0.06, taille_texte * 0.35), taille_texte, couleur_texte)
 		else:
-			_texte(milieu + Vector2(0, 14), 40, couleur_texte)
+			_texte(milieu + Vector2(0, taille_texte * 0.35), taille_texte, couleur_texte)
 
 
 ## Texte centré horizontalement sur p (p = ligne de base).

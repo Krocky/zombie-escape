@@ -107,7 +107,7 @@ func _sur_attaque(origine: Vector2, sens: Vector2) -> void:
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		var vers_zombie: Vector2 = zombie.global_position - origine
 		if vers_zombie.length() <= Reglages.ATTAQUE_PORTEE and vers_zombie.normalized().dot(sens) > -0.3:
-			zombie.recevoir_coup(Reglages.ATTAQUE_DEGATS, origine)
+			zombie.recevoir_coup(Partie.degats_batte(), origine)
 
 
 func _sur_mort() -> void:

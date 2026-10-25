@@ -23,7 +23,8 @@ const POSES := {
 
 var _direction := Vector2.ZERO
 var _temps := 0.0
-var _pv := Reglages.HEROS_PV
+var _pv_max := Partie.heros_pv()   # avec la barricade de la base
+var _pv := _pv_max
 var _recul := Vector2.ZERO
 var _invulnerable := 0.0
 var _recharge_attaque := 0.0
@@ -41,11 +42,11 @@ var _secousse := 0.0
 
 
 func _ready() -> void:
-	pv_change.emit.call_deferred(_pv, Reglages.HEROS_PV)
+	pv_change.emit.call_deferred(_pv, _pv_max)
 	_lampe.texture = _texture_faisceau()
 	_lampe.color = Palette.LAMPE_FAISCEAU
 	_halo.color = Palette.LAMPE_DOUCE
-	_lampe.texture_scale = Reglages.LAMPE_PORTEE * Iso.K / 256.0
+	_lampe.texture_scale = Partie.portee_lampe() * Iso.K / 256.0
 	# La pointe du cône (bord gauche de l'image) doit être sur la main
 	_lampe.offset = Vector2(128.0 * _lampe.texture_scale, 0)
 	# Lumières et dessin suivent la position à l'écran ; la caméra aussi (hors du monde)
@@ -129,7 +130,7 @@ func recevoir_degats(degats: int, depuis: Vector2) -> void:
 	_pv = maxi(_pv - degats, 0)
 	_invulnerable = Reglages.HEROS_INVULNERABLE
 	_recul = depuis.direction_to(global_position) * Reglages.HEROS_RECUL
-	pv_change.emit(_pv, Reglages.HEROS_PV)
+	pv_change.emit(_pv, _pv_max)
 	_secousse = DUREE_SECOUSSE
 	if _pv == 0:
 		_direction = Vector2.ZERO
