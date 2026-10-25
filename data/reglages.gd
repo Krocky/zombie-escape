@@ -18,6 +18,10 @@ const NUIT_CLARTE := 1.0              # 1 = normal, 0.5 = deux fois plus sombre,
 const BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
 const CAMERA_AVANCE := 70.0          # la caméra regarde en avant du héros (pixels), 0 = centrée sur lui
 const AFFICHER_IPS := true            # true = affiche les images par seconde en haut (pour tester la fluidité)
+const QUALITE_AUTO := true            # true = passe en qualité basse si le jeu rame (moins net, plus fluide)
+const QUALITE_SEUIL_IPS := 30         # en dessous de ce nombre d'images par seconde...
+const QUALITE_DELAI := 3.0            # ... pendant ces secondes (dans un lieu) : qualité basse
+const QUALITE_BASSE_FORCEE := false   # true = toujours en qualité basse (pour comparer sur la tablette)
 
 # --- Bruit (les zombies entendent jusqu'à cette distance) ---
 const BRUIT_PAS := 130.0              # bruit des pas quand le héros marche

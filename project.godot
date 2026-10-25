@@ -12,6 +12,7 @@ config/icon="res://icon.svg"
 
 Palette="*res://data/palette.gd"
 Reglages="*res://data/reglages.gd"
+Qualite="*res://scripts/qualite.gd"
 Images="*res://scripts/images.gd"
 Iso="*res://scripts/iso.gd"
 Ecran="*res://scripts/ecran.gd"

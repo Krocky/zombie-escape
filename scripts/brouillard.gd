@@ -90,6 +90,7 @@ func _process(delta: float) -> void:
 func _dessiner() -> void:
 	# Opacité du centre de la nappe ; les nappes sont plates (au ras du sol)
 	var teinte := Color(1, 1, 1, clampf(Reglages.BROUILLARD_OPACITE * 4.0 * force, 0.0, 1.0))
-	for nappe in _nappes:
+	for i in range(0, _nappes.size(), 2 if Qualite.basse else 1):   # qualité basse : une nappe sur deux
+		var nappe: Array = _nappes[i]
 		var rayon: float = nappe[1]
 		_dessin.draw_texture_rect(_texture, Rect2(nappe[0] - Vector2(rayon, rayon * 0.45), Vector2(rayon * 2.0, rayon * 0.9)), false, teinte)

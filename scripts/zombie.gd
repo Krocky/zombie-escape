@@ -343,8 +343,9 @@ func _dessiner_impact() -> void:
 	_yeux.draw_set_transform(Vector2.ZERO)
 	var avance := 1.0 - _impact / DUREE_IMPACT
 	var centre := Vector2(0, _haut_icone * 0.55)
-	for i in 8:
-		var direction := Vector2.from_angle(TAU * i / 8.0 + 0.4)
+	var nombre := 4 if Qualite.basse else 8
+	for i in nombre:
+		var direction := Vector2.from_angle(TAU * i / float(nombre) + 0.4)
 		var debut := centre + direction * (10.0 + 40.0 * avance)
 		_yeux.draw_line(debut, debut + direction * 16.0 * (1.0 - avance), Palette.LAMPE * Color(1, 1, 1, 1.0 - avance), 4.0)
 	_yeux.draw_circle(centre, 18.0 * (1.0 - avance), Color(1, 1, 1, 0.6 * (1.0 - avance)))

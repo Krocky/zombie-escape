@@ -76,8 +76,9 @@ func _dessiner_eclat() -> void:
 	var centre := Vector2(0, _flotte() - HAUTEUR_ICONE * 0.6)
 	if _ramasse > 0.0:
 		var avance := 1.0 - _ramasse / DUREE_RAMASSAGE
-		for i in 10:
-			var direction := Vector2.from_angle(TAU * i / 10.0 + 0.3)
+		var nombre := 5 if Qualite.basse else 10
+		for i in nombre:
+			var direction := Vector2.from_angle(TAU * i / nombre + 0.3)
 			_etoile(centre + direction * (12.0 + avance * 70.0), 7.0 * (1.0 - avance), 1.0 - avance)
 		return
 	var phase := fmod(_temps, PERIODE_ECLAT) / 0.45

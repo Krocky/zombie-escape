@@ -1,7 +1,8 @@
 extends SceneTree
 ## Mesure de performance (pas un test : pas lancé par lancer.sh).
 ## Usage : xvfb-run -a -s "-screen 0 2560x1600x24" godot --rendering-driver opengl3 --resolution 2560x1600 -s tests/mesure_perf.gd
-## LIEU=maison pour l'autre lieu. Affiche appels de dessin, objets rendus et temps moyen d'une image.
+## LIEU=maison pour l'autre lieu, QUALITE=basse pour mesurer la qualité basse (sinon elle ne se
+## déclenche pas pendant la mesure). Affiche appels de dessin, objets rendus et temps moyen d'une image.
 
 var niveau
 var f := 0
@@ -21,6 +22,10 @@ func _initialize():
 
 func _process(_d):
 	f += 1
+	if f == 2:
+		root.get_node("Qualite").surveiller(false)
+		if OS.get_environment("QUALITE") == "basse":
+			root.get_node("Qualite").passer_en_basse()
 	if f == 30:
 		debut = Time.get_ticks_usec()
 	if f > 30:

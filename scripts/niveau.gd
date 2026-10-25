@@ -67,6 +67,11 @@ func _ready() -> void:
 	_total_objets = get_tree().get_nodes_in_group("objets").size()
 	$HUD.afficher_objets(0, _total_objets)
 	_afficher_objectif()
+	Qualite.surveiller(true)
+
+
+func _exit_tree() -> void:
+	Qualite.surveiller(false)
 
 
 func _physics_process(_delta: float) -> void:

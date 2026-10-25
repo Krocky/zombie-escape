@@ -71,7 +71,7 @@ func _process(delta: float) -> void:
 	_attente_ips -= delta
 	if _attente_ips <= 0.0:
 		_attente_ips = 0.5
-		$Ips.text = "%d ips" % Engine.get_frames_per_second()
+		$Ips.text = "%d ips%s" % [Engine.get_frames_per_second(), " (qualité basse)" if Qualite.basse else ""]
 
 
 func afficher_pv(pv: int, pv_max: int) -> void:

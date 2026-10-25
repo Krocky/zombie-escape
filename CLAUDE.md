@@ -142,7 +142,10 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Icônes d'objets partout : `Dessin.icone_objet` (image V2, sinon dessin en code ; la fiole est toujours en code). `Dessin.IMAGES_OBJETS` : type -> image (bandage -> trousse).
 - Caméra : regarde en avant du héros de `Reglages.CAMERA_AVANCE` pixels dans la direction du regard.
 - Lune : une PointLight2D bleue (`Palette.LUNE`) au sol sous chaque fenêtre du mur du fond. Total : 6 lumières (halo, lampe, sortie, 3 lunes).
-- `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott).
+- `Reglages.AFFICHER_IPS` : compteur d'images par seconde en haut au centre, pour tester la fluidité (mettre false pour Eliott). Il affiche « (qualité basse) » quand elle est active.
+- Performance (lumières 2D de Godot 4.4 Compatibility : une seule passe, mais chaque pixel d'un élément touché par une lumière boucle sur toutes les lumières qui touchent son rectangle) : ne JAMAIS faire un seul grand élément de dessin qui couvre tout le niveau. Sol en blocs de `Niveau.BLOC` x `BLOC` dalles (un nœud par bloc, sous le reste du niveau ; dalles puis débris, blocs de l'arrière vers l'avant). Brume : nappes dessinées au 1/`DIVISEUR` dans un SubViewport transparent, affiché agrandi en tuiles de `TUILE` px avec un mélange prémultiplié (rendu identique). Bandes du décor recadrées en hauteur sur leurs pixels visibles (`Iso._vide_vertical`, `Images.image`).
+- Qualité basse automatique (autoload `Qualite`) : sous `QUALITE_SEUIL_IPS` pendant `QUALITE_DELAI` s dans un lieu (après 2 s d'arrivée), le jeu passe pour toute la session en `CONTENT_SCALE_MODE_VIEWPORT` (rendu à la taille de base agrandi : moins net, ~4 fois moins de pixels sur la tablette ; Godot n'a pas de calque d'ombre séparé, c'est donc toute l'image, lumières comprises, qui passe à demi-résolution), une nappe de brume sur deux, gerbes d'étincelles réduites de moitié. `QUALITE_AUTO`, `QUALITE_BASSE_FORCEE` dans `Reglages`. Non sauvegardé.
+- Mesure : `tests/mesure_perf.gd` (pas un test) donne appels de dessin, objets et temps d'image d'un lieu (`LIEU=maison`, `QUALITE=basse`). Le rendu logiciel de la session cloud est très bruité (±15 %) : ne comparer que des écarts nets, et valider sur la tablette.
 
 ## Journal des lots
 - Lot 1 / étape (a) : projet Godot, palette, réglages, niveau supermarché (murs, étagères, caisses), héros dessiné qui se déplace au joystick, caméra qui suit, workflow de build APK + release.
@@ -158,6 +161,8 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Lot 2 / étape (c) : écran Carte (plan de ville la nuit, supermarché + maison « Bientôt », fiche du lieu, Y aller / Retour), logique du niveau séparée du contenu (scène de lieu héritée `scenes/lieux/supermarche.tscn`), lieu choisi retenu par `Partie` ; tests e, h, i passent par la carte, test `test_j`.
 - Lot 2 / étape (d) : 2e lieu, la Maison (4 pièces reliées par des portes, 2 zombies lents + 1 rapide, 5 objets, cachettes armoire / dessous de lit / baignoire dessinées en code), débloquée sur la carte ; `test_j` adapté, test `test_k`.
 - Lot 2 / étape (e) : objectifs par lieu (fiche de la carte + HUD), « Mission réussie ! » avec 1 objet bonus, jauge du remède à la base (fioles versées, plus dans l'inventaire), écran « Remède trouvé ! » à 3 fioles (une fois), sauvegarde version 3, 2e bandage dans la maison ; test `test_l` (efface la sauvegarde à la fin). Fin du lot 2.
+
+- Performance (après le lot 2) : brume en petit + tuiles, sol en blocs, bandes du décor recadrées, qualité basse automatique, outil `tests/mesure_perf.gd`.
 
 ## Refonte visuelle (après le lot 1, demande du père)
 Lots (plan révisé après les planches V2) : 1 volumes 3/4 (remplacé par l'isométrique), 2 éclairage, 3 préparation des images V2, 4 passage en ISOMÉTRIQUE + décor + personnages en images V2, 5 ambiance (brume, lisibilité), 6 objets + retours de jeu, 7 UI.
