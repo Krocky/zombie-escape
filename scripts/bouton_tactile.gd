@@ -1,7 +1,8 @@
 extends Control
 ## Bouton tactile qui marche avec plusieurs doigts (le joystick peut rester appuyé).
 ## Rond si la taille est carrée, sinon pilule (Jouer, Partir, Retour à la base). Style « bouton de jeu » :
-## socle sombre, dessus coloré qui s'enfonce quand on appuie, reflet, icône dessinée en code.
+## socle sombre, dessus coloré qui s'enfonce quand on appuie, reflet, icône : image V3 (IMAGES_ICONES) ou dessin en code.
+## recharge > 0 : jauge circulaire autour du bouton rond et icône grisée ; petit rebond quand il redevient disponible.
 
 signal appuye
 
@@ -20,7 +21,22 @@ signal appuye
 			icone = valeur
 			queue_redraw()
 
+## Recharge restante (1 = coup juste donné, 0 = disponible).
+@export var recharge := 0.0:
+	set(valeur):
+		valeur = clampf(valeur, 0.0, 1.0)
+		if recharge != valeur:
+			if valeur == 0.0 and recharge > 0.0:
+				_rebond = 1.0
+				create_tween().tween_property(self, "_rebond", 0.0, DUREE_REBOND)
+			recharge = valeur
+			queue_redraw()
+
 const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette hauteur)
+## Icônes en image V3 (images/v3), à TAILLE_IMAGE du diamètre du bouton rond. Sans image : dessin en code.
+const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide"}
+const TAILLE_IMAGE := 0.7
+const DUREE_REBOND := 0.35
 ## Un bouton inactif est grisé et ne réagit pas.
 @export var actif := true:
 	set(valeur):
@@ -29,6 +45,10 @@ const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette h
 			queue_redraw()
 
 var _doigt := -1
+var _rebond := 0.0:   # 1 -> 0 pendant le rebond
+	set(valeur):
+		_rebond = valeur
+		queue_redraw()
 
 
 func _input(event: InputEvent) -> void:
@@ -76,7 +96,22 @@ func _draw() -> void:
 		draw_circle(haut, rayon - 5.0, fond)
 		# Reflet en haut à gauche
 		draw_arc(haut, rayon - 13.0, PI * 1.05, PI * 1.45, 12, fond.lightened(0.45) * Color(1, 1, 1, 0.8), 6.0, true)
-		if icone != "":
+		var image: String = IMAGES_ICONES.get(icone, "")
+		if recharge > 0.0:
+			# Jauge circulaire autour du bouton (socle compris) : la partie remplie avance jusqu'au tour complet
+			var milieu := centre + Vector2(0, PROFONDEUR / 2.0)
+			var r_jauge := rayon + PROFONDEUR / 2.0 + 5.0
+			draw_arc(milieu, r_jauge, 0.0, TAU, 48, Palette.CONTOUR, 11.0, true)
+			draw_arc(milieu, r_jauge, -PI / 2.0, -PI / 2.0 + TAU * (1.0 - recharge), 48, fond.lightened(0.2), 6.0, true)
+		if image != "" and Images.v3_existe(image):
+			var gris := recharge > 0.0 or not actif
+			var texture := Images.v3_gris(image) if gris else Images.v3_texture(image)
+			var t := texture.get_size()
+			var e := rayon * 2.0 * TAILLE_IMAGE / maxf(t.x, t.y) * (1.0 + 0.22 * sin(_rebond * PI))
+			var teinte := Color(1, 1, 1, 0.45) if not actif else (Color(0.8, 0.8, 0.85) if gris else Color.WHITE)
+			draw_texture_rect(texture, Rect2(haut + Vector2(0, -8) - t * e / 2.0, t * e), false, teinte)
+			_texte(haut + Vector2(0, rayon * 0.8), 20, couleur_texte, true)
+		elif icone != "":
 			_icone(haut + Vector2(0, -12), rayon * 0.42, couleur_texte)
 			_texte(haut + Vector2(0, rayon * 0.5), 20, couleur_texte)
 		else:
@@ -102,10 +137,14 @@ func _draw() -> void:
 			_texte(milieu + Vector2(0, taille_texte * 0.35), taille_texte, couleur_texte)
 
 
-## Texte centré horizontalement sur p (p = ligne de base).
-func _texte(p: Vector2, taille: int, couleur_texte: Color) -> void:
+## Texte centré horizontalement sur p (p = ligne de base). « contour » : texte clair cerclé de sombre, lisible sur une image.
+func _texte(p: Vector2, taille: int, couleur_texte: Color, contour := false) -> void:
 	var police := ThemeDB.fallback_font
 	var largeur := police.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x
+	if contour:
+		draw_string_outline(police, p - Vector2(largeur / 2.0, 0), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille, 7, Palette.CONTOUR)
+		if actif:
+			couleur_texte = Palette.UI_TEXTE
 	draw_string(police, p - Vector2(largeur / 2.0, 0), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille, couleur_texte)
 
 

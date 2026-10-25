@@ -60,17 +60,29 @@ static func ombre(ci: CanvasItem, r: Rect2, force := 1.0) -> void:
 
 # --- Icônes des objets (niveau, HUD, écran de fin) ---
 
-## Image V2 de chaque type d'objet (la fiole n'en a pas : dessinée en code).
+## Image V2 de chaque type d'objet.
 const IMAGES_OBJETS := {"conserve": "conserve", "eau": "eau", "bandage": "trousse", "piles": "piles"}
+## Image V3 (images/v3) de la fiole et de la clef. Sans image : dessin en code.
+const IMAGES_V3_OBJETS := {"fiole": "item_vial", "clef": "item_key"}
 
 
-## Icône d'un objet, posée sur « pieds » (milieu du bas), haute de « hauteur » pixels.
-static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: float, couleur := Color.WHITE) -> void:
+## Icône d'un objet, posée sur « pieds » (milieu du bas), haute de « hauteur » pixels
+## (une image plus large que haute, la clef, est limitée à 1,4 x hauteur de large).
+## teinte : étiquette de la clef, clé de Palette.CLEF ("rouge" par défaut).
+static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: float, couleur := Color.WHITE, teinte := "rouge") -> void:
+	var etiquette: Color = Palette.CLEF.get(teinte, Palette.CLEF["rouge"])
+	var nom_v3: String = IMAGES_V3_OBJETS.get(type, "")
+	if nom_v3 != "" and Images.v3_existe(nom_v3):
+		var texture := Images.v3_teinte(nom_v3, etiquette) if type == "clef" else Images.v3_texture(nom_v3)
+		var t := texture.get_size()
+		var e := minf(hauteur / t.y, hauteur * 1.4 / t.x)
+		ci.draw_texture_rect(texture, Rect2(pieds - Vector2(t.x * e / 2.0, t.y * e), t * e), false, couleur)
+		return
 	var nom: String = IMAGES_OBJETS.get(type, "")
 	if nom != "" and Images.existe(nom):
 		Images.dessiner_pieds(ci, nom, pieds, hauteur / Images.region(nom).size.y, false, couleur)
 		return
-	# Dessin en code (fiole, ou image manquante), à l'échelle de la hauteur voulue
+	# Dessin en code (image manquante), à l'échelle de la hauteur voulue
 	var e := hauteur / 40.0
 	ci.draw_set_transform(pieds + Vector2(0, -20.0 * e), 0.0, Vector2(e, e))
 	match type:
@@ -88,6 +100,15 @@ static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: f
 			for dx: float in [-7.0, 7.0]:
 				rect(ci, Rect2(dx - 5, -13, 10, 26), Palette.LAMPE * couleur)
 				ci.draw_rect(Rect2(dx - 5, 3, 10, 10), Palette.CONTOUR)
+		"clef":
+			# Anneau, tige à deux dents, étiquette colorée
+			ci.draw_line(Vector2(-6, 6), Vector2(20, 6), Palette.CONTOUR, 8.0)
+			ci.draw_line(Vector2(-6, 6), Vector2(20, 6), Palette.LAMPE * couleur, 4.0)
+			for dx: float in [12.0, 18.0]:
+				rect(ci, Rect2(dx - 2, 6, 4, 6), Palette.LAMPE * couleur)
+			cercle(ci, Vector2(-12, 6), 8.0, Palette.LAMPE * couleur)
+			ci.draw_circle(Vector2(-12, 6), 3.0, Palette.CONTOUR)
+			rect(ci, Rect2(-24, -16, 14, 12), etiquette * couleur)
 		_:
 			# Fiole de remède : ballon vert, bouchon, reflet
 			cercle(ci, Vector2(0, 6), 13.0, Palette.ZOMBIE_PEAU.lightened(0.3) * couleur)

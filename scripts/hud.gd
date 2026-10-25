@@ -17,10 +17,10 @@ var _rescape_suit := false
 
 func _ready() -> void:
 	$Joystick.direction_changee.connect(deplacement.emit)
-	$BoutonAttaquer.couleur = Palette.LAMPE
+	$BoutonAttaquer.couleur = Palette.BOUTON_FRAPPER
 	$BoutonAttaquer.icone = "batte"
 	$BoutonAttaquer.appuye.connect(attaque.emit)
-	$BoutonCacher.couleur = Palette.UI_BOUTON
+	$BoutonCacher.couleur = Palette.BOUTON_CACHER
 	$BoutonCacher.icone = "cacher"
 	$BoutonCacher.appuye.connect(cacher.emit)
 	$CompteurObjets.add_theme_color_override("font_color", Palette.LAMPE)
@@ -97,6 +97,11 @@ func etat_cachette(proche: bool, cache: bool) -> void:
 	$BoutonCacher.texte = "Sortir" if cache else "Cacher"
 	$BoutonCacher.icone = "sortir" if cache else "cacher"
 	$BoutonAttaquer.actif = not cache
+
+
+## Délai entre deux coups : fraction restante (0 = Frapper disponible), jauge autour du bouton.
+func afficher_recharge(fraction: float) -> void:
+	$BoutonAttaquer.recharge = fraction
 
 
 ## types : les objets ramassés (pour leurs icônes).

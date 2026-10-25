@@ -2,7 +2,9 @@ extends Node2D
 ## Un objet à ramasser. Le niveau le ramasse quand le héros marche dessus.
 ## Origine = au sol (coordonnées monde). Affichage isométrique dans le calque Vue.
 
-@export_enum("conserve", "eau", "bandage", "piles", "fiole") var type := "conserve"
+@export_enum("conserve", "eau", "bandage", "piles", "fiole", "clef") var type := "conserve"
+## Teinte de l'étiquette d'une clef (clé de Palette.CLEF), pour de futures portes verrouillées.
+@export_enum("rouge", "bleue", "verte") var teinte := "rouge"
 
 const HAUTEUR_ICONE := 46.0   # pixels d'écran
 const DUREE_RAMASSAGE := 0.5
@@ -68,7 +70,7 @@ func _dessiner() -> void:
 	Dessin.ombre(_vue, Rect2(-22, -7, 44, 14))
 	# Petite lueur qui pulse (visible à la lampe)
 	_vue.draw_circle(Vector2(0, flotte - HAUTEUR_ICONE / 2.0), 30.0 * pulse, Palette.LAMPE * Color(1, 1, 1, 0.12 + 0.08 * sin(_temps * 4.0)))
-	Dessin.icone_objet(_vue, type, Vector2(0, flotte), HAUTEUR_ICONE * pulse)
+	Dessin.icone_objet(_vue, type, Vector2(0, flotte), HAUTEUR_ICONE * pulse, Color.WHITE, teinte)
 
 
 ## Scintillement régulier (repère discret dans le noir) et gerbe d'étincelles au ramassage.

@@ -105,6 +105,7 @@ func _physics_process(_delta: float) -> void:
 				meilleure = d
 				_cachette_proche = cachette
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
+	$HUD.afficher_recharge(_heros.recharge())
 	if _heros_mort or _fini or _cachette_occupee:
 		return
 	# Objets ramassés en marchant dessus

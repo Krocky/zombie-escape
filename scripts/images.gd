@@ -105,6 +105,7 @@ var _v3 = null           # nom -> infos du manifest (null tant qu'il n'est pas l
 var _v3_textures := {}   # nom -> Texture2D
 var _v3_lampes := {}     # nom -> position de la lampe (pixels de l'image)
 var _v3_yeux := {}       # nom -> Rect2 des yeux jaunes (pixels de l'image), vide s'il n'y en a pas
+var _v3_variantes := {}  # "nom|variante" -> Texture2D recolorée (grisée, étiquette teintée)
 
 
 func _manifest_v3() -> Dictionary:
@@ -156,6 +157,39 @@ func v3_pieds(nom: String) -> Vector2:
 	if a.size() < 2:
 		return Vector2(v3_taille(nom).x / 2.0, v3_taille(nom).y)
 	return Vector2(a[0], a[1])
+
+
+## Version grisée d'une image V3 (bouton en attente ou inactif), calculée une seule fois.
+func v3_gris(nom: String) -> Texture2D:
+	return _v3_variante(nom, "gris", func(c: Color) -> Color:
+		var l := c.get_luminance()
+		return Color(l, l, l, c.a))
+
+
+## Image V3 dont les pixels rouges vifs (étiquette de la clef) prennent la teinte de « couleur »,
+## en gardant leurs ombres et reflets. Calculée une seule fois par couleur.
+func v3_teinte(nom: String, couleur: Color) -> Texture2D:
+	return _v3_variante(nom, couleur.to_html(), func(c: Color) -> Color:
+		if c.a < 0.05 or c.s < 0.45 or c.v < 0.25 or (c.h > 0.05 and c.h < 0.95):
+			return c
+		return Color.from_hsv(couleur.h, minf(1.0, c.s * couleur.s / 0.75), minf(1.0, c.v * couleur.v), c.a))
+
+
+func _v3_variante(nom: String, variante: String, recolorer: Callable) -> Texture2D:
+	var cle := nom + "|" + variante
+	if not _v3_variantes.has(cle):
+		var image := v3_texture(nom).get_image()
+		if image == null:
+			_v3_variantes[cle] = v3_texture(nom)
+			return _v3_variantes[cle]
+		if image.is_compressed():
+			image.decompress()
+		image.convert(Image.FORMAT_RGBA8)
+		for y in image.get_height():
+			for x in image.get_width():
+				image.set_pixel(x, y, recolorer.call(image.get_pixel(x, y)))
+		_v3_variantes[cle] = ImageTexture.create_from_image(image)
+	return _v3_variantes[cle]
 
 
 ## Lampe torche : le pixel visible le plus à droite (le plus à gauche si « gauche », poses de dos),

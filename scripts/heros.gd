@@ -105,6 +105,11 @@ func regard() -> Vector2:
 	return _regard
 
 
+## Délai avant le prochain coup, en fraction de Reglages.ATTAQUE_DELAI (0 = prêt à frapper).
+func recharge() -> float:
+	return _recharge_attaque / Reglages.ATTAQUE_DELAI if Reglages.ATTAQUE_DELAI > 0.0 else 0.0
+
+
 ## Appelé par le niveau quand le joystick bouge.
 func definir_direction(direction: Vector2) -> void:
 	_direction = direction

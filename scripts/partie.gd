@@ -16,6 +16,9 @@ const NOMS := {
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
 }
+## Objets à part, hors inventaire de la base, coûts, objectifs et bonus (pas encore placés dans un lieu).
+## La clef ouvrira de futures portes verrouillées ; sa teinte (Palette.CLEF) dira laquelle.
+const NOMS_SPECIAUX := {"clef": "Clef"}
 ## Constructions de la base, dans l'ordre des cartes : nom -> nom affiché (coûts et effets dans Reglages)
 const CONSTRUCTIONS := {
 	"barricade": "Barricade",
@@ -106,7 +109,7 @@ func accord(masculin: String, feminin: String) -> String:
 
 
 func nom(type: String) -> String:
-	return NOMS.get(type, type)
+	return NOMS.get(type, NOMS_SPECIAUX.get(type, type))
 
 
 # --- Lieux ---

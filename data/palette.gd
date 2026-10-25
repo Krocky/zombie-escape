@@ -69,10 +69,14 @@ const UI_BORD := Color("8a93b8")
 const UI_TEXTE := Color("e8e4f0")
 const UI_BOUTON := Color("3c4670")          # bouton sombre (Cacher), comme les boutons V1
 const UI_CADRE := Color(0.1, 0.09, 0.16, 0.85)   # cadres (compteur d'objets)
+const BOUTON_FRAPPER := Color("f5c84a")    # disque du bouton Frapper (icône V3 icon_hit)
+const BOUTON_CACHER := Color("5f5cb8")     # disque du bouton Cacher (icône V3 icon_hide)
 const COEUR := Color("e0566b")
 const COEUR_VIDE := Color("3a2433")        # cœur perdu (sombre)
 const DEGATS := Color(0.85, 0.08, 0.12, 0.75)   # bords rouges quand le héros est touché
 const SORTIE := Color("7ed38f")            # panneau et lumière de la sortie
+## Étiquette de la clef (item_key, rouge dans l'image) : teinte -> couleur, pour de futures portes verrouillées
+const CLEF := {"rouge": Color("fe4240"), "bleue": Color("3f86ff"), "verte": Color("45cf5a")}
 
 # Base (abri en planches et feu de camp)
 const BOIS := Color("6b4e45")              # planches de l'abri
