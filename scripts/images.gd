@@ -158,17 +158,20 @@ func v3_pieds(nom: String) -> Vector2:
 	return Vector2(a[0], a[1])
 
 
-## Lampe torche : le pixel visible le plus à droite, à hauteur de main (entre 35 et 65 % de la hauteur).
-func v3_lampe(nom: String) -> Vector2:
-	if not _v3_lampes.has(nom):
+## Lampe torche : le pixel visible le plus à droite (le plus à gauche si « gauche », poses de dos),
+## à hauteur de main (entre 35 et 65 % de la hauteur).
+func v3_lampe(nom: String, gauche := false) -> Vector2:
+	var cle := nom + (":gauche" if gauche else "")
+	if not _v3_lampes.has(cle):
 		var image := v3_texture(nom).get_image()
 		var t := v3_taille(nom)
-		var lampe := Vector2(t.x, t.y * 0.5)
+		var lampe := Vector2(0.0 if gauche else t.x, t.y * 0.5)
 		if image:
 			if image.is_compressed():
 				image.decompress()
 			var trouve := false
-			for x in range(int(t.x) - 1, -1, -1):
+			var colonnes: Array = range(int(t.x)) if gauche else range(int(t.x) - 1, -1, -1)
+			for x in colonnes:
 				for y in range(int(t.y * 0.35), int(t.y * 0.65)):
 					if image.get_pixel(x, y).a > 0.5:
 						lampe = Vector2(x, y)
@@ -176,8 +179,8 @@ func v3_lampe(nom: String) -> Vector2:
 						break
 				if trouve:
 					break
-		_v3_lampes[nom] = lampe
-	return _v3_lampes[nom]
+		_v3_lampes[cle] = lampe
+	return _v3_lampes[cle]
 
 
 ## Yeux jaunes (zombie) : rectangle des pixels jaunes vifs dans le tiers haut de l'image.
@@ -241,11 +244,18 @@ const REBOND_V3 := 7.0          # hauteur du rebond (pixels à l'écran), sans p
 const INCLINAISON_V3 := 0.07    # inclinaison du rebond (radians, ~4°)
 
 
-## {"nom": pose à dessiner ("" si le personnage n'a pas d'image V3), "decalage": Vector2, "angle": float}
-func v3_animation(perso: String, temps: float, marche: bool, attaque := false, cadence := CADENCE_V3) -> Dictionary:
-	var anim := {"nom": v3_pose(perso, "idle"), "decalage": Vector2.ZERO, "angle": 0.0}
+## « dos » : il regarde vers le haut de l'écran ; poses <perso>_back_* (immobile, walk_a / walk_b) si elles
+## existent toutes, sinon les poses habituelles. Le coup garde la pose de profil.
+## {"nom": pose à dessiner ("" si le personnage n'a pas d'image V3), "decalage": Vector2, "angle": float,
+##  "dos": bool (pose de dos : lampe dans la main gauche de l'image)}
+func v3_animation(perso: String, temps: float, marche: bool, attaque := false, cadence := CADENCE_V3, dos := false) -> Dictionary:
+	var anim := {"nom": v3_pose(perso, "idle"), "decalage": Vector2.ZERO, "angle": 0.0, "dos": false}
 	if attaque and v3_pose(perso, "attack") != "":
 		anim["nom"] = v3_pose(perso, "attack")
+		return anim
+	if dos and v3_pose(perso + "_back", "idle") != "" and v3_marche(perso + "_back").size() == 2:
+		anim["dos"] = true
+		anim["nom"] = v3_marche(perso + "_back")[int(temps * cadence) % 2] if marche else v3_pose(perso + "_back", "idle")
 		return anim
 	if not marche or anim["nom"] == "":
 		return anim

@@ -1,7 +1,7 @@
 extends CharacterBody2D
 ## Le héros : capuche, sac à dos, batte, lampe torche.
 ## Origine = aux pieds (coordonnées monde). Affichage isométrique dans le calque Vue : images V3 du héros
-## choisi (Partie.perso() : immobile, marche, coup de batte ; retournées pour la gauche), sinon sprites V2
+## choisi (Partie.perso() : immobile, marche, coup de batte, de dos vers le haut ; retournées pour la gauche), sinon sprites V2
 ## (4 directions en diagonale, 3 poses de marche), dessin en code si une image manque.
 
 ## La batte frappe : le niveau décide quels zombies sont touchés.
@@ -191,9 +191,9 @@ func _suivre() -> void:
 	var main := Vector2(regard.x * 30.0, -60.0)
 	var anim := _anim_v3()
 	if anim["nom"] != "":
-		# Images V3 : la lampe est le pixel le plus à droite à hauteur de main
+		# Images V3 : la lampe est le pixel le plus à droite à hauteur de main (le plus à gauche de dos)
 		var v3: String = anim["nom"]
-		main = Images.v3_point(v3, Images.v3_lampe(v3), anim["decalage"], ECHELLE, regard.x < 0.0)
+		main = Images.v3_point(v3, Images.v3_lampe(v3, anim["dos"]), anim["decalage"], ECHELLE, regard.x < 0.0)
 	elif Images.existe(nom):
 		# La lampe est le point le plus à droite de l'image (ancre droite)
 		var a := Images.ancres(nom)
@@ -205,9 +205,10 @@ func _suivre() -> void:
 	_vue.queue_redraw()
 
 
-## Pose V3 du héros choisi (nom "" s'il n'a pas d'images V3).
+## Pose V3 du héros choisi (nom "" s'il n'a pas d'images V3) ; de dos s'il regarde vers le haut de l'écran.
 func _anim_v3() -> Dictionary:
-	return Images.v3_animation(_perso, _temps, _temps > 0.0, _pose_attaque > 0.0)
+	var dos := Iso.direction_ecran(_regard).y < -0.1
+	return Images.v3_animation(_perso, _temps, _temps > 0.0, _pose_attaque > 0.0, Images.CADENCE_V3, dos)
 
 
 ## Nom de l'image V2 à afficher selon la direction (face ou dos) et la marche.
