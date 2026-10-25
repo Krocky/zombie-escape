@@ -6,6 +6,9 @@ extends Node2D
 ## SolEffets (ombres, cônes de vue) et Vue (trié en profondeur), voir Iso.
 
 const CASE := 200.0          # une dalle (3 x 3 carreaux) couvre une case du monde
+## Le sol est dessiné en blocs de BLOC x BLOC cases : chaque bloc n'est éclairé que par les
+## lumières qui le touchent, et les blocs hors de l'écran ne sont pas dessinés.
+const BLOC := 2
 
 ## Taille du sol du lieu, dans le monde (multiple de CASE).
 @export var taille := Vector2(2400, 1600)
@@ -146,8 +149,9 @@ func _finir(victoire: bool) -> void:
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 
 
-# Sol tiré une fois : [nom, rectangle à l'écran, retourné] pour les dalles puis les débris
-var _sol := []
+# Sol tiré une fois, par bloc : bloc (Vector2i) -> [[nom, rectangle à l'écran, retourné], ...]
+var _dalles := {}
+var _debris := {}
 
 
 func _tirer_sol() -> void:
@@ -174,12 +178,15 @@ func _tirer_sol() -> void:
 			if not Images.existe(nom):
 				nom = "dalle"
 			var haut := Iso.ecran(Vector2(i, j) * CASE)
+			var bloc := Vector2i(i, j) / BLOC
+			if not _dalles.has(bloc):
+				_dalles[bloc] = []
 			if Images.existe(nom):
 				var r := Images.region(nom)
 				var e := 2.0 * CASE * Iso.K / r.size.x
-				_sol.append([nom, Rect2(haut - Vector2(r.size.x * e / 2.0, 0), r.size * e), rng.randf() < 0.5])
+				_dalles[bloc].append([nom, Rect2(haut - Vector2(r.size.x * e / 2.0, 0), r.size * e), rng.randf() < 0.5])
 			else:
-				_sol.append(["", Rect2(haut, Vector2(CASE, CASE)), false])
+				_dalles[bloc].append(["", Rect2(haut, Vector2(CASE, CASE)), false])
 	# Débris au sol, hors des obstacles et loin des objets et de la sortie
 	var interdits := []
 	for entite in $Monde.get_children():
@@ -200,17 +207,33 @@ func _tirer_sol() -> void:
 		if libre and Images.existe(nom):
 			var r := Images.region(nom)
 			var e := rng.randf_range(0.3, 0.42)
-			_sol.append([nom, Rect2(Iso.ecran(p) - Vector2(r.size.x, r.size.y * 1.6) * e / 2.0, r.size * e), rng.randf() < 0.5])
+			var bloc := Vector2i(p / CASE) / BLOC
+			if not _debris.has(bloc):
+				_debris[bloc] = []
+			_debris[bloc].append([nom, Rect2(Iso.ecran(p) - Vector2(r.size.x, r.size.y * 1.6) * e / 2.0, r.size * e), rng.randf() < 0.5])
 			interdits.append(Rect2(p - Vector2(60, 60), Vector2(120, 120)))
 			places += 1
+	# Blocs de l'arrière vers l'avant (la tranche d'une dalle est cachée par celles de devant),
+	# puis les débris par-dessus toutes les dalles
+	var blocs := _dalles.keys()
+	blocs.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.x + a.y < b.x + b.y)
+	var position_sol := 0
+	for liste in [_dalles, _debris]:
+		for bloc in blocs:
+			if liste.has(bloc):
+				var noeud := Node2D.new()
+				noeud.draw.connect(_dessiner_sol.bind(noeud, liste[bloc]))
+				add_child(noeud)
+				move_child(noeud, position_sol)   # sous tout le reste du niveau
+				position_sol += 1
 
 
-func _draw() -> void:
-	for morceau in _sol:
+func _dessiner_sol(noeud: Node2D, morceaux: Array) -> void:
+	for morceau in morceaux:
 		if morceau[0] != "":
-			Images.dessiner(self, morceau[0], morceau[1], morceau[2])
+			Images.dessiner(noeud, morceau[0], morceau[1], morceau[2])
 		else:
 			# Secours : losange de carrelage
 			var haut: Vector2 = morceau[1].position
 			var c := Iso.coins(Rect2(Iso.monde(haut), Vector2(CASE, CASE)))
-			Dessin.polygone(self, PackedVector2Array([c[3], c[2], c[1], c[0]]), Palette.SOL)
+			Dessin.polygone(noeud, PackedVector2Array([c[3], c[2], c[1], c[0]]), Palette.SOL)
