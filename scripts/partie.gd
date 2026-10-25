@@ -23,7 +23,7 @@ const CONSTRUCTIONS := {
 ## Sans scène, le lieu est affiché « Bientôt » sur la carte.
 const LIEUX := {
 	"supermarche": {"nom": "Supermarché", "du": "du supermarché", "scene": "res://scenes/lieux/supermarche.tscn"},
-	"maison": {"nom": "Maison", "du": "de la maison", "scene": ""},
+	"maison": {"nom": "Maison", "du": "de la maison", "scene": "res://scenes/lieux/maison.tscn"},
 }
 
 ## Lieu choisi sur la carte (clé de LIEUX)

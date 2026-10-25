@@ -1,5 +1,5 @@
 extends SceneTree
-## Lot 2 (c) : la carte. Base -> Partir -> Carte ; la Maison (« Bientôt ») ne réagit pas ; le supermarché
+## Lot 2 (c) : la carte. Base -> Partir -> Carte ; la Maison (disponible depuis l'étape d) ouvre sa fiche ; le supermarché
 ## ouvre sa fiche (2 zombies, 5 objets) ; toucher ailleurs la ferme ; « Y aller » lance le supermarché
 ## (lieu retenu par Partie) ; « Retour » ramène à la base.
 var f := 0
@@ -30,7 +30,7 @@ func _physics_process(_d):
 		_touch(current_scene._place("maison"), true)
 	if f == 46: _touch(Vector2.ZERO, false)
 	if f == 52:
-		print("maison touchee: fiche visible=", current_scene.get_node("Fiche").visible, " (attendu false)")
+		print("maison touchee: fiche visible=", current_scene.get_node("Fiche").visible, " (attendu true, maison disponible)")
 		_touch(current_scene._place("supermarche"), true)
 	if f == 58: _touch(Vector2.ZERO, false)
 	if f == 64:

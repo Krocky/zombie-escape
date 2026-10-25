@@ -1,0 +1,172 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/niveau.tscn" id="1_niveau"]
+[ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
+[ext_resource type="PackedScene" path="res://scenes/zombie.tscn" id="5_zombie"]
+[ext_resource type="PackedScene" path="res://scenes/cachette.tscn" id="6_cachette"]
+[ext_resource type="PackedScene" path="res://scenes/objet.tscn" id="7_objet"]
+[ext_resource type="PackedScene" path="res://scenes/sortie.tscn" id="8_sortie"]
+
+[node name="Maison" instance=ExtResource("1_niveau")]
+taille = Vector2(1600, 1200)
+graine = 11
+nombre_debris = 12
+
+[node name="Heros" parent="Monde" index="0"]
+position = Vector2(1250, 1000)
+
+[node name="MurHaut" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 160)
+taille = Vector2(1600, 80)
+hauteur = 120.0
+style = 0
+fenetres = PackedFloat32Array(-300, 300)
+portes = PackedFloat32Array(-500)
+
+[node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 1200)
+taille = Vector2(1600, 40)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="MurGauche" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(20, 1160)
+taille = Vector2(40, 1000)
+hauteur = 30.0
+style = 0
+
+[node name="MurDroit" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1580, 1160)
+taille = Vector2(40, 1000)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonA" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 380)
+taille = Vector2(30, 220)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonB" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 675)
+taille = Vector2(30, 135)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonC" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 860)
+taille = Vector2(30, 185)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonD" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(800, 1160)
+taille = Vector2(30, 140)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonE" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(170, 675)
+taille = Vector2(260, 30)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonF" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(622.5, 675)
+taille = Vector2(325, 30)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonG" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(957.5, 675)
+taille = Vector2(285, 30)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="CloisonH" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1410, 675)
+taille = Vector2(300, 30)
+hauteur = 30.0
+style = 0
+rebord = true
+
+[node name="Etagere" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(450, 1000)
+taille = Vector2(280, 50)
+hauteur = 80.0
+style = 1
+
+[node name="Caisse1" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1050, 900)
+taille = Vector2(110, 110)
+hauteur = 70.0
+style = 2
+
+[node name="Caisse2" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1450, 1150)
+taille = Vector2(110, 110)
+hauteur = 70.0
+style = 2
+
+[node name="Lit" parent="Monde" instance=ExtResource("6_cachette")]
+position = Vector2(625, 370)
+style = 3
+taille = Vector2(130, 200)
+hauteur = 40.0
+
+[node name="Armoire" parent="Monde" instance=ExtResource("6_cachette")]
+position = Vector2(80, 890)
+style = 2
+taille = Vector2(70, 140)
+hauteur = 130.0
+
+[node name="Baignoire" parent="Monde" instance=ExtResource("6_cachette")]
+position = Vector2(1310, 280)
+style = 4
+taille = Vector2(220, 110)
+hauteur = 45.0
+
+[node name="Sortie" parent="Monde" instance=ExtResource("8_sortie")]
+position = Vector2(300, 165)
+
+[node name="ObjetFiole" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(1480, 560)
+type = "fiole"
+
+[node name="ObjetConserve" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(1480, 760)
+type = "conserve"
+
+[node name="ObjetEau" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(300, 500)
+type = "eau"
+
+[node name="ObjetBandage" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(950, 300)
+type = "bandage"
+
+[node name="ObjetPiles" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(200, 1100)
+type = "piles"
+
+[node name="ZombieLent1" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(300, 800)
+patrouille = Vector2(350, 0)
+
+[node name="ZombieLent2" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(950, 450)
+patrouille = Vector2(500, 0)
+
+[node name="ZombieRapide" parent="Monde" instance=ExtResource("5_zombie")]
+position = Vector2(450, 280)
+type = 1
+patrouille = Vector2(0, 300)
