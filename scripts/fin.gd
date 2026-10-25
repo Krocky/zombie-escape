@@ -87,7 +87,7 @@ func _liste(types: Array) -> String:
 ## Geste « retour » d'Android : comme le bouton « Retour à la base ».
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		_retour_base()
+		_retour_base.call_deferred()   # pas pendant la diffusion de la notification
 
 
 func _retour_base() -> void:

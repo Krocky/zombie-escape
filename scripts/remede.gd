@@ -22,7 +22,7 @@ func _ready() -> void:
 ## Geste « retour » d'Android : comme « Continuer » (vers la base).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		_continuer()
+		_continuer.call_deferred()   # pas pendant la diffusion de la notification
 
 
 func _continuer() -> void:

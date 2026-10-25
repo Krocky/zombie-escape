@@ -69,7 +69,7 @@ func _input(event: InputEvent) -> void:
 ## Geste « retour » d'Android : écran précédent sans changer de héros (la base, ou le titre avant la première partie).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		get_tree().change_scene_to_file("res://scenes/base.tscn" if _depuis_base else "res://scenes/titre.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://scenes/base.tscn" if _depuis_base else "res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
 
 
 func _valider() -> void:

@@ -123,7 +123,7 @@ func _y_aller() -> void:
 ## Geste « retour » d'Android : écran précédent (la base), comme « Retour ».
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		_retour()
+		_retour.call_deferred()   # pas pendant la diffusion de la notification
 
 
 func _retour() -> void:

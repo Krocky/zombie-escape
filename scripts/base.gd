@@ -209,7 +209,7 @@ func _titre() -> String:
 ## Geste « retour » d'Android : écran précédent (le titre).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		get_tree().change_scene_to_file("res://scenes/titre.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
 
 
 func _changer_heros() -> void:
