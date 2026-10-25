@@ -24,7 +24,7 @@ static func dessiner(ci: CanvasItem, taille: Vector2, temps: float, scene := Sce
 		# La lampe est tombée par terre : son faisceau rase le sol
 		_faisceau(ci, pieds + Vector2(70, -12) * e, Vector2.from_angle(0.04), taille.x * 0.45, e)
 	else:
-		_faisceau(ci, pieds + Vector2(46, -66) * e, Vector2.from_angle(-0.12 + 0.1 * sin(temps * 0.8)), taille.x * 0.55, e)
+		_faisceau(ci, _lampe(pieds, e), Vector2.from_angle(-0.12 + 0.1 * sin(temps * 0.8)), taille.x * 0.55, e)
 	if scene != Scene.VICTOIRE:
 		_zombie(ci, "gros_face_2", autres[0] * taille, e * 0.95, temps)
 		_zombie(ci, "maigre_profil_2", autres[1] * taille, e * 0.95, temps + 1.7)
@@ -52,6 +52,14 @@ static func _sol(ci: CanvasItem, taille: Vector2, horizon: float, e: float) -> v
 			var haut := Vector2(i * largeur + decalage, y)
 			Images.dessiner(ci, "dalle", Rect2(haut - Vector2(largeur / 2.0, 0), r.size * k), false,
 				Color(clarte, clarte * 1.02, clarte * 1.3))
+
+
+## Position de la lampe dans la main du héros debout : ancre la plus à droite de l'image (comme dans le jeu).
+static func _lampe(pieds: Vector2, e: float) -> Vector2:
+	if not Images.existe("profil_1"):
+		return pieds + Vector2(80, -120) * e
+	var a := Images.ancres("profil_1")
+	return pieds + (a[2] - a[3]) * e * 0.9
 
 
 ## Cône de lumière jaune qui part de la lampe, en dégradé.

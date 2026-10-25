@@ -81,3 +81,4 @@ const ZOMBIE_DELAI_CRI := 6.0             # secondes minimum entre deux cris du 
 
 # --- Sons ---
 const SONS_VOLUME := -6.0                 # volume en décibels : -6 = moins fort, +6 = plus fort
+const MUSIQUE_VOLUME := -14.0             # volume de la musique de fond (plus bas que les bruitages)

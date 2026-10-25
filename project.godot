@@ -16,6 +16,7 @@ Images="*res://scripts/images.gd"
 Iso="*res://scripts/iso.gd"
 Ecran="*res://scripts/ecran.gd"
 Partie="*res://scripts/partie.gd"
+Musique="*res://scripts/musique.gd"
 
 [display]
 

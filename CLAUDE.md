@@ -20,7 +20,7 @@ Uniquement l'EXPLORATION d'un supermarché abandonné, jouable du début à la f
 - 2 zombies : lent+résistant, rapide+fragile. Patrouille, détection vue (cône) + bruit, poursuite, abandon. Héros plus rapide qu'eux.
 - PV du héros, dégâts au contact. Mort => "Retour à la base", perte aléatoire de la moitié des objets. Pas de base : on affiche l'inventaire.
 - Ambiance : CanvasModulate sombre, PointLight2D lampe torche, léger brouillard.
-- Pas d'assets externes, pas de son. EXCEPTION décidée par le père avant l'étape f : 5 sons MP3 fournis par lui (`sons/`).
+- Pas d'assets externes, pas de son. EXCEPTION décidée par le père avant l'étape f : 5 sons MP3 fournis par lui (`sons/`), puis une musique de fond (`sons/musique.mp3`).
 
 Étapes : (a) projet + héros au joystick + build, (b) zombie qui poursuit, (c) attaque et PV,
 (d) cachettes et détection, (e) objets, sortie, écrans, (f) ambiance lumineuse.
@@ -116,6 +116,8 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 - Écran de fin : il garde son résumé et l'inventaire de la base ; seul le bouton change (« Retour à la base », sans icône, 480x110).
 - Écrans titre/fin/base : `BoutonTactile` en forme de pilule (si la taille n'est pas carrée). Fond illustré commun `DecorEcran` (classe utilitaire) : dalles, héros et faisceau, zombies aux yeux qui brillent, porte verte (victoire), héros couché (défaite) ; personnages sur les côtés en paysage, en bas en portrait.
 - Sons (fournis par le père, rangés dans `sons/` car `docs/` est ignoré par Godot) : cri `zombie_gros` / `zombie_maigre` quand un zombie voit le héros (passage en POURSUITE, au plus un cri toutes les `ZOMBIE_DELAI_CRI` s) ; `taper1..3` au hasard quand la batte touche un zombie. Sons spatialisés (AudioStreamPlayer2D) ; écouteur = `AudioListener2D` sur le héros, dans le monde (la caméra est à l'écran). Volume global : `Reglages.SONS_VOLUME`.
+- Musique de fond (demande du père) : « Zombie Escape Groove » (Suno), fichier renommé `sons/musique.mp3` (sans espaces), jouée en boucle par l'autoload `Musique` (`scripts/musique.gd`, un `AudioStreamPlayer` non spatialisé) sur tous les écrans, sans coupure entre les scènes ; boucle activée dans le `.import` et dans le code. Volume : `Reglages.MUSIQUE_VOLUME` (-14 dB, sous les bruitages).
+- Écrans titre / victoire : le faisceau part de la lampe du héros (ancre la plus à droite de `profil_1`, comme dans le jeu), plus d'un point fixe près de la taille. À la défaite, la lampe reste tombée au sol.
 - Zombie battu : drapeau `_battu` définitif (il ne bouge plus jamais), invisible jusqu'à la fin du son de coup, puis enlevé. (Bug corrigé : sans ce drapeau, il « renaissait » pendant le son.)
 - Nuit : `CanvasModulate` (`Palette.NUIT` x `Reglages.NUIT_CLARTE`) dans le niveau, très sombre (demande d'Eliott : on ne voit les zombies au loin que dans le faisceau) ; le HUD (CanvasLayer 10) n'est pas assombri.
 - Sortie : petite lumière verte pour la retrouver dans le noir. Les objets n'ont pas de lumière (à trouver à la lampe).
