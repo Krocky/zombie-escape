@@ -1,7 +1,7 @@
 extends SceneTree
 var niveau; var f := 0; var z; var h; var d0
 func _initialize():
-	niveau = load("res://scenes/niveau.tscn").instantiate()
+	niveau = load("res://scenes/lieux/supermarche.tscn").instantiate()
 	root.add_child(niveau)
 func _physics_process(_d):
 	f += 1

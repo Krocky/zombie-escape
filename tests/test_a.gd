@@ -6,7 +6,7 @@ var depart_arret
 var f := 0
 
 func _initialize():
-	niveau = load("res://scenes/niveau.tscn").instantiate()
+	niveau = load("res://scenes/lieux/supermarche.tscn").instantiate()
 	root.add_child(niveau)
 
 func _touch(idx, pos, pressed):

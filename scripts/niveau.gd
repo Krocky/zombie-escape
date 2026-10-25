@@ -1,12 +1,17 @@
 extends Node2D
-## Le niveau : le supermarché abandonné. Relie le HUD au héros et dessine le sol.
+## Logique commune à tous les lieux : relie le HUD au héros, gère cachettes, objets, sortie et fin,
+## et dessine le sol. Le contenu d'un lieu (murs, cachettes, objets, zombies, `Sortie`, départ du héros)
+## est dans sa scène (`scenes/lieux/`), qui hérite de `niveau.tscn` et règle taille, graine et débris.
 ## Monde (physique, IA) en coordonnées monde, caché ; l'affichage isométrique est dans les calques
 ## SolEffets (ombres, cônes de vue) et Vue (trié en profondeur), voir Iso.
 
-const TAILLE := Vector2(2400, 1600)
 const CASE := 200.0          # une dalle (3 x 3 carreaux) couvre une case du monde
-const GRAINE := 7            # sol et débris : toujours le même tirage pour ce niveau
-const NOMBRE_DEBRIS := 26
+
+## Taille du sol du lieu, dans le monde (multiple de CASE).
+@export var taille := Vector2(2400, 1600)
+## Sol et débris : toujours le même tirage pour un lieu.
+@export var graine := 7
+@export var nombre_debris := 26
 ## Dalles : nom et poids du tirage (la dalle propre est la plus fréquente).
 const DALLES := {"dalle": 16, "dalle_fissuree": 2, "dalle_tache": 2, "dalle_flaque": 1, "dalle_gravats": 1, "dalle_papiers": 1}
 const DEBRIS := ["debris_papiers", "debris_bout", "debris_planche", "debris_planches", "debris_carton"]
@@ -20,6 +25,14 @@ var _cachette_proche: Node2D = null
 var _cachette_occupee: Node2D = null
 
 @onready var _heros := $Monde/Heros
+
+
+## Avant le _ready des brouillards : ils couvrent tout le sol projeté.
+func _enter_tree() -> void:
+	var gauche := Iso.ecran(Vector2(0, taille.y)).x
+	for brume in [$BrumeSol, $Brouillard]:
+		brume.position = Vector2(gauche, 0)
+		brume.taille = Vector2(Iso.ecran(Vector2(taille.x, 0)).x - gauche, floorf(Iso.ecran(taille).y))
 
 
 func _ready() -> void:
@@ -42,9 +55,9 @@ func _ready() -> void:
 	_heros.bruit.connect(_sur_bruit)
 	$HUD.cacher.connect(_sur_cacher)
 	# Limites de la caméra : le sol projeté, plus la hauteur des murs du fond
-	var gauche := Iso.ecran(Vector2(0, TAILLE.y)).x
-	var droite := Iso.ecran(Vector2(TAILLE.x, 0)).x
-	var bas := Iso.ecran(TAILLE).y
+	var gauche := Iso.ecran(Vector2(0, taille.y)).x
+	var droite := Iso.ecran(Vector2(taille.x, 0)).x
+	var bas := Iso.ecran(taille).y
 	_heros.regler_limites_camera(Rect2(gauche - 40, -330, droite - gauche + 80, bas + 400))
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.touche_heros.connect(_heros.recevoir_degats)
@@ -132,12 +145,12 @@ var _sol := []
 
 func _tirer_sol() -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = GRAINE
+	rng.seed = graine
 	var total := 0
 	for nom in DALLES:
 		total += DALLES[nom]
-	var colonnes := int(TAILLE.x / CASE)
-	var lignes := int(TAILLE.y / CASE)
+	var colonnes := int(taille.x / CASE)
+	var lignes := int(taille.y / CASE)
 	# De l'arrière vers l'avant : la tranche de chaque dalle est cachée par la suivante
 	for somme in colonnes + lignes - 1:
 		for i in colonnes:
@@ -168,10 +181,10 @@ func _tirer_sol() -> void:
 		elif entite is Node2D and not entite is CharacterBody2D:
 			interdits.append(Rect2(entite.position - Vector2(70, 70), Vector2(140, 140)))
 	var places := 0
-	for essai in NOMBRE_DEBRIS * 10:
-		if places >= NOMBRE_DEBRIS:
+	for essai in nombre_debris * 10:
+		if places >= nombre_debris:
 			break
-		var p := Vector2(rng.randf_range(120, TAILLE.x - 80), rng.randf_range(240, TAILLE.y - 60))
+		var p := Vector2(rng.randf_range(120, taille.x - 80), rng.randf_range(240, taille.y - 60))
 		var libre := true
 		for r in interdits:
 			if r.has_point(p):

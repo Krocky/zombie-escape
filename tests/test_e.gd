@@ -9,6 +9,14 @@ func _touch(pos, pressed):
 	Input.parse_input_event(e)
 func _snap(n): root.get_texture().get_image().save_png(OS.get_environment("CAPTURES") + "/capture_e_%s.png" % n)
 func _centre(n): return n.get_global_rect().get_center()
+## Carte : toucher le supermarché puis « Y aller » (g = pas depuis l'arrivée sur la carte)
+func _carte(g):
+	if g == 0:
+		print("scene: ", current_scene.name)
+		_touch(current_scene._place("supermarche"), true)
+	if g == 6: _touch(Vector2.ZERO, false)
+	if g == 12: _touch(_centre(current_scene.get_node("Fiche/YAller")), true)
+	if g == 18: _touch(Vector2.ZERO, false)
 func _physics_process(_d):
 	f += 1
 	if f == 20:
@@ -19,34 +27,36 @@ func _physics_process(_d):
 		print("scene: ", current_scene.name)
 		_touch(_centre(current_scene.get_node("Partir")), true)
 	if f == 40: _touch(Vector2.ZERO, false)
-	if f == 50:
+	if f >= 50 and f < 70: _carte(f - 50)
+	if f == 80:
 		print("scene: ", current_scene.name)
 		var h = current_scene.get_node("Monde/Heros")
 		for z in get_nodes_in_group("zombies"): z.position = Vector2(2300, 1550); z._depart = z.position; z.patrouille = Vector2.ZERO
 		h.position = current_scene.get_node("Monde/ObjetFiole").position
-	if f == 55: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
-	if f == 60: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetPiles").position
-	if f == 62: _snap("hud"); print("hud: ", current_scene.get_node("HUD/CompteurObjets").text)
-	if f == 65: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
-	if f == 120:
+	if f == 85: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
+	if f == 90: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetPiles").position
+	if f == 92: _snap("hud"); print("hud: ", current_scene.get_node("HUD/CompteurObjets").text)
+	if f == 95: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
+	if f == 150:
 		print("scene: ", current_scene.name, " resultat: ", root.get_node("Partie").resultat)
 		_snap("victoire")
 		_touch(_centre(current_scene.get_node("Centre/Colonne/RetourBase")), true)
-	if f == 128: _touch(Vector2.ZERO, false)
-	if f == 132:
+	if f == 158: _touch(Vector2.ZERO, false)
+	if f == 162:
 		print("scene: ", current_scene.name)
 		_touch(_centre(current_scene.get_node("Partir")), true)
-	if f == 138: _touch(Vector2.ZERO, false)
-	if f == 140:
+	if f == 168: _touch(Vector2.ZERO, false)
+	if f >= 180 and f < 200: _carte(f - 180)
+	if f == 210:
 		print("scene: ", current_scene.name)
 		var h = current_scene.get_node("Monde/Heros")
 		h.position = current_scene.get_node("Monde/ObjetBandage").position
-	if f == 145: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetConserve").position
-	if f == 147: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
-	if f == 150:
+	if f == 215: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetConserve").position
+	if f == 217: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/ObjetEau").position
+	if f == 220:
 		var h = current_scene.get_node("Monde/Heros")
 		h._pv = 1; h.recevoir_degats(1, h.position + Vector2(10, 0))
-	if f == 300:
+	if f == 370:
 		print("scene: ", current_scene.name, " resultat: ", root.get_node("Partie").resultat)
 		print("sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
 		_snap("defaite")

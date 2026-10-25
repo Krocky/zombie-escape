@@ -1,0 +1,62 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/carte.gd" id="1_carte"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+
+[node name="Carte" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_carte")
+
+[node name="Titre" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 110.0
+grow_horizontal = 2
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 64
+text = "La carte"
+horizontal_alignment = 1
+
+[node name="Fiche" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_right = 456.0
+offset_bottom = 440.0
+mouse_filter = 2
+
+[node name="YAller" parent="Fiche" instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(240, 100)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -264.0
+offset_top = -122.0
+offset_right = -24.0
+offset_bottom = -22.0
+grow_horizontal = 0
+grow_vertical = 0
+texte = "Y aller"
+
+[node name="Retour" parent="." instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(260, 110)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -134.0
+offset_right = 284.0
+offset_bottom = -24.0
+grow_vertical = 0
+texte = "Retour"

@@ -25,6 +25,12 @@ func _etat():
 		t.append("%s: '%s' actif=%s" % [c.construction, b.texte, b.actif])
 	return ", ".join(t)
 func _appuyer(nom): _touch(_carte(nom).get_node("Bouton").get_global_rect().get_center(), true)
+## Carte : toucher le supermarché puis « Y aller » (g = pas depuis l'arrivée sur la carte)
+func _vers_supermarche(g):
+	if g == 0: _touch(current_scene._place("supermarche"), true)
+	if g == 6: _touch(Vector2.ZERO, false)
+	if g == 12: _touch(current_scene.get_node("Fiche/YAller").get_global_rect().get_center(), true)
+	if g == 18: _touch(Vector2.ZERO, false)
 func _physics_process(_d):
 	f += 1
 	if f == 20:
@@ -52,8 +58,9 @@ func _physics_process(_d):
 		print("sauvegarde relue: constructions ", partie.constructions, " inventaire ", partie.inventaire)
 		_touch(current_scene.get_node("Partir").get_global_rect().get_center(), true)
 	if f == 68: _touch(Vector2.ZERO, false)
-	if f == 80:
-		print("scene: ", current_scene.name, " (attendu Niveau)")
+	if f >= 74 and f < 94: _vers_supermarche(f - 74)
+	if f == 104:
+		print("scene: ", current_scene.name, " (attendu Supermarche)")
 		var h = current_scene.get_node("Monde/Heros")
 		print("coeurs: ", h._pv, "/", h._pv_max, " (attendu ", Reglages.HEROS_PV + Reglages.BARRICADE_COEURS, ")")
 		print("lampe: portee ", partie.portee_lampe(), " (attendu ", Reglages.LAMPE_PORTEE, " sans lampe renforcee)")
@@ -62,20 +69,20 @@ func _physics_process(_d):
 		zombie.position = h.position + h._regard * 50.0; zombie._depart = zombie.position
 		pv_zombie = zombie._pv
 		h.attaquer()
-	if f == 84:
+	if f == 108:
 		print("coup de batte: zombie ", pv_zombie, " -> ", zombie._pv, " PV (attendu -", Reglages.ATTAQUE_DEGATS + Reglages.ATELIER_DEGATS, ")")
 		_snap("niveau")
 		partie.constructions.append("lampe")
 		print("portee avec lampe renforcee: ", partie.portee_lampe(), " (attendu ", Reglages.LAMPE_PORTEE * (1 + Reglages.LAMPE_RENFORCEE_PORTEE / 100.0), ")")
-		change_scene_to_file("res://scenes/niveau.tscn")
-	if f == 100:
+		change_scene_to_file("res://scenes/lieux/supermarche.tscn")
+	if f == 124:
 		var h = current_scene.get_node("Monde/Heros")
 		var lampe = null
 		for n in h._vue.get_children(): if n.name == "Lampe": lampe = n
 		print("faisceau: texture_scale ", lampe.texture_scale, " (attendu ", partie.portee_lampe() * root.get_node("Iso").K / 256.0, ")")
 		_snap("niveau_lampe")
 		change_scene_to_file("res://scenes/base.tscn")
-	if f == 115:
+	if f == 139:
 		print("base, 3 constructions: ", _etat())
 		_snap("base_complete")
 		# Ne pas laisser de constructions aux autres tests

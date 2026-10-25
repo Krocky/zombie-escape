@@ -1,5 +1,6 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
+## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
 ## Sauvegarde version 2 : {"version": 2, "inventaire": {type: nombre}, "constructions": [nom, ...]}.
 ## Une sauvegarde version 1 (sans constructions) est reprise telle quelle, puis réécrite en version 2.
 
@@ -18,7 +19,15 @@ const CONSTRUCTIONS := {
 	"atelier": "Atelier",
 	"lampe": "Lampe renforcée",
 }
+## Lieux de la carte, dans l'ordre : id -> nom, « sortir de... » (écran de fin), scène.
+## Sans scène, le lieu est affiché « Bientôt » sur la carte.
+const LIEUX := {
+	"supermarche": {"nom": "Supermarché", "du": "du supermarché", "scene": "res://scenes/lieux/supermarche.tscn"},
+	"maison": {"nom": "Maison", "du": "de la maison", "scene": ""},
+}
 
+## Lieu choisi sur la carte (clé de LIEUX)
+var lieu := "supermarche"
 ## Objets rangés à la base, cumulés sur toutes les parties : { type: nombre }
 var inventaire := {}
 ## Constructions faites à la base (noms, voir CONSTRUCTIONS)
@@ -47,6 +56,50 @@ func terminer(victoire: bool, ramasses: Array) -> void:
 
 func nom(type: String) -> String:
 	return NOMS.get(type, type)
+
+
+# --- Lieux ---
+
+var _infos_lieux := {}
+
+
+func lieu_disponible(id: String) -> bool:
+	return LIEUX.has(id) and LIEUX[id]["scene"] != ""
+
+
+func choisir_lieu(id: String) -> void:
+	lieu = id
+
+
+func scene_lieu() -> String:
+	return LIEUX[lieu]["scene"]
+
+
+## Ce qu'on trouve dans un lieu, lu dans sa scène sans l'instancier (les entités créent leurs nœuds
+## d'affichage dès leur création) : {"zombies": [type, ...], "objets": [type, ...]}.
+func infos_lieu(id: String) -> Dictionary:
+	if not _infos_lieux.has(id):
+		var infos := {"zombies": [], "objets": []}
+		if lieu_disponible(id):
+			var etat: SceneState = load(LIEUX[id]["scene"]).get_state()
+			for i in etat.get_node_count():
+				var modele := etat.get_node_instance(i)
+				if modele == null:
+					continue
+				if modele.resource_path == "res://scenes/zombie.tscn":
+					infos["zombies"].append(_propriete(etat, i, "type", 0))
+				elif modele.resource_path == "res://scenes/objet.tscn":
+					infos["objets"].append(_propriete(etat, i, "type", "conserve"))
+		_infos_lieux[id] = infos
+	return _infos_lieux[id]
+
+
+## Valeur d'une propriété réglée dans la scène, sinon la valeur par défaut.
+func _propriete(etat: SceneState, noeud: int, nom_propriete: String, defaut: Variant) -> Variant:
+	for k in etat.get_node_property_count(noeud):
+		if etat.get_node_property_name(noeud, k) == nom_propriete:
+			return etat.get_node_property_value(noeud, k)
+	return defaut
 
 
 # --- Constructions ---

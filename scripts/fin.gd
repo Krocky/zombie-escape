@@ -19,7 +19,7 @@ func _ready() -> void:
 
 	var lignes := []
 	if resultat["victoire"]:
-		lignes.append("Tu es sorti du supermarché !")
+		lignes.append("Tu es sorti %s !" % Partie.LIEUX[Partie.lieu]["du"])
 	else:
 		lignes.append("Tu as été rattrapé... tes amis t'ont ramené à la base.")
 	lignes.append("Objets rapportés : " + _liste(resultat["rapportes"]))

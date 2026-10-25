@@ -63,7 +63,7 @@ func _construire(construction: String) -> void:
 
 
 func _partir() -> void:
-	get_tree().change_scene_to_file("res://scenes/niveau.tscn")
+	get_tree().change_scene_to_file("res://scenes/carte.tscn")
 
 
 func _process(delta: float) -> void:

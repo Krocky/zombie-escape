@@ -1,7 +1,7 @@
 extends SceneTree
 var niveau; var f := 0; var h; var zr; var zl; var pvs := []
 func _initialize():
-	niveau = load("res://scenes/niveau.tscn").instantiate()
+	niveau = load("res://scenes/lieux/supermarche.tscn").instantiate()
 	root.add_child(niveau)
 	current_scene = niveau
 func _touch(idx, pos, pressed):

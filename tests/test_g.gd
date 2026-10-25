@@ -2,7 +2,7 @@ extends SceneTree
 ## Régression : un zombie battu ne doit jamais revivre, même si son son de coup joue encore.
 var niveau; var f := 0; var h; var zr; var p0
 func _initialize():
-	niveau = load("res://scenes/niveau.tscn").instantiate()
+	niveau = load("res://scenes/lieux/supermarche.tscn").instantiate()
 	root.add_child(niveau); current_scene = niveau
 func _physics_process(_d):
 	f += 1
