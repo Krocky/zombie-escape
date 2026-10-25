@@ -34,7 +34,7 @@ func _vers_supermarche(g):
 	if g == 18: _touch(Vector2.ZERO, false)
 func _physics_process(_d):
 	f += 1
-	if f in [8, 28, 42]: current_scene.ouvrir_tiroir(true)
+	if f in [12, 28, 42] and current_scene.has_method("ouvrir_tiroir"): current_scene.ouvrir_tiroir(true)
 	if f == 20:
 		print("avant: ", _etat(), " (attendu les 3 actifs)")
 		var ecran = current_scene.get_viewport_rect()
