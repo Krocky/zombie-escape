@@ -50,10 +50,10 @@ func _physics_process(_d):
 		_heros().position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
 	if f == 170:
 		var r = partie.resultat
-		print("scene: ", current_scene.name, " titre: '", current_scene.get_node("Centre/Colonne/Titre").text, "' (attendu Mission reussie !)")
+		print("scene: ", current_scene.name, " titre: '", current_scene.get_node("Titre").text, "' (attendu Mission reussie !)")
 		print("mission: ", r["mission"], " bonus: ", r["bonus"], " fioles versees: ", r["fioles"], " jauge: ", partie.remede, " inventaire: ", partie.inventaire)
-		print("resume: ", current_scene.get_node("Centre/Colonne/Resume").text.replace("\n", " | "))
-		var b = current_scene.get_node("Centre/Colonne/RetourBase")
+		print("resume: ", current_scene.get_node("Resume").text.replace("\n", " | "))
+		var b = current_scene.get_node("RetourBase")
 		print("bouton dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 		_snap("fin_mission")
 		_touch(_centre(b), true)
@@ -74,8 +74,8 @@ func _physics_process(_d):
 		_heros().position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
 	if f == 270:
 		var r = partie.resultat
-		print("1 bandage: titre '", current_scene.get_node("Centre/Colonne/Titre").text, "' mission: ", r["mission"], " bonus: ", r["bonus"], " (attendu Victoire !, false, [])")
-		print("resume: ", current_scene.get_node("Centre/Colonne/Resume").text.replace("\n", " | "))
+		print("1 bandage: titre '", current_scene.get_node("Titre").text, "' mission: ", r["mission"], " bonus: ", r["bonus"], " (attendu Victoire !, false, [])")
+		print("resume: ", current_scene.get_node("Resume").text.replace("\n", " | "))
 		_snap("fin_sans_objectif")
 		change_scene_to_file(partie.scene_lieu())
 	if f == 290:
@@ -85,7 +85,7 @@ func _physics_process(_d):
 	if f == 298: _heros().position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
 	if f == 350:
 		var r = partie.resultat
-		print("2 bandages: titre '", current_scene.get_node("Centre/Colonne/Titre").text, "' mission: ", r["mission"], " bonus: ", r["bonus"])
+		print("2 bandages: titre '", current_scene.get_node("Titre").text, "' mission: ", r["mission"], " bonus: ", r["bonus"])
 		# Défaite avec l'objectif : pas de mission
 		partie.terminer(false, ["bandage", "bandage"])
 		print("defaite avec 2 bandages: mission ", partie.resultat["mission"], " (attendu false)")
@@ -96,9 +96,9 @@ func _physics_process(_d):
 		print("3e fiole: jauge ", partie.remede, " inventaire fiole ", partie.inventaire.get("fiole", 0), " (attendu 3, 0)")
 		change_scene_to_file("res://scenes/fin.tscn")
 	if f == 370:
-		print("resume: ", current_scene.get_node("Centre/Colonne/Resume").text.replace("\n", " | "))
+		print("resume: ", current_scene.get_node("Resume").text.replace("\n", " | "))
 		_snap("fin_3e_fiole")
-		_touch(_centre(current_scene.get_node("Centre/Colonne/RetourBase")), true)
+		_touch(_centre(current_scene.get_node("RetourBase")), true)
 	if f == 376: _touch(Vector2.ZERO, false)
 	if f == 390:
 		print("scene: ", current_scene.name, " (attendu Remede) sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))

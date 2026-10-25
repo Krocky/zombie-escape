@@ -162,7 +162,7 @@ func _physics_process(_d):
 				partie.resultat = {"victoire": true, "rapportes": ["eau"], "perdus": [], "mission": false, "bonus": [], "fioles": 0}
 				change_scene_to_file("res://scenes/fin.tscn")
 			if g == 40:
-				print("fin: '", current_scene.get_node("Centre/Colonne/Resume").text.split("\n")[0], "'")
+				print("fin: '", current_scene.get_node("Resume").text.split("\n")[0], "'")
 				_snap("victoire")
 				DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
 				partie.skin = ""; partie.prenom = ""

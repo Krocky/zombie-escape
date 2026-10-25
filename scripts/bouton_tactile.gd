@@ -37,6 +37,7 @@ const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette h
 const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide"}
 const TAILLE_IMAGE := 0.7
 const DUREE_REBOND := 0.35
+const ECART_ICONE := 18.0   # bouton en pilule : entre l'icône et le texte
 ## Un bouton inactif est grisé et ne réagit pas.
 @export var actif := true:
 	set(valeur):
@@ -131,8 +132,12 @@ func _draw() -> void:
 		draw_rect(reflet, fond.lightened(0.45) * Color(1, 1, 1, 0.5))
 		var milieu := Vector2(size.x / 2.0, enfonce + (size.y - PROFONDEUR) / 2.0)
 		if icone != "":
-			_icone(milieu + Vector2(-size.x * 0.28, 0), 24.0, couleur_texte)
-			_texte(milieu + Vector2(size.x * 0.06, taille_texte * 0.35), taille_texte, couleur_texte)
+			# Icône puis texte, centrés ensemble, séparés de ECART_ICONE
+			var r_icone := 24.0
+			var largeur := ThemeDB.fallback_font.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_texte).x
+			var gauche := -(2.0 * r_icone + ECART_ICONE + largeur) / 2.0
+			_icone(milieu + Vector2(gauche + r_icone, 0), r_icone, couleur_texte)
+			_texte(milieu + Vector2(gauche + 2.0 * r_icone + ECART_ICONE + largeur / 2.0, taille_texte * 0.35), taille_texte, couleur_texte)
 		else:
 			_texte(milieu + Vector2(0, taille_texte * 0.35), taille_texte, couleur_texte)
 

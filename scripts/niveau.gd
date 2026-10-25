@@ -195,7 +195,7 @@ func _finir(victoire: bool) -> void:
 		return
 	_fini = true
 	_heros.definir_direction(Vector2.ZERO)
-	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit())
+	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact())
 	await get_tree().create_timer(2.0 if not victoire else 0.5).timeout
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 

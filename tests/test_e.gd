@@ -41,7 +41,7 @@ func _physics_process(_d):
 	if f == 150:
 		print("scene: ", current_scene.name, " resultat: ", root.get_node("Partie").resultat)
 		_snap("victoire")
-		_touch(_centre(current_scene.get_node("Centre/Colonne/RetourBase")), true)
+		_touch(_centre(current_scene.get_node("RetourBase")), true)
 	if f == 158: _touch(Vector2.ZERO, false)
 	if f == 162:
 		print("scene: ", current_scene.name)

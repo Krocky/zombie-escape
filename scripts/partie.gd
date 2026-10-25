@@ -35,6 +35,7 @@ const PRENOM_MAX := 12
 const LIEUX := {
 	"supermarche": {"nom": "Supermarché", "du": "du supermarché", "scene": "res://scenes/lieux/supermarche.tscn"},
 	"maison": {"nom": "Maison", "du": "de la maison", "scene": "res://scenes/lieux/maison.tscn"},
+	"pharmacie": {"nom": "Pharmacie", "du": "de la pharmacie", "scene": ""},
 }
 
 ## Lieu choisi sur la carte (clé de LIEUX)
@@ -57,8 +58,10 @@ var lieux_sauves := []
 ## Bâtiments de la base déjà apparus (ids de Base : "abri_1", "feu", "tente_1"...), pour ne montrer leur chute qu'une fois
 var batiments_vus := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
-## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool)
-var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false}
+## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
+## intact (aucun cœur perdu, bool)
+var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
+	"intact": false}
 
 
 func _ready() -> void:
@@ -66,8 +69,8 @@ func _ready() -> void:
 
 
 ## Appelé par le niveau à la fin. En cas de défaite, on perd la moitié des objets (au hasard, arrondi en dessous).
-## rescape : le rescapé du lieu suivait le héros à la sortie.
-func terminer(victoire: bool, ramasses: Array, rescape := false) -> void:
+## rescape : le rescapé du lieu suivait le héros à la sortie ; intact : le héros n'a perdu aucun cœur.
+func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false) -> void:
 	var rapportes := ramasses.duplicate()
 	var perdus := []
 	if not victoire:
@@ -89,8 +92,15 @@ func terminer(victoire: bool, ramasses: Array, rescape := false) -> void:
 		rescapes += 1
 		lieux_sauves.append(lieu)
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
-		"fioles": _remplir_remede(), "rescape": sauve}
+		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact}
 	sauvegarder()
+
+
+## Étoiles de l'écran de victoire (0 à 3) : 1 pour être sorti, +1 objectif rempli, +1 rescapé sauvé ou aucun cœur perdu.
+func etoiles() -> int:
+	if not resultat["victoire"]:
+		return 0
+	return 1 + int(resultat["mission"]) + int(resultat.get("rescape", false) or resultat.get("intact", false))
 
 
 # --- Héros choisi ---

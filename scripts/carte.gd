@@ -1,24 +1,37 @@
 extends Control
-## Écran Carte : plan de la ville la nuit, vu du dessus, avec la base et les lieux (Partie.LIEUX).
+## Écran Carte : plan de la ville la nuit (image V3 bg_map, défilable au doigt quand elle dépasse l'écran),
+## avec la base et les lieux (Partie.LIEUX) en vignettes V3 (map_*), reliés à la base par des pointillés animés.
 ## Toucher un lieu disponible ouvre sa fiche (nom, objectif, danger = zombies, rescapé, objets à trouver, « Y aller ») ;
-## un lieu sans scène est grisé, marqué « Bientôt » et ne réagit pas. « Retour » ramène à la base.
-## Tout est dessiné en code (pâtés de maisons tirés avec une graine fixe).
+## un lieu sans scène est grisé, marqué d'un cadenas et de « Bientôt », et ne réagit pas. « Retour » ramène à la base.
+## Sans les images : ville dessinée en code (pâtés de maisons tirés avec une graine fixe) et petits bâtiments dessinés.
 
 const GRAINE := 11
 const RAYON_TOUCHE := 80.0      # zone de toucher autour d'un lieu (diamètre >= 100 px)
 const TAILLE_ICONE := 46.0      # objets, dans la fiche
 const HAUTEUR_ZOMBIE := 84.0    # zombies, dans la fiche
-## Emplacements (fraction de l'écran) de la base et des lieux ; en paysage puis en portrait
+const LARGEUR_VIGNETTE := 160.0 # vignettes map_* (à l'échelle 1)
+const CADENAS := 64.0           # hauteur de map_lock sur un lieu « Bientôt »
+const SEUIL_GLISSE := 20.0      # au-delà (pixels parcourus), le doigt fait défiler la carte au lieu de toucher
+const VITESSE_POINTILLES := 30.0   # pixels par seconde, de la base vers le lieu
+## Vignette de chaque lieu (et de la base)
+const VIGNETTES := {"base": "map_base", "supermarche": "map_market", "maison": "map_house", "pharmacie": "map_pharmacy"}
+## Emplacements de la base et des lieux, en fraction de la carte ; « vue » = point de la carte au centre de l'écran
+## à l'arrivée. En paysage puis en portrait. À l'arrivée, tous sont à l'écran et hors de la fiche.
 const PLACES := {
-	true: {"base": Vector2(0.13, 0.62), "supermarche": Vector2(0.36, 0.36), "maison": Vector2(0.5, 0.72)},
-	false: {"base": Vector2(0.2, 0.47), "supermarche": Vector2(0.68, 0.24), "maison": Vector2(0.62, 0.45)},
+	true: {"vue": Vector2(0.5, 0.5), "base": Vector2(0.179, 0.65), "supermarche": Vector2(0.336, 0.35),
+		"maison": Vector2(0.486, 0.675), "pharmacie": Vector2(0.534, 0.31)},
+	false: {"vue": Vector2(0.4, 0.5), "base": Vector2(0.294, 0.37), "supermarche": Vector2(0.469, 0.195),
+		"maison": Vector2(0.452, 0.37), "pharmacie": Vector2(0.311, 0.2)},
 }
-## Fiche : à droite en paysage, en bas (au-dessus de Retour) en portrait
-## (en paysage, l'objectif est sous le nom et la fiche plus haute ; en portrait il est à gauche de « Y aller »)
-const TAILLE_FICHE := {true: Vector2(456, 512), false: Vector2(680, 440)}
+## Fiche : à droite en paysage, en bas (au-dessus de Retour) en portrait ; même mise en page pour tous les lieux
+const TAILLE_FICHE := {true: Vector2(456, 530), false: Vector2(680, 530)}
 
 var _temps := 0.0
 var _choisi := ""   # lieu dont la fiche est ouverte
+var _decalage := Vector2.ZERO   # position du coin haut gauche de la carte à l'écran (défilement)
+var _doigt := -1                # doigt posé sur la carte (-1 : aucun)
+var _appui := Vector2.ZERO      # où il s'est posé
+var _glisse := 0.0              # distance parcourue depuis
 
 
 func _ready() -> void:
@@ -30,11 +43,12 @@ func _ready() -> void:
 	$Fiche/YAller.icone = "jouer"
 	$Fiche/YAller.appuye.connect(_y_aller)
 	$Fiche.draw.connect(_dessiner_fiche)
-	resized.connect(_placer_fiche)
-	_placer_fiche()
+	resized.connect(_placer)
+	_placer()
 
 
-func _placer_fiche() -> void:
+## Fiche à sa place, carte recentrée sur sa vue d'arrivée (après un changement d'orientation aussi).
+func _placer() -> void:
 	var paysage := size.x > size.y
 	var t: Vector2 = TAILLE_FICHE[paysage]
 	$Fiche.size = t
@@ -42,21 +56,50 @@ func _placer_fiche() -> void:
 		$Fiche.position = Vector2(size.x - t.x - 24, maxf(120.0, (size.y - t.y) / 2.0))
 	else:
 		$Fiche.position = Vector2((size.x - t.x) / 2.0, size.y - t.y - 156)
+	_decalage = _borner(size / 2.0 - PLACES[paysage]["vue"] * _taille_carte())
+
+
+## Taille de la carte à l'écran : bg_map agrandie pour couvrir tout l'écran (sinon l'écran).
+func _taille_carte() -> Vector2:
+	if not Images.v3_existe("bg_map"):
+		return size
+	var t := Images.v3_taille("bg_map")
+	return t * maxf(size.x / t.x, size.y / t.y)
+
+
+## Décalage gardé dans les limites : la carte couvre toujours l'écran.
+func _borner(decalage: Vector2) -> Vector2:
+	var t := _taille_carte()
+	return Vector2(clampf(decalage.x, size.x - t.x, 0.0), clampf(decalage.y, size.y - t.y, 0.0))
 
 
 ## Centre d'un lieu (ou de la base) à l'écran.
 func _place(id: String) -> Vector2:
-	return PLACES[size.x > size.y][id] * size
+	return _decalage + PLACES[size.x > size.y][id] * _taille_carte()
 
 
+## Un doigt posé puis levé sans glisser touche la carte ; s'il glisse, il la fait défiler.
 func _input(event: InputEvent) -> void:
-	# Les boutons (enfants) passent avant et marquent le toucher comme traité.
-	if not event is InputEventScreenTouch or not event.pressed:
-		return
-	if $Fiche.visible and $Fiche.get_global_rect().has_point(event.position):
-		return
+	# Les boutons (enfants) passent avant et marquent le toucher comme tireté.
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			if _doigt != -1 or ($Fiche.visible and $Fiche.get_global_rect().has_point(event.position)):
+				return
+			_doigt = event.index
+			_appui = event.position
+			_glisse = 0.0
+		elif event.index == _doigt:
+			_doigt = -1
+			if _glisse < SEUIL_GLISSE:
+				_toucher(_appui)
+	elif event is InputEventScreenDrag and event.index == _doigt:
+		_glisse += event.relative.length()
+		_decalage = _borner(_decalage + event.relative)
+
+
+func _toucher(position_ecran: Vector2) -> void:
 	for id in Partie.LIEUX:
-		if _place(id).distance_to(event.position) <= RAYON_TOUCHE:
+		if _place(id).distance_to(position_ecran) <= RAYON_TOUCHE:
 			if Partie.lieu_disponible(id):
 				_ouvrir(id)
 			return
@@ -88,17 +131,20 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var e := minf(size.x, size.y) / 720.0
-	draw_rect(Rect2(Vector2.ZERO, size), Palette.TERRE)
-	_ville(e)
-	# Chemins en pointillés depuis la base
+	if Images.v3_existe("bg_map"):
+		draw_texture_rect(Images.v3_texture("bg_map"), Rect2(_decalage, _taille_carte()), false)
+	else:
+		draw_rect(Rect2(Vector2.ZERO, size), Palette.TERRE)
+		_ville(e)
+	# Chemins en pointillés depuis la base (qui avancent vers les lieux disponibles)
 	for id in Partie.LIEUX:
-		var couleur := Palette.LAMPE if Partie.lieu_disponible(id) else Color(Palette.UI_BORD, 0.5)
-		_pointilles(_place("base"), _place(id), couleur, e)
+		var dispo := Partie.lieu_disponible(id)
+		_pointilles(_place("base"), _place(id), Palette.LAMPE if dispo else Color(Palette.UI_BORD, 0.6), e, dispo)
 	_brume(e)
 	_marque_base(_place("base"), e)
 	for id in Partie.LIEUX:
 		_marque_lieu(id, _place(id), e)
-	# Haut assombri pour le titre, bords assombris
+	# Haut assombri pour le titre, bas pour Retour
 	var sombre := Color(Palette.FOND_NUIT, 0.85)
 	var clair := Color(Palette.FOND_NUIT, 0.0)
 	draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(size.x, 0), Vector2(size.x, 150), Vector2(0, 150)]),
@@ -189,14 +235,35 @@ func _parc(bloc: Rect2, hasard: RandomNumberGenerator, e: float) -> void:
 		draw_circle(p - Vector2(r, r) * 0.3, r * 0.4, Palette.ZOMBIE_PEAU_OMBRE.darkened(0.25))
 
 
-func _pointilles(a: Vector2, b: Vector2, couleur: Color, e: float) -> void:
-	var longueur := a.distance_to(b)
-	var d := (b - a) / longueur
-	var t := 50.0 * e
-	while t < longueur - 50.0 * e:
-		draw_line(a + d * t, a + d * minf(t + 14.0 * e, longueur), Palette.CONTOUR, 9.0 * e)
-		draw_line(a + d * t, a + d * minf(t + 14.0 * e, longueur), couleur, 5.0 * e)
-		t += 28.0 * e
+## Chemin en pointillés légèrement courbé de a vers b ; « anime » : les traits avancent vers b.
+func _pointilles(a: Vector2, b: Vector2, couleur: Color, e: float, anime: bool) -> void:
+	var courbe := PackedVector2Array()
+	var milieu := (a + b) / 2.0 + (b - a).orthogonal() * 0.12
+	for k in 33:
+		var t := k / 32.0
+		courbe.append(a.lerp(milieu, t).lerp(milieu.lerp(b, t), t))
+	var pas := 28.0 * e
+	var tiret := 14.0 * e
+	var d := 60.0 * e + (fmod(_temps * VITESSE_POINTILLES * e, pas) if anime else 0.0)
+	var longueur := 0.0
+	for k in 32:
+		longueur += courbe[k].distance_to(courbe[k + 1])
+	while d + tiret < longueur - 70.0 * e:
+		var p := _point_courbe(courbe, d)
+		var q := _point_courbe(courbe, d + tiret)
+		draw_line(p, q, Palette.CONTOUR, 9.0 * e)
+		draw_line(p, q, couleur, 5.0 * e)
+		d += pas
+
+
+## Point à la distance d le long d'une ligne brisée.
+func _point_courbe(courbe: PackedVector2Array, d: float) -> Vector2:
+	for k in courbe.size() - 1:
+		var l := courbe[k].distance_to(courbe[k + 1])
+		if d <= l:
+			return courbe[k].lerp(courbe[k + 1], d / l)
+		d -= l
+	return courbe[courbe.size() - 1]
 
 
 ## Nappes de brume qui dérivent lentement au-dessus de la ville.
@@ -223,43 +290,63 @@ func _etiquette(centre: Vector2, texte: String, couleur: Color, taille: int) -> 
 	draw_string(police, centre + Vector2(-largeur / 2.0, taille * 0.36), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille, couleur)
 
 
-## La base : petit abri à toit de tôle et feu de camp qui vacille.
+## Vignette V3 d'un lieu (ou de la base), centrée sur c ; faux si l'image manque.
+func _vignette(id: String, c: Vector2, e: float, teinte: Color) -> bool:
+	var nom: String = VIGNETTES.get(id, "")
+	if not Images.v3_existe(nom):
+		return false
+	var t := Images.v3_taille(nom)
+	var taille := t * LARGEUR_VIGNETTE * e / t.x
+	draw_texture_rect(Images.v3_texture(nom), Rect2(c - taille / 2.0, taille), false, teinte)
+	return true
+
+
+## La base : vignette map_base (sinon petit abri à toit de tôle et feu de camp qui vacille), lueur du feu.
 func _marque_base(c: Vector2, e: float) -> void:
-	draw_circle(c, (60.0 + 4.0 * sin(_temps * 6.0)) * e, Palette.FEU_LUEUR)
-	Dessin.ombre(self, Rect2(c + Vector2(-56, -6) * e, Vector2(112, 26) * e))
-	Dessin.rect(self, Rect2(c + Vector2(-46, -40) * e, Vector2(60, 40) * e), Palette.BOIS)
-	Dessin.polygone(self, PackedVector2Array([c + Vector2(-54, -36) * e, c + Vector2(22, -50) * e,
-		c + Vector2(22, -40) * e, c + Vector2(-54, -26) * e]), Palette.TOLE)
-	var feu := c + Vector2(36, 4) * e
-	var h := (30.0 + 5.0 * sin(_temps * 9.0)) * e
-	Dessin.polygone(self, PackedVector2Array([feu + Vector2(-12, 0) * e, feu + Vector2(sin(_temps * 5.0) * 4.0 * e, -h),
-		feu + Vector2(12, 0) * e]), Palette.FEU)
-	draw_colored_polygon(PackedVector2Array([feu + Vector2(-5, 0) * e, feu + Vector2(0, -h * 0.5), feu + Vector2(5, 0) * e]), Palette.FEU_COEUR)
-	_etiquette(c + Vector2(0, 40) * e, "Base", Palette.LAMPE, 24)
+	draw_circle(c, (70.0 + 4.0 * sin(_temps * 6.0)) * e, Palette.FEU_LUEUR)
+	if not _vignette("base", c, e, Color.WHITE):
+		Dessin.ombre(self, Rect2(c + Vector2(-56, -6) * e, Vector2(112, 26) * e))
+		Dessin.rect(self, Rect2(c + Vector2(-46, -40) * e, Vector2(60, 40) * e), Palette.BOIS)
+		Dessin.polygone(self, PackedVector2Array([c + Vector2(-54, -36) * e, c + Vector2(22, -50) * e,
+			c + Vector2(22, -40) * e, c + Vector2(-54, -26) * e]), Palette.TOLE)
+		var feu := c + Vector2(36, 4) * e
+		var h := (30.0 + 5.0 * sin(_temps * 9.0)) * e
+		Dessin.polygone(self, PackedVector2Array([feu + Vector2(-12, 0) * e, feu + Vector2(sin(_temps * 5.0) * 4.0 * e, -h),
+			feu + Vector2(12, 0) * e]), Palette.FEU)
+		draw_colored_polygon(PackedVector2Array([feu + Vector2(-5, 0) * e, feu + Vector2(0, -h * 0.5), feu + Vector2(5, 0) * e]), Palette.FEU_COEUR)
+	_etiquette(c + Vector2(0, 78) * e, "Base", Palette.LAMPE, 24)
 
 
-## Un lieu : son bâtiment dessiné en petit, une étiquette ; grisé et « Bientôt » s'il n'est pas encore là.
-## Le lieu dont la fiche est ouverte a un anneau qui pulse.
+## Un lieu : sa vignette (sinon son bâtiment dessiné en petit), une étiquette ; grisé, avec un cadenas et « Bientôt »
+## s'il n'est pas encore là. Le lieu dont la fiche est ouverte a un anneau qui pulse.
 func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 	var dispo := Partie.lieu_disponible(id)
-	var gris := Color(0.45, 0.45, 0.55)
+	var teinte := Color.WHITE if dispo else Color(0.5, 0.5, 0.6)
 	if id == _choisi:
 		var pulse := 0.5 + 0.5 * sin(_temps * 5.0)
-		draw_arc(c + Vector2(0, -20) * e, (74.0 + 6.0 * pulse) * e, 0.0, TAU, 40, Palette.CONTOUR, 10.0 * e, true)
-		draw_arc(c + Vector2(0, -20) * e, (74.0 + 6.0 * pulse) * e, 0.0, TAU, 40, Palette.LAMPE, 5.0 * e, true)
+		draw_arc(c, (84.0 + 6.0 * pulse) * e, 0.0, TAU, 40, Palette.CONTOUR, 10.0 * e, true)
+		draw_arc(c, (84.0 + 6.0 * pulse) * e, 0.0, TAU, 40, Palette.LAMPE, 5.0 * e, true)
 	elif dispo:
 		# Lueur qui invite à toucher
-		draw_circle(c + Vector2(0, -20) * e, (64.0 + 6.0 * sin(_temps * 2.5)) * e, Color(Palette.LAMPE, 0.12))
-	Dessin.ombre(self, Rect2(c + Vector2(-70, -8) * e, Vector2(140, 30) * e))
-	match id:
-		"supermarche":
-			_supermarche(c, e, Color.WHITE if dispo else gris)
-		"maison":
-			_maison(c, e, Color.WHITE if dispo else gris)
+		draw_circle(c, (74.0 + 6.0 * sin(_temps * 2.5)) * e, Color(Palette.LAMPE, 0.12))
+	if not _vignette(id, c, e, teinte):
+		var pieds := c + Vector2(0, 30) * e
+		Dessin.ombre(self, Rect2(pieds + Vector2(-70, -8) * e, Vector2(140, 30) * e))
+		match id:
+			"supermarche":
+				_supermarche(pieds, e, teinte)
+			"maison":
+				_maison(pieds, e, teinte)
+			"pharmacie":
+				_pharmacie(pieds, e, teinte)
 	var nom: String = Partie.LIEUX[id]["nom"]
-	_etiquette(c + Vector2(0, 36) * e, nom, Palette.LAMPE if dispo else Palette.UI_BORD, 24)
+	_etiquette(c + Vector2(0, 78) * e, nom, Palette.LAMPE if dispo else Palette.UI_BORD, 24)
 	if not dispo:
-		_etiquette(c + Vector2(0, 76) * e, "Bientôt", Palette.UI_TEXTE, 18)
+		if Images.v3_existe("map_lock"):
+			var t := Images.v3_taille("map_lock")
+			var taille := t * CADENAS * e / t.y
+			draw_texture_rect(Images.v3_texture("map_lock"), Rect2(c + Vector2(0, -8) * e - taille / 2.0, taille), false)
+		_etiquette(c + Vector2(0, 116) * e, "Bientôt", Palette.UI_TEXTE, 18)
 
 
 ## Supermarché : grand bâtiment plat, vitrine, enseigne « SUPER » et un caddie.
@@ -293,7 +380,16 @@ func _maison(c: Vector2, e: float, teinte: Color) -> void:
 	Dessin.rect(self, Rect2(c + Vector2(8, -34) * e, Vector2(20, 34) * e), Palette.BOIS_SOMBRE * teinte)
 
 
-## Fiche du lieu choisi : nom, objectif (sur une ou deux lignes), danger (un zombie dessiné par zombie), objets à trouver.
+## Pharmacie : bâtiment plat avec une croix verte (dessin de secours de map_pharmacy).
+func _pharmacie(c: Vector2, e: float, teinte: Color) -> void:
+	Dessin.rect(self, Rect2(c + Vector2(-56, -58) * e, Vector2(112, 58) * e), Palette.MUR.lightened(0.15) * teinte)
+	Dessin.rect(self, Rect2(c + Vector2(-12, -30) * e, Vector2(24, 30) * e), Palette.FENETRE.darkened(0.4) * teinte)
+	Dessin.rect(self, Rect2(c + Vector2(-8, -92) * e, Vector2(16, 40) * e), Palette.SORTIE * teinte)
+	Dessin.rect(self, Rect2(c + Vector2(-20, -80) * e, Vector2(40, 16) * e), Palette.SORTIE * teinte)
+
+
+## Fiche du lieu choisi, même mise en page pour tous : nom, objectif (deux lignes), danger (un zombie dessiné par zombie),
+## rescapé (à droite, sous Danger), objets à trouver ; « Y aller » en bas à droite.
 func _dessiner_fiche() -> void:
 	if _choisi == "":
 		return
@@ -306,26 +402,23 @@ func _dessiner_fiche() -> void:
 	fiche.draw_style_box(cadre, Rect2(Vector2.ZERO, fiche.size))
 	var police := ThemeDB.fallback_font
 	var x := 24.0
+	var largeur := fiche.size.x - 2 * x
 	var nom: String = Partie.LIEUX[_choisi]["nom"]
 	fiche.draw_string_outline(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, 8, Palette.CONTOUR)
 	fiche.draw_string(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Palette.LAMPE)
-	# Objectif sur deux lignes (« Objectif : » en jaune, puis le texte) : à gauche de « Y aller » s'il y tient,
-	# sinon sous le nom (le reste de la fiche descend)
-	var objectif := Partie.texte_objectif(_choisi)
-	var place_bas: float = fiche.size.x - $Fiche/YAller.size.x - 3 * x
-	var en_bas := police.get_string_size(objectif, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x <= place_bas
-	var y_objectif := fiche.size.y - 80.0 if en_bas else 102.0
-	fiche.draw_string(police, Vector2(x, y_objectif), "Objectif :", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)
-	fiche.draw_string(police, Vector2(x, y_objectif + 32), objectif, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.UI_TEXTE)
-	var dy := 0.0 if en_bas else 72.0
+	# Objectif sur deux lignes : « Objectif : » en jaune, puis le texte
+	var objectif := Partie.texte_objectif(_choisi) if Partie.total_objectif(_choisi) > 0 else "explorer le lieu"
+	fiche.draw_string(police, Vector2(x, 102), "Objectif :", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)
+	fiche.draw_string(police, Vector2(x, 134), objectif, HORIZONTAL_ALIGNMENT_LEFT, largeur, 26, Palette.UI_TEXTE)
+	fiche.draw_line(Vector2(x, 154), Vector2(fiche.size.x - x, 154), Color(Palette.UI_BORD, 0.3), 2.0)
 	var infos := Partie.infos_lieu(_choisi)
 	var zombies: Array = infos["zombies"]
 	var objets: Array = infos["objets"]
 	# Danger
 	var danger := "Danger : %d zombie%s" % [zombies.size(), "s" if zombies.size() > 1 else ""]
-	fiche.draw_string(police, Vector2(x, 106 + dy), danger, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.COEUR)
+	fiche.draw_string(police, Vector2(x, 192), danger, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.COEUR)
 	for i in zombies.size():
-		var pieds := Vector2(x + 40 + i * 76, 202 + dy)
+		var pieds := Vector2(x + 40 + i * 76, 290)
 		var image := "gros_face_2" if zombies[i] == 0 else "maigre_profil_2"
 		Dessin.ombre(fiche, Rect2(pieds - Vector2(30, 8), Vector2(60, 16)))
 		var coureur := Images.v3_pose("zombie_runner", "idle") if zombies[i] == 2 else ""
@@ -338,21 +431,20 @@ func _dessiner_fiche() -> void:
 				Images.dessiner_calque(fiche, image, image + "_yeux", pieds, echelle)
 		else:
 			Dessin.cercle(fiche, pieds - Vector2(0, 30), 24.0, Palette.ZOMBIE_PEAU)
-	# Rescapé : à droite des zombies (sous la ligne Danger), caché (à sauver) ou content (déjà sauvé)
-	if infos["rescapes"] > 0:
-		var sauve := Partie.rescape_sauve(_choisi)
-		var ligne := "Rescapé sauvé" if sauve else "Rescapé : %d" % infos["rescapes"]
-		fiche.draw_string_outline(police, Vector2(x, 140 + dy), ligne, HORIZONTAL_ALIGNMENT_RIGHT, fiche.size.x - 2 * x, 22, 6, Palette.CONTOUR)
-		fiche.draw_string(police, Vector2(x, 140 + dy), ligne, HORIZONTAL_ALIGNMENT_RIGHT, fiche.size.x - 2 * x, 22,
-			Palette.SORTIE if sauve else Palette.LAMPE)
-		var image := Images.v3_pose("survivor", "happy" if sauve else "hiding")
-		if image != "":
-			var pieds := Vector2(fiche.size.x - x - 60, 210 + dy)
-			Dessin.ombre(fiche, Rect2(pieds - Vector2(26, 7), Vector2(52, 14)))
-			Images.v3_dessiner(fiche, image, pieds, 58.0 / Images.v3_taille(image).y)
+	# Rescapé : à droite des zombies (sous la ligne Danger), caché (à sauver), content (déjà sauvé) ou aucun
+	var sauve := Partie.rescape_sauve(_choisi)
+	var ligne := "Rescapé sauvé" if sauve else "Rescapé : %d" % infos["rescapes"] if infos["rescapes"] > 0 else "Pas de rescapé"
+	var couleur := Palette.SORTIE if sauve else Palette.LAMPE if infos["rescapes"] > 0 else Palette.UI_BORD
+	fiche.draw_string_outline(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, 6, Palette.CONTOUR)
+	fiche.draw_string(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, couleur)
+	var image := Images.v3_pose("survivor", "happy" if sauve else "hiding") if infos["rescapes"] > 0 else ""
+	if image != "":
+		var pieds := Vector2(fiche.size.x - x - 60, 294)
+		Dessin.ombre(fiche, Rect2(pieds - Vector2(26, 7), Vector2(52, 14)))
+		Images.v3_dessiner(fiche, image, pieds, 58.0 / Images.v3_taille(image).y)
 	# Objets à trouver
 	var texte := "Objets à trouver : %d" % objets.size()
-	fiche.draw_string(police, Vector2(x, 248 + dy), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)
-	var pas := minf(82.0, (fiche.size.x - 2 * x) / maxf(objets.size(), 1.0))
+	fiche.draw_string(police, Vector2(x, 336), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)
+	var pas := minf(82.0, largeur / maxf(objets.size(), 1.0))
 	for i in objets.size():
-		Dessin.icone_objet(fiche, objets[i], Vector2(x + 26 + i * pas, 306 + dy), TAILLE_ICONE)
+		Dessin.icone_objet(fiche, objets[i], Vector2(x + 26 + i * pas, 394), TAILLE_ICONE)

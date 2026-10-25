@@ -107,8 +107,8 @@ func _physics_process(_d):
 	if f == 960:
 		var res = partie.resultat
 		print("scene: ", current_scene.name, " rescape sauve: ", res["rescape"], " total: ", partie.rescapes, " lieux: ", partie.lieux_sauves)
-		print("resume: ", current_scene.get_node("Centre/Colonne/Resume").text.replace("\n", " | "))
-		var b = current_scene.get_node("Centre/Colonne/RetourBase")
+		print("resume: ", current_scene.get_node("Resume").text.replace("\n", " | "))
+		var b = current_scene.get_node("RetourBase")
 		print("bouton dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 		var d = JSON.parse_string(FileAccess.get_file_as_string(FICHIER))
 		print("sauvegarde: version ", d["version"], " rescapes ", d["rescapes"], " lieux_sauves ", d["lieux_sauves"])

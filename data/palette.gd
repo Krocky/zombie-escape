@@ -113,3 +113,13 @@ const PIERRE := Color("5d5f78")            # pierres autour du feu
 const FEU := Color("f08a3c")               # flammes
 const FEU_COEUR := Color("ffd25a")         # cœur des flammes
 const FEU_LUEUR := Color(1.0, 0.62, 0.25, 0.16)   # lumière chaude du feu sur le sol
+
+# Écrans de fin (images V3 bg_victory_* / bg_defeat_*)
+const AUBE := [Color("1f2150"), Color("5a3a7a"), Color("c8607e"), Color("f59a62"), Color("ffc27a")]   # ciel d'aube, du haut vers l'horizon
+const AUBE_SOLEIL := Color(1.0, 0.82, 0.55, 0.22)   # lueur du soleil levant derrière l'illustration
+const SAC := Color("8a6a4e")                # sac en toile où volent les objets rapportés
+const SAC_OMBRE := Color("5e4636")
+const SAC_CORDE := Color("d0a86a")
+const ETOILE_VIDE := Color(0.55, 0.55, 0.65, 0.55)   # étoile pas gagnée (icon_star grisée)
+const DEFAITE_NUIT := Color(0.5, 0.5, 0.62)   # assombrit l'illustration de défaite
+const SORTIE_PANNEAU := Color("1e5a36")     # fond de l'étiquette SORTIE posée sur le panneau EXIT

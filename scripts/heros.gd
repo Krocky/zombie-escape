@@ -110,6 +110,11 @@ func regard() -> Vector2:
 	return _regard
 
 
+## Vrai tant que le héros n'a perdu aucun cœur.
+func intact() -> bool:
+	return _pv == _pv_max
+
+
 ## Délai avant le prochain coup, en fraction de Reglages.ATTAQUE_DELAI (0 = prêt à frapper).
 func recharge() -> float:
 	return _recharge_attaque / Reglages.ATTAQUE_DELAI if Reglages.ATTAQUE_DELAI > 0.0 else 0.0

@@ -49,7 +49,7 @@ func _physics_process(_d):
 	if f == 79: current_scene.get_node("Monde/Heros").position = current_scene.get_node("Monde/Sortie").position + Vector2(0, 30)
 	if f == 144:
 		print("scene: ", current_scene.name, " (attendu Fin)")
-		var b = current_scene.get_node("Centre/Colonne/RetourBase")
+		var b = current_scene.get_node("RetourBase")
 		print("bouton Retour: '", b.texte, "' ", b.size, " >= 100 px: ", b.size.y >= 100,
 			" dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 		_snap("fin")
