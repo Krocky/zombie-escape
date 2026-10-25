@@ -100,6 +100,11 @@ func _texture_faisceau() -> ImageTexture:
 	return _faisceau
 
 
+## Direction du regard dans le monde (le rescapé se place derrière).
+func regard() -> Vector2:
+	return _regard
+
+
 ## Appelé par le niveau quand le joystick bouge.
 func definir_direction(direction: Vector2) -> void:
 	_direction = direction

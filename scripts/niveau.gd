@@ -1,7 +1,8 @@
 extends Node2D
-## Logique commune à tous les lieux : relie le HUD au héros, gère cachettes, objets, sortie et fin,
+## Logique commune à tous les lieux : relie le HUD au héros, gère cachettes, objets, rescapé, sortie et fin,
 ## et dessine le sol. Le contenu d'un lieu (murs, cachettes, objets, zombies, `Sortie`, départ du héros)
 ## est dans sa scène (`scenes/lieux/`), qui hérite de `niveau.tscn` et règle taille, graine et débris.
+## Un lieu peut avoir un `Rescape` (enlevé s'il est déjà sauvé).
 ## Monde (physique, IA) en coordonnées monde, caché ; l'affichage isométrique est dans les calques
 ## SolEffets (ombres, cônes de vue) et Vue (trié en profondeur), voir Iso.
 
@@ -42,6 +43,14 @@ func _ready() -> void:
 	$Nuit.color = Palette.NUIT * Color(Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, Reglages.NUIT_CLARTE, 1.0)
 	# Affichage isométrique : chaque entité donne ses nœuds d'affichage
 	$Monde.visible = false
+	# Rescapé déjà sauvé : il ne réapparaît plus dans ce lieu
+	for rescape in get_tree().get_nodes_in_group("rescapes"):
+		if Partie.rescape_sauve(Partie.lieu):
+			rescape.remove_from_group("rescapes")
+			rescape.get_parent().remove_child(rescape)
+			rescape.queue_free()
+		else:
+			rescape.suit_change.connect(_sur_rescape)
 	for entite in $Monde.get_children():
 		if entite.has_method("visuels"):
 			var visuels: Dictionary = entite.visuels()
@@ -67,6 +76,7 @@ func _ready() -> void:
 	_total_objets = get_tree().get_nodes_in_group("objets").size()
 	$HUD.afficher_objets(0, _total_objets)
 	_afficher_objectif()
+	_sur_rescape(false)
 	Qualite.surveiller(true)
 
 
@@ -79,6 +89,12 @@ func _physics_process(_delta: float) -> void:
 	var detectable := not _heros_mort and _cachette_occupee == null
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.connaitre_heros(_heros.global_position, detectable)
+	# Le rescapé suit le héros ; un zombie qui le touche le renvoie se cacher (seul le contact compte)
+	for rescape in get_tree().get_nodes_in_group("rescapes"):
+		rescape.connaitre_heros(_heros.global_position, _heros.regard(), _cachette_occupee != null or _heros_mort)
+		for zombie in get_tree().get_nodes_in_group("zombies"):
+			if zombie.global_position.distance_to(rescape.global_position) < Reglages.ZOMBIE_PORTEE_CONTACT:
+				rescape.effrayer()
 	# Cachette la plus proche, à portée
 	_cachette_proche = null
 	if not _heros_mort:
@@ -110,6 +126,19 @@ func _afficher_objectif() -> void:
 ## Le joystick donne une direction à l'écran ; le héros se déplace dans le monde.
 func _sur_deplacement(direction: Vector2) -> void:
 	_heros.definir_direction(Iso.direction_monde(direction) if direction != Vector2.ZERO else Vector2.ZERO)
+
+
+## Icône du rescapé dans le HUD : en couleur quand il suit le héros, grisée sinon, cachée s'il n'y en a pas.
+func _sur_rescape(_suit: bool) -> void:
+	var rescapes := get_tree().get_nodes_in_group("rescapes")
+	$HUD.afficher_rescape(not rescapes.is_empty(), _rescape_suit())
+
+
+func _rescape_suit() -> bool:
+	for rescape in get_tree().get_nodes_in_group("rescapes"):
+		if rescape.suit():
+			return true
+	return false
 
 
 func _sur_cacher() -> void:
@@ -149,7 +178,7 @@ func _finir(victoire: bool) -> void:
 		return
 	_fini = true
 	_heros.definir_direction(Vector2.ZERO)
-	Partie.terminer(victoire, _ramasses)
+	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit())
 	await get_tree().create_timer(2.0 if not victoire else 0.5).timeout
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
 

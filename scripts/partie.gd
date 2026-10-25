@@ -1,13 +1,14 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 4 : {"version": 4, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 5 : {"version": 5, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
-## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur}.
-## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 4.
+## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
+## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus)}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 5.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 4
+const VERSION := 5
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -46,9 +47,12 @@ var remede_annonce := false
 var skin := ""
 ## Prénom du joueur ("" s'il n'en a pas mis)
 var prenom := ""
+## Rescapés sauvés en tout, et lieux dont le rescapé est sauvé (clés de LIEUX)
+var rescapes := 0
+var lieux_sauves := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
-## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int)
-var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0}
+## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool)
+var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false}
 
 
 func _ready() -> void:
@@ -56,7 +60,8 @@ func _ready() -> void:
 
 
 ## Appelé par le niveau à la fin. En cas de défaite, on perd la moitié des objets (au hasard, arrondi en dessous).
-func terminer(victoire: bool, ramasses: Array) -> void:
+## rescape : le rescapé du lieu suivait le héros à la sortie.
+func terminer(victoire: bool, ramasses: Array, rescape := false) -> void:
 	var rapportes := ramasses.duplicate()
 	var perdus := []
 	if not victoire:
@@ -73,8 +78,12 @@ func terminer(victoire: bool, ramasses: Array) -> void:
 			bonus.append(types.pick_random())
 	for type in rapportes + bonus:
 		inventaire[type] = inventaire.get(type, 0) + 1
+	var sauve := victoire and rescape and not rescape_sauve(lieu)
+	if sauve:
+		rescapes += 1
+		lieux_sauves.append(lieu)
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
-		"fioles": _remplir_remede()}
+		"fioles": _remplir_remede(), "rescape": sauve}
 	sauvegarder()
 
 
@@ -105,6 +114,11 @@ func nom(type: String) -> String:
 var _infos_lieux := {}
 
 
+## Le rescapé de ce lieu est-il déjà sauvé ?
+func rescape_sauve(id: String) -> bool:
+	return id in lieux_sauves
+
+
 func lieu_disponible(id: String) -> bool:
 	return LIEUX.has(id) and LIEUX[id]["scene"] != ""
 
@@ -118,10 +132,10 @@ func scene_lieu() -> String:
 
 
 ## Ce qu'on trouve dans un lieu, lu dans sa scène sans l'instancier (les entités créent leurs nœuds
-## d'affichage dès leur création) : {"zombies": [type, ...], "objets": [type, ...]}.
+## d'affichage dès leur création) : {"zombies": [type, ...], "objets": [type, ...], "rescapes": nombre}.
 func infos_lieu(id: String) -> Dictionary:
 	if not _infos_lieux.has(id):
-		var infos := {"zombies": [], "objets": []}
+		var infos := {"zombies": [], "objets": [], "rescapes": 0}
 		if lieu_disponible(id):
 			var etat: SceneState = load(LIEUX[id]["scene"]).get_state()
 			for i in etat.get_node_count():
@@ -132,6 +146,8 @@ func infos_lieu(id: String) -> Dictionary:
 					infos["zombies"].append(_propriete(etat, i, "type", 0))
 				elif modele.resource_path == "res://scenes/objet.tscn":
 					infos["objets"].append(_propriete(etat, i, "type", "conserve"))
+				elif modele.resource_path == "res://scenes/rescape.tscn":
+					infos["rescapes"] += 1
 		_infos_lieux[id] = infos
 	return _infos_lieux[id]
 
@@ -282,10 +298,11 @@ func sauvegarder() -> void:
 	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
 	if fichier:
 		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions,
-			"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom}))
+			"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
+			"rescapes": rescapes, "lieux_sauves": lieux_sauves}))
 
 
-## Lit la sauvegarde (version 1 à 4). Une version plus ancienne est aussitôt réécrite en version 4
+## Lit la sauvegarde (version 1 à 5). Une version plus ancienne est aussitôt réécrite en version 5
 ## (les fioles déjà rangées remplissent la jauge du remède).
 func charger() -> void:
 	if not FileAccess.file_exists(FICHIER):
@@ -306,6 +323,11 @@ func charger() -> void:
 	if not SKINS.has(skin):
 		skin = ""
 	prenom = str(donnees.get("prenom", "")).left(PRENOM_MAX)
+	rescapes = int(donnees.get("rescapes", 0))
+	if donnees.get("lieux_sauves") is Array:
+		for id in donnees["lieux_sauves"]:
+			if not str(id) in lieux_sauves:
+				lieux_sauves.append(str(id))
 	if int(donnees.get("version", 1)) < VERSION:
 		_remplir_remede()
 		sauvegarder()

@@ -1,6 +1,6 @@
 extends Control
 ## Écran Carte : plan de la ville la nuit, vu du dessus, avec la base et les lieux (Partie.LIEUX).
-## Toucher un lieu disponible ouvre sa fiche (nom, objectif, danger = zombies, objets à trouver, « Y aller ») ;
+## Toucher un lieu disponible ouvre sa fiche (nom, objectif, danger = zombies, rescapé, objets à trouver, « Y aller ») ;
 ## un lieu sans scène est grisé, marqué « Bientôt » et ne réagit pas. « Retour » ramène à la base.
 ## Tout est dessiné en code (pâtés de maisons tirés avec une graine fixe).
 
@@ -338,6 +338,18 @@ func _dessiner_fiche() -> void:
 				Images.dessiner_calque(fiche, image, image + "_yeux", pieds, echelle)
 		else:
 			Dessin.cercle(fiche, pieds - Vector2(0, 30), 24.0, Palette.ZOMBIE_PEAU)
+	# Rescapé : à droite des zombies (sous la ligne Danger), caché (à sauver) ou content (déjà sauvé)
+	if infos["rescapes"] > 0:
+		var sauve := Partie.rescape_sauve(_choisi)
+		var ligne := "Rescapé sauvé" if sauve else "Rescapé : %d" % infos["rescapes"]
+		fiche.draw_string_outline(police, Vector2(x, 140 + dy), ligne, HORIZONTAL_ALIGNMENT_RIGHT, fiche.size.x - 2 * x, 22, 6, Palette.CONTOUR)
+		fiche.draw_string(police, Vector2(x, 140 + dy), ligne, HORIZONTAL_ALIGNMENT_RIGHT, fiche.size.x - 2 * x, 22,
+			Palette.SORTIE if sauve else Palette.LAMPE)
+		var image := Images.v3_pose("survivor", "happy" if sauve else "hiding")
+		if image != "":
+			var pieds := Vector2(fiche.size.x - x - 60, 210 + dy)
+			Dessin.ombre(fiche, Rect2(pieds - Vector2(26, 7), Vector2(52, 14)))
+			Images.v3_dessiner(fiche, image, pieds, 58.0 / Images.v3_taille(image).y)
 	# Objets à trouver
 	var texte := "Objets à trouver : %d" % objets.size()
 	fiche.draw_string(police, Vector2(x, 248 + dy), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)

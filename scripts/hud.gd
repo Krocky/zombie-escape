@@ -11,6 +11,8 @@ var _flash := TextureRect.new()   # bords rouges quand le héros est touché
 var _icones := Control.new()      # objets ramassés, sous le compteur
 var _ramasses := []
 var _nombre := 0
+var _rescape := Control.new()     # icône du rescapé, sous les cœurs
+var _rescape_suit := false
 
 
 func _ready() -> void:
@@ -41,6 +43,12 @@ func _ready() -> void:
 	_icones.size = Vector2(300, 50)
 	_icones.draw.connect(_dessiner_icones)
 	add_child(_icones)
+	_rescape.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rescape.position = Vector2(24, 92)
+	_rescape.size = Vector2(72, 84)
+	_rescape.visible = false
+	_rescape.draw.connect(_dessiner_rescape)
+	add_child(_rescape)
 	$Objectif.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Objectif.visible = false
 	get_viewport().size_changed.connect(_placer_objectif)
@@ -103,6 +111,32 @@ func afficher_objets(ramasses: int, total: int, types := []) -> void:
 		compteur.scale = Vector2(1.25, 1.25)
 		create_tween().tween_property(compteur, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
 	_nombre = ramasses
+
+
+## Rescapé du lieu : caché s'il n'y en a pas ; grisé tant qu'il ne suit pas, en couleur quand il suit (il saute un peu).
+func afficher_rescape(present: bool, suit: bool) -> void:
+	_rescape.visible = present
+	if suit and not _rescape_suit:
+		_rescape.pivot_offset = _rescape.size / 2.0
+		_rescape.scale = Vector2(1.3, 1.3)
+		create_tween().tween_property(_rescape, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	_rescape_suit = suit
+	_rescape.queue_redraw()
+
+
+func _dessiner_rescape() -> void:
+	var cadre := StyleBoxFlat.new()
+	cadre.bg_color = Palette.UI_CADRE
+	cadre.border_color = Palette.SORTIE if _rescape_suit else Palette.UI_BORD
+	cadre.set_border_width_all(3)
+	cadre.set_corner_radius_all(16)
+	_rescape.draw_style_box(cadre, Rect2(Vector2.ZERO, _rescape.size))
+	var nom := Images.v3_pose("survivor", "follow")
+	var couleur := Color.WHITE if _rescape_suit else Color(0.4, 0.4, 0.48, 0.75)
+	if nom != "":
+		Images.v3_dessiner(_rescape, nom, Vector2(_rescape.size.x / 2.0, _rescape.size.y - 6), 72.0 / Images.v3_taille(nom).y, false, couleur)
+	else:
+		Dessin.cercle(_rescape, _rescape.size / 2.0, 20.0, couleur)
 
 
 ## Objectif de la mission, en haut au centre ("" : caché). Vert quand il est rempli.

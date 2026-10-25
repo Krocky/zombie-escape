@@ -88,7 +88,7 @@ func _physics_process(_d):
 			if g == 110 or g == 116: _appui(current_scene.get_node("Precedent"), 110)
 			if g == 130 or g == 136: _appui(current_scene.get_node("Precedent"), 130)
 			if g == 160:
-				print("2 x precedent depuis la page 2: ", current_scene.get_node("Titre").text, " (attendu la derniere page, 5/5)")
+				print("2 x precedent depuis la page 2: ", current_scene.get_node("Titre").text, " (attendu la derniere page, 6/6)")
 				_snap("page5")
 				_aller("niveau")
 		"niveau":

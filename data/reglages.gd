@@ -36,6 +36,12 @@ var CACHETTE_PORTEE := 70.0         # distance pour pouvoir se cacher
 var OBJET_PORTEE := 45.0            # distance pour ramasser un objet en marchant dessus
 var SORTIE_PORTEE := 70.0           # distance de la porte pour sortir (victoire)
 
+# --- Rescapé (un enfant caché dans chaque lieu : touche-le, il te suit jusqu'à la sortie) ---
+var RESCAPE_VITESSE := 230.0        # sa vitesse quand il te suit (un peu moins vite que le héros)
+var RESCAPE_PORTEE := 60.0          # distance pour le toucher et qu'il te suive
+var RESCAPE_DISTANCE := 70.0        # il reste à cette distance derrière toi
+var RESCAPE_DISTANCE_MAX := 400.0   # bloqué plus loin que ça : il réapparaît juste derrière toi
+
 # --- Attaque du héros (batte) ---
 var ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 var ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche

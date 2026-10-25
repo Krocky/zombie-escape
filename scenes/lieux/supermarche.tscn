@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/niveau.tscn" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="2_mur"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/cachette.tscn" id="6_cachette"]
 [ext_resource type="PackedScene" path="res://scenes/objet.tscn" id="7_objet"]
 [ext_resource type="PackedScene" path="res://scenes/sortie.tscn" id="8_sortie"]
+[ext_resource type="PackedScene" path="res://scenes/rescape.tscn" id="9_rescape"]
 
 [node name="Supermarche" instance=ExtResource("1_niveau")]
 taille = Vector2(2400, 1600)
@@ -151,3 +152,6 @@ patrouille = Vector2(550, 0)
 position = Vector2(1450, 1120)
 type = 2
 patrouille = Vector2(600, 0)
+
+[node name="Rescape" parent="Monde" instance=ExtResource("9_rescape")]
+position = Vector2(2290, 450)

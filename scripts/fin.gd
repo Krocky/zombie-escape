@@ -1,6 +1,7 @@
 extends Control
 ## Écran de fin : Mission réussie (objectif rempli, avec bonus), Victoire ou Retour à la base,
-## objets rapportés ou perdus, fioles versées dans la jauge du remède, inventaire de la base.
+## objets rapportés ou perdus, fioles versées dans la jauge du remède, rescapé sauvé (survivor_happy près du héros),
+## inventaire de la base.
 ## Le bouton « Retour à la base » ramène à l'écran Base.
 ## Fond illustré (DecorEcran) et icônes des objets (Dessin.icone_objet).
 
@@ -25,6 +26,8 @@ func _ready() -> void:
 		lignes.append(bravo + "Tu es %s %s !" % [Partie.accord("sorti", "sortie"), Partie.LIEUX[Partie.lieu]["du"]])
 	else:
 		lignes.append("Tu as été %s... tes amis t'ont %s à la base." % [Partie.accord("rattrapé", "rattrapée"), Partie.accord("ramené", "ramenée")])
+	if resultat.get("rescape", false):
+		lignes.append("Tu as sauvé un rescapé !")
 	if resultat["mission"]:
 		lignes.append("Objectif rempli ! Bonus : " + _liste(resultat["bonus"]))
 	elif Partie.total_objectif(Partie.lieu) > 0:
@@ -83,6 +86,21 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var scene := DecorEcran.Scene.VICTOIRE if Partie.resultat["victoire"] else DecorEcran.Scene.DEFAITE
 	DecorEcran.dessiner(self, size, _temps, scene)
+	if Partie.resultat.get("rescape", false):
+		_dessiner_rescape()
+
+
+## Le rescapé sauvé, content, à côté du héros (à sa gauche : le faisceau part à droite).
+func _dessiner_rescape() -> void:
+	var nom := Images.v3_pose("survivor", "happy")
+	if nom == "":
+		return
+	var e := minf(size.x, size.y) / 720.0
+	var paysage := size.x > size.y
+	var pieds := (Vector2(0.15, 0.94) if paysage else Vector2(0.24, 0.96)) * size + Vector2(-112, 2) * e
+	var saut := absf(sin(_temps * 3.0)) * 8.0 * e
+	Dessin.ombre(self, Rect2(pieds - Vector2(40, 11) * e, Vector2(80, 22) * e))
+	Images.v3_dessiner(self, nom, pieds - Vector2(0, saut), e * 0.8)
 
 
 ## Objets rapportés (en couleur), bonus (sur un rond jaune), puis perdus (sombres, barrés d'une croix rouge), centrés.
