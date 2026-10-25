@@ -56,7 +56,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 
 ## Revue d'octobre 2026 et lot 3 (proposé, rien de décidé)
 - `docs/revue.md` : revue du code et du gameplay, bugs B1 à B10, incohérences, mesures (combat sans risque en un contre un).
-- `docs/lot3-prompts.md` : 6 étapes proposées (a robustesse, b combat et lisibilité, c objets utiles, d lieux qui changent, e étoiles et rescapés au travail, f pharmacie et remède qui guérit), même format que le lot 2.
+- `docs/lot3-prompts.md` : 7 prompts complets prêts à copier-coller, un par discussion (a robustesse, b combat et lisibilité, c objets utiles, d lieux qui changent, e étoiles et rescapés au travail, f1 pharmacie, f2 remède qui guérit).
 - Problèmes connus (détail et correction proposée dans la revue) : le geste « retour » d'Android quitte le jeu et il n'y a pas de pause (B1, B3) ; sauvegarde écrite sans fichier temporaire (B2) ; chutes de la base perdues le jour où l'écran « Remède trouvé ! » s'ouvre (B4) ; zombie qui peut rester coincé en RETOUR (B5) ; recul qui continue dans une cachette (B6) ; `AFFICHER_IPS` encore à `true` (B7) ; tests absents de GitHub Actions (B10).
 
 ## Méthode de travail
