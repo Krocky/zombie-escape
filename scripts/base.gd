@@ -52,6 +52,8 @@ const TEINTE := Color(0.86, 0.84, 0.94)
 ## base_campfire : base des flammes (pixels de l'image), et taille des flammes animées (multipliée par l'échelle)
 const FEU_IMAGE := Vector2(240, 178)
 const FEU_FLAMMES := 0.55
+## Opacité des flammes animées sur base_campfire (sans contour) : le feu peint de l'image reste visible dessous
+const FEU_OPACITE := 0.5
 ## base_floodlight : centre des trois phares (pixels de l'image)
 const PHARE_IMAGE := Vector2(110, 60)
 ## base_floodlight est très haut (1,4 x l'abri) : dessiné un peu plus petit pour tenir sous les boutons du haut
@@ -362,10 +364,10 @@ func _poussiere(pieds: Vector2, e: float, t: float) -> void:
 		draw_circle(pieds + d - Vector2(0, 20.0 * t * e), r, Color(Palette.PIERRE.lightened(0.3), alpha))
 
 
-## Flammes animées par-dessus le feu de l'image base_campfire.
+## Flammes animées semi-transparentes par-dessus le feu de l'image base_campfire.
 func _flammes(pieds: Vector2, echelle: float) -> void:
 	var centre := Images.v3_point("base_campfire", FEU_IMAGE, pieds, echelle)
-	_flammes_et_etincelles(centre, echelle * FEU_FLAMMES)
+	_flammes_et_etincelles(centre, echelle * FEU_FLAMMES, FEU_OPACITE)
 
 
 ## Lumière des trois phares du projecteur, qui tombe sur le sol devant lui.
@@ -555,13 +557,15 @@ func _feu(centre: Vector2, e: float) -> void:
 
 
 ## Trois flammes qui dansent et des étincelles qui montent (feu de secours, ou par-dessus base_campfire).
-func _flammes_et_etincelles(centre: Vector2, e: float) -> void:
+## opacite < 1 : flammes transparentes et sans contour (sur l'image).
+func _flammes_et_etincelles(centre: Vector2, e: float, opacite := 1.0) -> void:
+	var contour := opacite >= 1.0
 	for k in 3:
 		var dx := (k - 1) * 22.0 * e
 		var haut := (95.0 - absf(k - 1) * 30.0 + 14.0 * sin(_temps * 9.0 + k * 2.1)) * e
 		var penche := 10.0 * sin(_temps * 5.0 + k) * e
-		_flamme(centre + Vector2(dx, -4 * e), 24.0 * e, haut, penche, Palette.FEU)
-		_flamme(centre + Vector2(dx, -4 * e), 12.0 * e, haut * 0.55, penche * 0.6, Palette.FEU_COEUR, false)
+		_flamme(centre + Vector2(dx, -4 * e), 24.0 * e, haut, penche, Color(Palette.FEU, opacite), contour)
+		_flamme(centre + Vector2(dx, -4 * e), 12.0 * e, haut * 0.55, penche * 0.6, Color(Palette.FEU_COEUR, opacite), false)
 	for k in 5:
 		var vie := fmod(_temps * 0.7 + k * 0.23, 1.0)
 		var p := centre + Vector2(sin(k * 3.7 + _temps * 2.0) * 30.0, -60.0 - vie * 140.0) * e
