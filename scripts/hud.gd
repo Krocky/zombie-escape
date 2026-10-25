@@ -41,6 +41,10 @@ func _ready() -> void:
 	_icones.size = Vector2(300, 50)
 	_icones.draw.connect(_dessiner_icones)
 	add_child(_icones)
+	$Objectif.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	$Objectif.visible = false
+	get_viewport().size_changed.connect(_placer_objectif)
+	_placer_objectif()
 	$Ips.visible = Reglages.AFFICHER_IPS
 	$Ips.add_theme_color_override("font_color", Palette.UI_TEXTE)
 	$Ips.add_theme_color_override("font_outline_color", Palette.CONTOUR)
@@ -99,6 +103,20 @@ func afficher_objets(ramasses: int, total: int, types := []) -> void:
 		compteur.scale = Vector2(1.25, 1.25)
 		create_tween().tween_property(compteur, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
 	_nombre = ramasses
+
+
+## Objectif de la mission, en haut au centre ("" : caché). Vert quand il est rempli.
+func afficher_objectif(texte: String, avancee: int, total: int) -> void:
+	$Objectif.visible = texte != ""
+	$Objectif.text = "Objectif : %s (%d/%d)" % [texte, avancee, total]
+	$Objectif.add_theme_color_override("font_color", Palette.SORTIE if avancee >= total else Palette.UI_TEXTE)
+
+
+## Entre les cœurs et le compteur en paysage ; sous eux en portrait (pas la place sur la même ligne).
+func _placer_objectif() -> void:
+	var ecran := get_viewport().get_visible_rect().size
+	$Objectif.offset_top = 52.0 if ecran.x > ecran.y else 150.0
+	$Objectif.offset_bottom = $Objectif.offset_top + 48.0
 
 
 func _dessiner_icones() -> void:

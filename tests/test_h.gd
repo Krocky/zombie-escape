@@ -9,7 +9,7 @@ func _initialize():
 	var fichier := FileAccess.open("user://sauvegarde.json", FileAccess.WRITE)
 	fichier.store_string('{"version": 1, "inventaire": {"conserve": 3, "piles": 2, "fiole": 1}}')
 	fichier.close()
-	partie.inventaire = {}; partie.constructions = []
+	partie.inventaire = {}; partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	partie.charger()
 	print("reprise v1: ", partie.inventaire, " constructions: ", partie.constructions)
 	print("reecrite: ", FileAccess.get_file_as_string("user://sauvegarde.json"))

@@ -1,6 +1,7 @@
 extends Control
 ## Écran Base (pas un niveau jouable) : l'abri en planches et le feu de camp, la nuit,
-## l'inventaire (une icône par type d'objet avec son nombre), une carte par construction et le bouton Partir.
+## l'inventaire (une icône par type d'objet avec son nombre), une carte par construction, la jauge du remède
+## et le bouton Partir. Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
 ## Tout est dessiné en code, en formes simples avec contour épais. Les constructions faites apparaissent dans le décor.
 
 const CARTE := preload("res://scenes/carte_construction.tscn")
@@ -15,6 +16,8 @@ const PLACES := {
 }
 ## Taille des cartes de construction : en ligne (paysage), en colonne (portrait, coût sur la ligne du nom)
 const TAILLE_CARTE := {true: Vector2(400, 130), false: Vector2(680, 112)}
+## Jauge du remède : en bas à droite (paysage), sous les cartes (portrait)
+const TAILLE_JAUGE := {true: Vector2(380, 106), false: Vector2(680, 92)}
 
 var _temps := 0.0
 var _etoiles := PackedVector2Array()    # positions en fraction de l'écran
@@ -22,9 +25,12 @@ var _immeubles := PackedVector2Array()  # largeur, hauteur (fractions) des ruine
 
 
 func _ready() -> void:
+	if Partie.annoncer_remede():
+		get_tree().change_scene_to_file.call_deferred("res://scenes/remede.tscn")
 	$Haut/Titre.add_theme_color_override("font_color", Palette.LAMPE)
 	$Haut/Titre.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Haut/Inventaire.draw.connect(_dessiner_inventaire)
+	$Remede.draw.connect(_dessiner_remede)
 	$Partir.couleur = Palette.LAMPE
 	$Partir.icone = "jouer"
 	$Partir.appuye.connect(_partir)
@@ -45,9 +51,12 @@ func _ready() -> void:
 		_immeubles.append(Vector2(hasard.randf_range(0.06, 0.12), hasard.randf_range(0.06, 0.18)))
 
 
-## Cartes en ligne en paysage, en colonne en portrait.
+## Cartes en ligne en paysage, en colonne en portrait. Jauge du remède en bas à droite ou sous les cartes.
 func _placer_cartes() -> void:
 	var paysage := size.x > size.y
+	$Remede.size = TAILLE_JAUGE[paysage]
+	$Remede.position = Vector2(size.x - $Remede.size.x - 24, size.y - $Remede.size.y - 34) if paysage \
+		else Vector2((size.x - $Remede.size.x) / 2.0, 612)
 	$Constructions.vertical = not paysage
 	$Constructions.add_theme_constant_override("separation", 14 if paysage else 10)
 	for carte in $Constructions.get_children():
@@ -288,3 +297,32 @@ func _dessiner_inventaire() -> void:
 	for i in types.size():
 		var pieds := Vector2(pas * (i + 0.5) - 18, zone.size.y / 2.0 + TAILLE_ICONE / 2.0)
 		Dessin.objet_compte(zone, types[i], pieds, TAILLE_ICONE, Partie.inventaire.get(types[i], 0))
+
+
+## Jauge du remède : une fiole, « Remède N / 3 » et une barre en cases qui se remplit de vert.
+func _dessiner_remede() -> void:
+	var zone: Control = $Remede
+	var plein := Partie.remede_trouve()
+	var cadre := StyleBoxFlat.new()
+	cadre.bg_color = Palette.UI_CADRE
+	cadre.border_color = Palette.SORTIE if plein else Palette.CONTOUR
+	cadre.set_border_width_all(5)
+	cadre.set_corner_radius_all(24)
+	zone.draw_style_box(cadre, Rect2(Vector2.ZERO, zone.size))
+	var h := zone.size.y
+	Dessin.icone_objet(zone, "fiole", Vector2(h * 0.5, h * 0.84), h * 0.62)
+	var police := ThemeDB.fallback_font
+	var texte := "Remède trouvé !" if plein else "Remède : %d / %d" % [Partie.remede, Reglages.REMEDE_FIOLES]
+	var p := Vector2(h * 0.95, h * 0.4)
+	zone.draw_string_outline(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, 6, Palette.CONTOUR)
+	zone.draw_string(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.SORTIE if plein else Palette.LAMPE)
+	# Barre : une case par fiole
+	var barre := Rect2(p.x, h * 0.54, zone.size.x - p.x - 22, h * 0.28)
+	var n := Reglages.REMEDE_FIOLES
+	var pas := barre.size.x / n
+	for k in n:
+		var case := Rect2(barre.position + Vector2(k * pas + 3, 0), Vector2(pas - 6, barre.size.y))
+		var couleur := Palette.ZOMBIE_PEAU.lightened(0.3) if k < Partie.remede else Palette.UI_FOND
+		Dessin.rect(zone, case, couleur)
+		if k < Partie.remede:
+			zone.draw_rect(Rect2(case.position + Vector2(4, 4), Vector2(case.size.x - 8, 4)), Color(1, 1, 1, 0.5))

@@ -1,11 +1,12 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 2 : {"version": 2, "inventaire": {type: nombre}, "constructions": [nom, ...]}.
-## Une sauvegarde version 1 (sans constructions) est reprise telle quelle, puis réécrite en version 2.
+## Sauvegarde version 3 : {"version": 3, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 3.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 2
+const VERSION := 3
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -32,8 +33,13 @@ var lieu := "supermarche"
 var inventaire := {}
 ## Constructions faites à la base (noms, voir CONSTRUCTIONS)
 var constructions := []
-## Dernière partie : victoire (bool), rapportes (Array), perdus (Array)
-var resultat := {"victoire": false, "rapportes": [], "perdus": []}
+## Fioles versées dans la jauge du remède (au plus Reglages.REMEDE_FIOLES)
+var remede := 0
+## Vrai quand l'écran « Remède trouvé ! » a été montré (une seule fois)
+var remede_annonce := false
+## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
+## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int)
+var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0}
 
 
 func _ready() -> void:
@@ -48,9 +54,18 @@ func terminer(victoire: bool, ramasses: Array) -> void:
 		rapportes.shuffle()
 		for i in rapportes.size() / 2:
 			perdus.append(rapportes.pop_back())
-	for type in rapportes:
+	# Objectif rempli en sortant vivant : bonus d'objets au hasard (jamais de fiole, elle se mérite)
+	var mission := victoire and objectif_rempli(lieu, rapportes)
+	var bonus := []
+	if mission:
+		var types := NOMS.keys()
+		types.erase("fiole")
+		for i in Reglages.MISSION_BONUS:
+			bonus.append(types.pick_random())
+	for type in rapportes + bonus:
 		inventaire[type] = inventaire.get(type, 0) + 1
-	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus}
+	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
+		"fioles": _remplir_remede()}
 	sauvegarder()
 
 
@@ -100,6 +115,75 @@ func _propriete(etat: SceneState, noeud: int, nom_propriete: String, defaut: Var
 		if etat.get_node_property_name(noeud, k) == nom_propriete:
 			return etat.get_node_property_value(noeud, k)
 	return defaut
+
+
+# --- Missions ---
+
+## Objets à rapporter dans un lieu : { type: nombre }.
+func objectif(id: String) -> Dictionary:
+	match id:
+		"supermarche":
+			return Reglages.SUPERMARCHE_OBJECTIF
+		"maison":
+			return Reglages.MAISON_OBJECTIF
+	return {}
+
+
+## L'objectif en quelques mots : « rapporter 2 bandages ».
+func texte_objectif(id: String) -> String:
+	var morceaux := []
+	var o := objectif(id)
+	for type in o:
+		var mots := nom(type).to_lower().split(" ")
+		if o[type] > 1 and not mots[0].ends_with("s"):
+			mots[0] += "s"
+		morceaux.append("%d %s" % [o[type], " ".join(mots)])
+	return "rapporter " + " et ".join(morceaux)
+
+
+func objectif_rempli(id: String, objets: Array) -> bool:
+	return avancee_objectif(id, objets) == total_objectif(id) and total_objectif(id) > 0
+
+
+## Nombre d'objets demandés par l'objectif.
+func total_objectif(id: String) -> int:
+	var total := 0
+	for nombre in objectif(id).values():
+		total += nombre
+	return total
+
+
+## Combien d'objets de l'objectif sont parmi « objets » (sans compter ceux en trop).
+func avancee_objectif(id: String, objets: Array) -> int:
+	var o := objectif(id)
+	var avancee := 0
+	for type in o:
+		avancee += mini(objets.count(type), o[type])
+	return avancee
+
+
+# --- Remède ---
+
+## Verse les fioles de l'inventaire dans la jauge, jusqu'à ce qu'elle soit pleine. Renvoie le nombre versé.
+func _remplir_remede() -> int:
+	var versees := mini(inventaire.get("fiole", 0), Reglages.REMEDE_FIOLES - remede)
+	if versees > 0:
+		inventaire["fiole"] -= versees
+		remede += versees
+	return maxi(versees, 0)
+
+
+func remede_trouve() -> bool:
+	return remede >= Reglages.REMEDE_FIOLES
+
+
+## Vrai une seule fois : la jauge est pleine et l'écran « Remède trouvé ! » n'a pas encore été vu.
+func annoncer_remede() -> bool:
+	if not remede_trouve() or remede_annonce:
+		return false
+	remede_annonce = true
+	sauvegarder()
+	return true
 
 
 # --- Constructions ---
@@ -170,10 +254,12 @@ func portee_lampe() -> float:
 func sauvegarder() -> void:
 	var fichier := FileAccess.open(FICHIER, FileAccess.WRITE)
 	if fichier:
-		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions}))
+		fichier.store_string(JSON.stringify({"version": VERSION, "inventaire": inventaire, "constructions": constructions,
+			"remede": remede, "remede_annonce": remede_annonce}))
 
 
-## Lit la sauvegarde (version 1 ou 2). Une version 1 est aussitôt réécrite en version 2.
+## Lit la sauvegarde (version 1, 2 ou 3). Une version plus ancienne est aussitôt réécrite en version 3
+## (les fioles déjà rangées remplissent la jauge du remède).
 func charger() -> void:
 	if not FileAccess.file_exists(FICHIER):
 		return
@@ -187,5 +273,8 @@ func charger() -> void:
 		for nom_construction in donnees["constructions"]:
 			if not nom_construction in constructions:
 				constructions.append(str(nom_construction))
+	remede = int(donnees.get("remede", 0))
+	remede_annonce = bool(donnees.get("remede_annonce", false))
 	if int(donnees.get("version", 1)) < VERSION:
+		_remplir_remede()
 		sauvegarder()

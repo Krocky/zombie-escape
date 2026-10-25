@@ -154,6 +154,10 @@ type = "eau"
 position = Vector2(950, 300)
 type = "bandage"
 
+[node name="ObjetBandage2" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(700, 1100)
+type = "bandage"
+
 [node name="ObjetPiles" parent="Monde" instance=ExtResource("7_objet")]
 position = Vector2(200, 1100)
 type = "piles"

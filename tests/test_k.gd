@@ -11,7 +11,7 @@ const E = ["PATROUILLE", "POURSUITE", "CHERCHE", "RETOUR"]
 const CACHETTES := {"Armoire": Vector2(165, 820), "Lit": Vector2(625, 415), "Baignoire": Vector2(1310, 325)}
 func _initialize():
 	partie = root.get_node("Partie")
-	partie.inventaire = {}; partie.constructions = []
+	partie.inventaire = {}; partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	change_scene_to_file("res://scenes/carte.tscn")
 func _touch(pos, pressed):
 	var e = InputEventScreenTouch.new(); e.index = 1; e.position = pos; e.pressed = pressed
@@ -46,7 +46,7 @@ func _cachette(nom, g):
 func _physics_process(_d):
 	f += 1
 	if f == 20:
-		print("maison disponible: ", partie.lieu_disponible("maison"), " infos: ", partie.infos_lieu("maison"), " (attendu 3 zombies [0, 0, 1], 5 objets)")
+		print("maison disponible: ", partie.lieu_disponible("maison"), " infos: ", partie.infos_lieu("maison"), " (attendu 3 zombies [0, 0, 1], 6 objets dont 2 bandages)")
 		_touch(current_scene._place("maison"), true)
 	if f == 26: _touch(Vector2.ZERO, false)
 	if f == 32:

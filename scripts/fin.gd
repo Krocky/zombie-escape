@@ -1,19 +1,21 @@
 extends Control
-## Écran de fin : Victoire ou Retour à la base, objets rapportés ou perdus, inventaire de la base.
+## Écran de fin : Mission réussie (objectif rempli, avec bonus), Victoire ou Retour à la base,
+## objets rapportés ou perdus, fioles versées dans la jauge du remède, inventaire de la base.
 ## Le bouton « Retour à la base » ramène à l'écran Base.
 ## Fond illustré (DecorEcran) et icônes des objets (Dessin.icone_objet).
 
 const TAILLE_ICONE := 54.0
+const TITRES := {"mission": "Mission réussie !", "victoire": "Victoire !", "defaite": "Retour à la base"}
 
 var _temps := 0.0
-var _partie := Control.new()   # icônes : objets rapportés, puis perdus (barrés)
+var _partie := Control.new()   # icônes : objets rapportés, bonus (entourés), puis perdus (barrés)
 var _base := Control.new()     # icônes : inventaire de la base, avec le nombre
 
 
 func _ready() -> void:
 	var resultat := Partie.resultat
 	var titre: Label = $Centre/Colonne/Titre
-	titre.text = "Victoire !" if resultat["victoire"] else "Retour à la base"
+	titre.text = TITRES["mission" if resultat["mission"] else "victoire" if resultat["victoire"] else "defaite"]
 	titre.add_theme_color_override("font_color", Palette.SORTIE if resultat["victoire"] else Palette.LAMPE)
 	titre.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 
@@ -22,9 +24,16 @@ func _ready() -> void:
 		lignes.append("Tu es sorti %s !" % Partie.LIEUX[Partie.lieu]["du"])
 	else:
 		lignes.append("Tu as été rattrapé... tes amis t'ont ramené à la base.")
+	if resultat["mission"]:
+		lignes.append("Objectif rempli ! Bonus : " + _liste(resultat["bonus"]))
+	elif Partie.total_objectif(Partie.lieu) > 0:
+		lignes.append("Objectif pas rempli : " + Partie.texte_objectif(Partie.lieu))
 	lignes.append("Objets rapportés : " + _liste(resultat["rapportes"]))
 	if not resultat["victoire"]:
 		lignes.append("Objets perdus en route : " + _liste(resultat["perdus"]))
+	if resultat["fioles"] > 0:
+		lignes.append("%s dans la jauge du remède : %d / %d" % ["Fiole versée" if resultat["fioles"] == 1 else "Fioles versées",
+			Partie.remede, Reglages.REMEDE_FIOLES])
 	$Centre/Colonne/Resume.text = "\n".join(lignes)
 	$Centre/Colonne/Resume.add_theme_color_override("font_color", Palette.UI_TEXTE)
 
@@ -67,6 +76,7 @@ func _retour_base() -> void:
 func _process(delta: float) -> void:
 	_temps += delta
 	queue_redraw()
+	_partie.queue_redraw()
 
 
 func _draw() -> void:
@@ -74,15 +84,18 @@ func _draw() -> void:
 	DecorEcran.dessiner(self, size, _temps, scene)
 
 
-## Objets rapportés (en couleur) puis perdus (sombres, barrés d'une croix rouge), centrés.
+## Objets rapportés (en couleur), bonus (sur un rond jaune), puis perdus (sombres, barrés d'une croix rouge), centrés.
 func _dessiner_partie() -> void:
 	var rapportes: Array = Partie.resultat["rapportes"]
+	var bonus: Array = Partie.resultat["bonus"]
 	var perdus: Array = Partie.resultat["perdus"]
-	var types := rapportes + perdus
+	var types := rapportes + bonus + perdus
 	var x0 := _partie.size.x / 2.0 - (types.size() - 1) * (TAILLE_ICONE + 14) / 2.0
 	for i in types.size():
 		var pieds := Vector2(x0 + i * (TAILLE_ICONE + 14), TAILLE_ICONE + 6)
-		var perdu := i >= rapportes.size()
+		var perdu := i >= rapportes.size() + bonus.size()
+		if i >= rapportes.size() and not perdu:
+			_partie.draw_circle(pieds - Vector2(0, TAILLE_ICONE / 2.0), TAILLE_ICONE * 0.62, Color(Palette.LAMPE, 0.3 + 0.1 * sin(_temps * 4.0)))
 		Dessin.icone_objet(_partie, types[i], pieds, TAILLE_ICONE, Color(0.65, 0.65, 0.75, 0.8) if perdu else Color.WHITE)
 		if perdu:
 			var c := pieds - Vector2(0, TAILLE_ICONE / 2.0)

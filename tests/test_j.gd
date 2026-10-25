@@ -6,7 +6,7 @@ var f := 0
 var partie
 func _initialize():
 	partie = root.get_node("Partie")
-	partie.inventaire = {}; partie.constructions = []
+	partie.inventaire = {}; partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	partie.lieu = ""
 	change_scene_to_file("res://scenes/base.tscn")
 func _touch(pos, pressed):

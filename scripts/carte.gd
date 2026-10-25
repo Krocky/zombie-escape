@@ -1,6 +1,6 @@
 extends Control
 ## Écran Carte : plan de la ville la nuit, vu du dessus, avec la base et les lieux (Partie.LIEUX).
-## Toucher un lieu disponible ouvre sa fiche (nom, danger = zombies, objets à trouver, « Y aller ») ;
+## Toucher un lieu disponible ouvre sa fiche (nom, objectif, danger = zombies, objets à trouver, « Y aller ») ;
 ## un lieu sans scène est grisé, marqué « Bientôt » et ne réagit pas. « Retour » ramène à la base.
 ## Tout est dessiné en code (pâtés de maisons tirés avec une graine fixe).
 
@@ -14,7 +14,8 @@ const PLACES := {
 	false: {"base": Vector2(0.2, 0.47), "supermarche": Vector2(0.68, 0.24), "maison": Vector2(0.62, 0.45)},
 }
 ## Fiche : à droite en paysage, en bas (au-dessus de Retour) en portrait
-const TAILLE_FICHE := {true: Vector2(456, 440), false: Vector2(680, 440)}
+## (en paysage, l'objectif est sous le nom et la fiche plus haute ; en portrait il est à gauche de « Y aller »)
+const TAILLE_FICHE := {true: Vector2(456, 512), false: Vector2(680, 440)}
 
 var _temps := 0.0
 var _choisi := ""   # lieu dont la fiche est ouverte
@@ -292,7 +293,7 @@ func _maison(c: Vector2, e: float, teinte: Color) -> void:
 	Dessin.rect(self, Rect2(c + Vector2(8, -34) * e, Vector2(20, 34) * e), Palette.BOIS_SOMBRE * teinte)
 
 
-## Fiche du lieu choisi : nom, danger (un zombie dessiné par zombie), objets à trouver.
+## Fiche du lieu choisi : nom, objectif (sur une ou deux lignes), danger (un zombie dessiné par zombie), objets à trouver.
 func _dessiner_fiche() -> void:
 	if _choisi == "":
 		return
@@ -308,14 +309,23 @@ func _dessiner_fiche() -> void:
 	var nom: String = Partie.LIEUX[_choisi]["nom"]
 	fiche.draw_string_outline(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, 8, Palette.CONTOUR)
 	fiche.draw_string(police, Vector2(x, 60), nom, HORIZONTAL_ALIGNMENT_LEFT, -1, 44, Palette.LAMPE)
+	# Objectif sur deux lignes (« Objectif : » en jaune, puis le texte) : à gauche de « Y aller » s'il y tient,
+	# sinon sous le nom (le reste de la fiche descend)
+	var objectif := Partie.texte_objectif(_choisi)
+	var place_bas: float = fiche.size.x - $Fiche/YAller.size.x - 3 * x
+	var en_bas := police.get_string_size(objectif, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x <= place_bas
+	var y_objectif := fiche.size.y - 80.0 if en_bas else 102.0
+	fiche.draw_string(police, Vector2(x, y_objectif), "Objectif :", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)
+	fiche.draw_string(police, Vector2(x, y_objectif + 32), objectif, HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.UI_TEXTE)
+	var dy := 0.0 if en_bas else 72.0
 	var infos := Partie.infos_lieu(_choisi)
 	var zombies: Array = infos["zombies"]
 	var objets: Array = infos["objets"]
 	# Danger
 	var danger := "Danger : %d zombie%s" % [zombies.size(), "s" if zombies.size() > 1 else ""]
-	fiche.draw_string(police, Vector2(x, 106), danger, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.COEUR)
+	fiche.draw_string(police, Vector2(x, 106 + dy), danger, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.COEUR)
 	for i in zombies.size():
-		var pieds := Vector2(x + 40 + i * 76, 202)
+		var pieds := Vector2(x + 40 + i * 76, 202 + dy)
 		var image := "gros_face_2" if zombies[i] == 0 else "maigre_profil_2"
 		Dessin.ombre(fiche, Rect2(pieds - Vector2(30, 8), Vector2(60, 16)))
 		if Images.existe(image):
@@ -327,7 +337,7 @@ func _dessiner_fiche() -> void:
 			Dessin.cercle(fiche, pieds - Vector2(0, 30), 24.0, Palette.ZOMBIE_PEAU)
 	# Objets à trouver
 	var texte := "Objets à trouver : %d" % objets.size()
-	fiche.draw_string(police, Vector2(x, 248), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)
+	fiche.draw_string(police, Vector2(x, 248 + dy), texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)
 	var pas := minf(82.0, (fiche.size.x - 2 * x) / maxf(objets.size(), 1.0))
 	for i in objets.size():
-		Dessin.icone_objet(fiche, objets[i], Vector2(x + 26 + i * pas, 306), TAILLE_ICONE)
+		Dessin.icone_objet(fiche, objets[i], Vector2(x + 26 + i * pas, 306 + dy), TAILLE_ICONE)

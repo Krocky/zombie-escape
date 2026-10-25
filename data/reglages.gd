@@ -44,6 +44,14 @@ const ATELIER_DEGATS := 1               # dégâts en plus à chaque coup de bat
 const LAMPE_RENFORCEE_COUT := {"piles": 2}
 const LAMPE_RENFORCEE_PORTEE := 40      # faisceau de la lampe plus long, en pourcentage
 
+# --- Missions (objectif de chaque lieu : { objet: nombre } à rapporter en sortant vivant) ---
+const SUPERMARCHE_OBJECTIF := {"fiole": 1}
+const MAISON_OBJECTIF := {"bandage": 2}
+const MISSION_BONUS := 1                # objets en plus, au hasard, quand l'objectif est rempli
+
+# --- Remède (jauge de la base) ---
+const REMEDE_FIOLES := 3                # fioles à rapporter pour trouver le remède
+
 # --- Joystick ---
 const JOYSTICK_ZONE_MORTE := 0.2      # entre 0 et 1 : en dessous, le héros ne bouge pas
 

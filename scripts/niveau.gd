@@ -63,6 +63,7 @@ func _ready() -> void:
 		zombie.touche_heros.connect(_heros.recevoir_degats)
 	_total_objets = get_tree().get_nodes_in_group("objets").size()
 	$HUD.afficher_objets(0, _total_objets)
+	_afficher_objectif()
 
 
 func _physics_process(_delta: float) -> void:
@@ -87,9 +88,15 @@ func _physics_process(_delta: float) -> void:
 		if _heros.global_position.distance_to(objet.global_position) <= Reglages.OBJET_PORTEE:
 			_ramasses.append(objet.ramasser())
 			$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
+			_afficher_objectif()
 	# Sortie atteinte : victoire
 	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)
+
+
+func _afficher_objectif() -> void:
+	$HUD.afficher_objectif(Partie.texte_objectif(Partie.lieu) if Partie.total_objectif(Partie.lieu) > 0 else "",
+		Partie.avancee_objectif(Partie.lieu, _ramasses), Partie.total_objectif(Partie.lieu))
 
 
 ## Le joystick donne une direction à l'écran ; le héros se déplace dans le monde.

@@ -8,7 +8,7 @@ var pv_zombie := 0
 func _initialize():
 	partie = root.get_node("Partie")
 	partie.inventaire = {"conserve": 3, "eau": 1, "piles": 3, "fiole": 1}
-	partie.constructions = []
+	partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	partie.sauvegarder()
 	change_scene_to_file("res://scenes/base.tscn")
 func _touch(pos, pressed):
@@ -87,6 +87,6 @@ func _physics_process(_d):
 		_snap("base_complete")
 		# Ne pas laisser de constructions aux autres tests
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
-		partie.constructions = []; partie.inventaire = {}
+		partie.constructions = []; partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 		quit()
 	return false
