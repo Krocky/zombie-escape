@@ -25,6 +25,8 @@ const CONSTRUCTIONS := {
 	"barricade": "Barricade",
 	"atelier": "Atelier",
 	"lampe": "Lampe renforcée",
+	"infirmerie": "Infirmerie",
+	"jardin": "Jardin",
 }
 ## Héros au choix (écran « Choisis ton héros ») : skin -> nom affiché. Images : images/v3/<skin>_<pose>.png
 const SKINS := {"heros": "Garçon", "heroine": "Fille"}
@@ -59,9 +61,9 @@ var lieux_sauves := []
 var batiments_vus := []
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
-## intact (aucun cœur perdu, bool)
+## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
-	"intact": false}
+	"intact": false, "jardin": []}
 
 
 func _ready() -> void:
@@ -85,14 +87,20 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 		types.erase("fiole")
 		for i in Reglages.MISSION_BONUS:
 			bonus.append(types.pick_random())
-	for type in rapportes + bonus:
+	# Jardin construit : des conserves à chaque retour, mission gagnée ou perdue
+	var jardin := []
+	if est_construit("jardin"):
+		for i in Reglages.JARDIN_CONSERVES:
+			jardin.append("conserve")
+	for type in rapportes + bonus + jardin:
 		inventaire[type] = inventaire.get(type, 0) + 1
 	var sauve := victoire and rescape and not rescape_sauve(lieu)
 	if sauve:
 		rescapes += 1
 		lieux_sauves.append(lieu)
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
-		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact}
+		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact,
+		"jardin": jardin}
 	sauvegarder()
 
 
@@ -256,6 +264,10 @@ func cout(construction: String) -> Dictionary:
 			return Reglages.ATELIER_COUT
 		"lampe":
 			return Reglages.LAMPE_RENFORCEE_COUT
+		"infirmerie":
+			return Reglages.INFIRMERIE_COUT
+		"jardin":
+			return Reglages.JARDIN_COUT
 	return {}
 
 
@@ -268,6 +280,10 @@ func effet(construction: String) -> String:
 			return "La batte fait +%d dégât%s" % [Reglages.ATELIER_DEGATS, "s" if Reglages.ATELIER_DEGATS > 1 else ""]
 		"lampe":
 			return "Lampe +%d %% plus loin" % Reglages.LAMPE_RENFORCEE_PORTEE
+		"infirmerie":
+			return "+%d bandage%s par mission" % [Reglages.INFIRMERIE_BANDAGES, "s" if Reglages.INFIRMERIE_BANDAGES > 1 else ""]
+		"jardin":
+			return "+%d conserve%s à chaque retour" % [Reglages.JARDIN_CONSERVES, "s" if Reglages.JARDIN_CONSERVES > 1 else ""]
 	return ""
 
 
@@ -304,6 +320,11 @@ func heros_pv() -> int:
 
 func degats_batte() -> int:
 	return Reglages.ATTAQUE_DEGATS + (Reglages.ATELIER_DEGATS if est_construit("atelier") else 0)
+
+
+## Bandages de soin donnés par l'infirmerie au début de la mission (hors objets ramassés).
+func bandages_infirmerie() -> int:
+	return Reglages.INFIRMERIE_BANDAGES if est_construit("infirmerie") else 0
 
 
 func portee_lampe() -> float:

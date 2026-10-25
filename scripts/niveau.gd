@@ -35,6 +35,8 @@ var _total_objets := 0
 var _cachette_proche: Node2D = null
 var _cachette_occupee: Node2D = null
 var _meubles: Array = []   # décor qui devient transparent quand le héros est derrière
+var _bandages_soin := Partie.bandages_infirmerie()   # bandages de l'infirmerie (pas des objets à rapporter)
+var _soins := 0            # soins déjà faits dans cette mission
 
 @onready var _heros := $Monde/Heros
 
@@ -81,6 +83,7 @@ func _ready() -> void:
 	_heros.mort.connect(_sur_mort)
 	_heros.bruit.connect(_sur_bruit)
 	$HUD.cacher.connect(_sur_cacher)
+	$HUD.soigner.connect(_sur_soigner)
 	$HUD.pause_demandee.connect(mettre_en_pause.bind(true))
 	$Pause.reprendre.connect(mettre_en_pause.bind(false))
 	$Pause.retour_base.connect(_abandonner)
@@ -147,6 +150,7 @@ func _physics_process(delta: float) -> void:
 				_cachette_proche = cachette
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
 	$HUD.afficher_recharge(_heros.recharge())
+	$HUD.etat_soin(_peut_soigner())
 	# Un grand meuble devant le héros devient transparent : on le voit toujours
 	var pieds := Iso.ecran(_heros.global_position) if not _heros_mort and _cachette_occupee == null else Vector2.INF
 	for meuble in _meubles:
@@ -198,6 +202,27 @@ func _sur_cacher() -> void:
 		_cachette_occupee = _cachette_proche
 		_cachette_occupee.occuper(true)
 		_heros.se_cacher()
+
+
+## Soin possible : héros blessé, un bandage (infirmerie ou ramassé), soins de la mission pas épuisés.
+func _peut_soigner() -> bool:
+	return not _fini and not _heros_mort and _heros.blesse() and _soins < Reglages.SOIN_PAR_MISSION \
+		and (_bandages_soin > 0 or "bandage" in _ramasses)
+
+
+## Bouton Soigner : le bandage de l'infirmerie d'abord (on garde ceux ramassés pour l'objectif), sinon un
+## bandage ramassé, qui ne sera plus rapporté ni compté dans l'objectif.
+func _sur_soigner() -> void:
+	if not _peut_soigner():
+		return
+	if _bandages_soin > 0:
+		_bandages_soin -= 1
+	else:
+		_ramasses.erase("bandage")
+		$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
+		_afficher_objectif()
+	_soins += 1
+	_heros.soigner(Reglages.SOIN_COEURS)
 
 
 func _sur_bruit(origine: Vector2, rayon: float) -> void:

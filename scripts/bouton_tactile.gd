@@ -14,7 +14,7 @@ signal appuye
 @export var couleur := Color.WHITE
 ## Taille du texte des boutons en pilule (les ronds gardent leur taille).
 @export var taille_texte := 40
-## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause" ou rien.
+## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause", "soigner" ou rien.
 @export var icone := "":
 	set(valeur):
 		if icone != valeur:
@@ -201,6 +201,18 @@ func _icone(c: Vector2, r: float, encre: Color) -> void:
 			# Deux barres verticales
 			for dx: float in [-r * 0.42, r * 0.42]:
 				Dessin.rect(self, Rect2(c + Vector2(dx - r * 0.22, -r * 0.75), Vector2(r * 0.44, r * 1.5)), encre)
+		"soigner":
+			# Cœur barré d'un bandage en travers
+			var coeur := PackedVector2Array()
+			for k in 24:
+				var t := TAU * k / 24.0
+				coeur.append(c + Vector2(16.0 * pow(sin(t), 3), -(13.0 * cos(t) - 5.0 * cos(2 * t) - 2.0 * cos(3 * t) - cos(4 * t))) * r / 15.0)
+			Dessin.polygone(self, coeur, Palette.COEUR)
+			var sens := Vector2.from_angle(-PI / 4.0)
+			var large := sens.orthogonal() * r * 0.24
+			var bout := sens * r * 0.95
+			Dessin.polygone(self, PackedVector2Array([c - bout - large, c + bout - large, c + bout + large, c - bout + large]), Palette.UI_TEXTE)
+			draw_circle(c, r * 0.07, Palette.COEUR.darkened(0.3))
 		"jouer":
 			Dessin.polygone(self, PackedVector2Array([c + Vector2(-r * 0.6, -r * 0.8), c + Vector2(r * 0.8, 0),
 				c + Vector2(-r * 0.6, r * 0.8)]), encre)

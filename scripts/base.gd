@@ -16,25 +16,27 @@ const TAILLE_ICONE := 54.0
 ## fond : point de bg_base gardé au recadrage (0 = bord gauche / haut, 1 = bord droit / bas) ;
 ## echelle : taille des images de bâtiments (multipliée par e) ; perso : taille du héros et des rescapés ;
 ## horizon : ligne d'horizon du dessin de secours (sans bg_base) ; tentes : une place par rescapé sauvé ;
-## jardin : place prête pour une future construction (base_garden), pas encore affichée.
+## jardin : place du jardin (base_garden), affiché une fois construit.
 const PLACES := {
 	true: {"fond": Vector2(0.5, 0.12), "echelle": 0.5, "perso": 0.56, "horizon": 0.56,
 		"abri": Vector2(0.2, 0.66), "feu": Vector2(0.5, 0.7), "heros": Vector2(0.63, 0.75),
 		"lampe": Vector2(0.05, 0.74), "atelier": Vector2(0.86, 0.6), "barricade": Vector2(0.8, 0.79),
 		"tentes": [Vector2(0.36, 0.52), Vector2(0.64, 0.5), Vector2(0.5, 0.42), Vector2(0.24, 0.42)],
-		"jardin": Vector2(0.94, 0.45)},
+		"jardin": Vector2(0.8, 0.34)},
 	false: {"fond": Vector2(0.78, 0.0), "echelle": 0.52, "perso": 0.58, "horizon": 0.55,
 		"abri": Vector2(0.3, 0.58), "feu": Vector2(0.5, 0.74), "heros": Vector2(0.73, 0.78),
 		"lampe": Vector2(0.07, 0.62), "atelier": Vector2(0.76, 0.6), "barricade": Vector2(0.24, 0.85),
 		"tentes": [Vector2(0.2, 0.7), Vector2(0.88, 0.69), Vector2(0.55, 0.5), Vector2(0.62, 0.88)],
 		"jardin": Vector2(0.85, 0.45)},
 }
-## Taille des cartes de construction : en ligne (paysage), en colonne (portrait, coût sur la ligne du nom)
+## Taille des cartes de construction : grille de COLONNES_CARTES (paysage), en colonne (portrait, coût sur la ligne du nom)
 const TAILLE_CARTE := {true: Vector2(400, 130), false: Vector2(680, 112)}
 ## Bouton du tiroir des constructions : en haut à gauche (paysage), à droite de la jauge (portrait)
 const TAILLE_TIROIR := Vector2(260, 100)
 ## Haut du tiroir : sous l'inventaire (paysage), sous la jauge et le bouton (portrait)
 const HAUT_TIROIR := {true: 240.0, false: 352.0}
+## Cartes par ligne dans le tiroir : 5 cartes en 3 + 2 (paysage), une colonne (portrait)
+const COLONNES_CARTES := {true: 3, false: 1}
 const DUREE_TIROIR := 0.2
 ## Jauge du remède : en bas à droite (paysage), en haut à gauche du bouton Construire (portrait, largeur calculée)
 const TAILLE_JAUGE := {true: Vector2(380, 106), false: Vector2(0, 100)}
@@ -121,8 +123,9 @@ func _placer_cartes() -> void:
 	$Reglages.size = $Reglages.custom_minimum_size
 	$Reglages.position = Vector2(size.x - $Reglages.size.x - 24, 24) if paysage \
 		else Vector2(size.x - $Reglages.size.x - 24, size.y - $Reglages.size.y - 44)
-	$Constructions.vertical = not paysage
-	$Constructions.add_theme_constant_override("separation", 14 if paysage else 10)
+	$Constructions.columns = COLONNES_CARTES[paysage]
+	$Constructions.add_theme_constant_override("h_separation", 14)
+	$Constructions.add_theme_constant_override("v_separation", 14 if paysage else 10)
 	for carte in $Constructions.get_children():
 		carte.custom_minimum_size = TAILLE_CARTE[paysage]
 	$Constructions.size = Vector2.ZERO
@@ -186,12 +189,10 @@ func _preparer_chutes(attente := ATTENTE_CHUTES) -> void:
 ## Ids des bâtiments du camp, selon la sauvegarde.
 func _batiments_visibles() -> Array:
 	var ids := ["abri_2" if Partie.constructions.size() >= 2 else "abri_1", "feu"]
-	for construction in ["barricade", "atelier", "lampe"]:
+	# L'infirmerie n'a pas d'image : rien de plus dans le camp
+	for construction in ["barricade", "atelier", "lampe", "jardin"]:
 		if Partie.est_construit(construction):
 			ids.append(construction)
-	# Jardin : future construction (pas encore dans Partie.CONSTRUCTIONS), donc jamais affiché pour l'instant
-	if Partie.est_construit("jardin"):
-		ids.append("jardin")
 	for k in mini(Partie.rescapes, PLACES[true]["tentes"].size()):
 		ids.append("tente_%d" % (k + 1))
 	return ids

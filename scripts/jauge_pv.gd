@@ -1,5 +1,5 @@
 extends Control
-## Les cœurs du héros, en haut à gauche. Un cœur perdu « éclate » ; le dernier cœur bat.
+## Les cœurs du héros, en haut à gauche. Un cœur perdu « éclate » ; un cœur soigné revient en grossissant ; le dernier cœur bat.
 
 const ECART := 58.0
 const DUREE_PERTE := 0.45
@@ -9,12 +9,17 @@ var _pv_max := 0
 var _temps := 0.0
 var _perte := 0.0        # temps restant de l'animation du cœur perdu
 var _coeur_perdu := -1
+var _gain := 0.0         # temps restant de l'animation du cœur soigné
+var _coeur_gagne := -1
 
 
 func afficher(pv: int, pv_max: int) -> void:
 	if pv < _pv:
 		_coeur_perdu = pv
 		_perte = DUREE_PERTE
+	elif pv > _pv and _pv_max > 0:
+		_coeur_gagne = pv - 1
+		_gain = DUREE_PERTE
 	_pv = pv
 	_pv_max = pv_max
 	queue_redraw()
@@ -23,7 +28,8 @@ func afficher(pv: int, pv_max: int) -> void:
 func _process(delta: float) -> void:
 	_temps += delta
 	_perte = maxf(_perte - delta, 0.0)
-	if _perte > 0.0 or _pv == 1:
+	_gain = maxf(_gain - delta, 0.0)
+	if _perte > 0.0 or _gain > 0.0 or _pv == 1:
 		queue_redraw()
 
 
@@ -34,6 +40,8 @@ func _draw() -> void:
 			var battement := 1.0
 			if _pv == 1:
 				battement = 1.0 + 0.12 * maxf(sin(_temps * 7.0), 0.0)   # dernier cœur : il bat
+			if i == _coeur_gagne and _gain > 0.0:
+				battement = 1.0 + 0.7 * _gain / DUREE_PERTE   # cœur soigné : il arrive gros puis se pose
 			_coeur(c, 1.0 * battement, Palette.COEUR, true)
 		else:
 			_coeur(c, 1.0, Palette.COEUR_VIDE, false)

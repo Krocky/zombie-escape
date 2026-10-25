@@ -55,6 +55,14 @@ var ATELIER_COUT := {"piles": 2, "conserve": 1}
 var ATELIER_DEGATS := 1               # dégâts en plus à chaque coup de batte
 var LAMPE_RENFORCEE_COUT := {"piles": 2}
 var LAMPE_RENFORCEE_PORTEE := 40      # faisceau de la lampe plus long, en pourcentage
+var INFIRMERIE_COUT := {"bandage": 3}
+var INFIRMERIE_BANDAGES := 1          # bandages de soin donnés au début de chaque mission
+var JARDIN_COUT := {"eau": 2, "conserve": 1}
+var JARDIN_CONSERVES := 1             # conserves offertes à chaque retour de mission (gagnée ou perdue)
+
+# --- Soin pendant la mission (bouton Soigner : un bandage ramassé ou de l'infirmerie -> des cœurs) ---
+var SOIN_COEURS := 1                  # cœurs rendus par un bandage
+var SOIN_PAR_MISSION := 1             # soins au plus par mission
 
 # --- Missions (objectif de chaque lieu : { objet: nombre } à rapporter en sortant vivant) ---
 var SUPERMARCHE_OBJECTIF := {"fiole": 1}

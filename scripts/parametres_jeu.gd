@@ -16,6 +16,8 @@ const PAGES := [
 		["ATTAQUE_DEGATS", "Dégâts de la batte", 1, 1, 10],
 		["ATTAQUE_PORTEE", "Portée de la batte", 10.0, 40.0, 200.0],
 		["ATTAQUE_DELAI", "Temps entre deux coups (s)", 0.1, 0.1, 2.0],
+		["SOIN_COEURS", "Cœurs rendus par un bandage", 1, 1, 10],
+		["SOIN_PAR_MISSION", "Soins par mission", 1, 0, 10],
 	]],
 	["Lampe et nuit", [
 		["LAMPE_PORTEE", "Longueur du faisceau", 20.0, 200.0, 1200.0],

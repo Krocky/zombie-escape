@@ -55,6 +55,8 @@ func _ready() -> void:
 		lignes.append("Objectif rempli ! Bonus : " + _liste(resultat["bonus"]))
 	elif _victoire and Partie.total_objectif(Partie.lieu) > 0:
 		lignes.append("Objectif pas rempli : " + Partie.texte_objectif(Partie.lieu))
+	if not resultat.get("jardin", []).is_empty():
+		lignes.append("Le jardin te donne : " + _liste(resultat["jardin"]))
 	if resultat["fioles"] > 0:
 		lignes.append("%s dans la jauge du remède : %d / %d" % ["Fiole versée" if resultat["fioles"] == 1 else "Fioles versées",
 			Partie.remede, Reglages.REMEDE_FIOLES])

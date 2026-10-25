@@ -35,13 +35,14 @@ layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 
-[node name="Constructions" type="BoxContainer" parent="."]
+[node name="Constructions" type="GridContainer" parent="."]
 visible = false
 layout_mode = 0
 offset_top = 240.0
 mouse_filter = 2
-theme_override_constants/separation = 14
-alignment = 1
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+columns = 3
 
 [node name="Remede" type="Control" parent="."]
 layout_mode = 3

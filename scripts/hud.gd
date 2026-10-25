@@ -5,9 +5,11 @@ signal deplacement(direction: Vector2)
 signal attaque
 signal cacher
 signal pause_demandee
+signal soigner
 
 const BOUTON := preload("res://scenes/bouton_tactile.tscn")
 const TAILLE_PAUSE := Vector2(100, 100)
+const TAILLE_SOIN := Vector2(110, 110)
 
 var _attente_ips := 0.0
 var _pv := -1
@@ -18,6 +20,7 @@ var _nombre := 0
 var _rescape := Control.new()     # icône du rescapé, sous les cœurs
 var _rescape_suit := false
 var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
+var _soin: Control = BOUTON.instantiate()    # bouton Soigner, à gauche de Frapper
 
 
 func _ready() -> void:
@@ -61,6 +64,14 @@ func _ready() -> void:
 	_pause.appuye.connect(pause_demandee.emit)
 	add_child(_pause)   # après le joystick : il prend le doigt avant lui
 	_pause.size = TAILLE_PAUSE
+	_soin.texte = "Soigner"
+	_soin.icone = "soigner"
+	_soin.couleur = Palette.SORTIE
+	_soin.actif = false
+	_soin.custom_minimum_size = TAILLE_SOIN
+	_soin.appuye.connect(soigner.emit)
+	add_child(_soin)
+	_soin.size = TAILLE_SOIN
 	$Objectif.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Objectif.visible = false
 	get_viewport().size_changed.connect(_placer_objectif)
@@ -109,6 +120,11 @@ func etat_cachette(proche: bool, cache: bool) -> void:
 	$BoutonCacher.texte = "Sortir" if cache else "Cacher"
 	$BoutonCacher.icone = "sortir" if cache else "cacher"
 	$BoutonAttaquer.actif = not cache
+
+
+## Soigner n'est actif que si le héros est blessé et a un bandage (soins de la mission pas épuisés).
+func etat_soin(possible: bool) -> void:
+	_soin.actif = possible
 
 
 ## Délai entre deux coups : fraction restante (0 = Frapper disponible), jauge autour du bouton.
@@ -169,12 +185,14 @@ func _placer_objectif() -> void:
 	$Objectif.offset_top = 52.0 if ecran.x > ecran.y else 150.0
 	$Objectif.offset_bottom = $Objectif.offset_top + 48.0
 	_pause.position = Vector2((ecran.x - TAILLE_PAUSE.x) / 2.0, $Objectif.offset_bottom + 4.0)
+	# Soigner : à gauche de Frapper, bas alignés
+	_soin.position = Vector2(ecran.x + $BoutonAttaquer.offset_left - 24.0 - TAILLE_SOIN.x, ecran.y + $BoutonAttaquer.offset_bottom - TAILLE_SOIN.y)
 
 
 ## Le jeu se fige : on oublie les doigts posés (joystick, boutons), leur lever n'arrivera pas.
 func relacher() -> void:
 	$Joystick.relacher()
-	for bouton in [$BoutonAttaquer, $BoutonCacher, _pause]:
+	for bouton in [$BoutonAttaquer, $BoutonCacher, _pause, _soin]:
 		bouton.relacher()
 
 

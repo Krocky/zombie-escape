@@ -27,6 +27,7 @@ var _direction := Vector2.ZERO
 var _temps := 0.0
 var _pv_max := Partie.heros_pv()   # avec la barricade de la base
 var _pv := _pv_max
+var _touche := false   # a déjà perdu un cœur (même soigné ensuite)
 var _recul := Vector2.ZERO
 var _invulnerable := 0.0
 var _recharge_attaque := 0.0
@@ -110,9 +111,22 @@ func regard() -> Vector2:
 	return _regard
 
 
-## Vrai tant que le héros n'a perdu aucun cœur.
+## Vrai tant que le héros n'a perdu aucun cœur (un soin ne le rend pas intact).
 func intact() -> bool:
-	return _pv == _pv_max
+	return not _touche
+
+
+## Blessé (au moins un cœur perdu) et encore debout : il peut être soigné.
+func blesse() -> bool:
+	return _pv > 0 and _pv < _pv_max
+
+
+## Appelé par le niveau (bouton Soigner) : rend des cœurs, sans dépasser le maximum.
+func soigner(coeurs: int) -> void:
+	if not blesse():
+		return
+	_pv = mini(_pv + coeurs, _pv_max)
+	pv_change.emit(_pv, _pv_max)
 
 
 ## Délai avant le prochain coup, en fraction de Reglages.ATTAQUE_DELAI (0 = prêt à frapper).
@@ -156,6 +170,7 @@ func recevoir_degats(degats: int, depuis: Vector2) -> void:
 	if _pv <= 0 or _cache or _invulnerable > 0.0:
 		return
 	_pv = maxi(_pv - degats, 0)
+	_touche = true
 	_invulnerable = Reglages.HEROS_INVULNERABLE
 	_recul = depuis.direction_to(global_position) * Reglages.HEROS_RECUL
 	pv_change.emit(_pv, _pv_max)
