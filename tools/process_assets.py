@@ -2,7 +2,14 @@
 """Détoure les images générées (Gemini, fond magenta #FF00FF) et les prépare pour le jeu.
 
 Usage :
-    python3 tools/process_assets.py [--source docs/raw/V3] [--sortie images/v3] [--tolerance 60]
+    python3 tools/process_assets.py            # traite seulement les nouveautés de docs/raw/V3
+    python3 tools/process_assets.py --liste    # montre les nouveautés sans rien traiter
+    python3 tools/process_assets.py --tout     # retraite tout (après un changement de réglage)
+    options : --source docs/raw/V3 --sortie images/v3 --tolerance 60 --douceur 70 --ouverture 4
+
+Nouveauté = image absente de manifest.json, ou dont le fichier a changé (empreinte SHA-1 gardée
+dans le manifest). Un personnage déjà traité garde son échelle (echelles_perso du manifest) :
+ses nouvelles poses sortent à la même taille que les anciennes.
 
 Pour chaque image (.png, .jpg) du dossier source (jamais modifié ni supprimé) :
 1. contrôle du fond : magenta attendu ; un faux damier de transparence (gris/blanc) est signalé
@@ -22,6 +29,7 @@ Besoin : Python 3, numpy, pillow.
 """
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -359,6 +367,15 @@ def mettre_a_taille(res, image, echelles_perso):
     return image
 
 
+def empreinte(chemin):
+    with open(chemin, "rb") as fh:
+        return hashlib.sha1(fh.read()).hexdigest()
+
+
+def nom_sortie(chemin):
+    return re.sub(r"[-\s]+", "_", os.path.splitext(os.path.basename(chemin))[0].lower())
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--source", default=os.path.join(RACINE, "docs", "raw", "V3"))
@@ -367,8 +384,16 @@ def main():
     ap.add_argument("--tolerance", type=float, default=60, help="distance RGB au magenta = transparent")
     ap.add_argument("--douceur", type=float, default=70, help="largeur de la transition vers l'opaque")
     ap.add_argument("--ouverture", type=int, default=4, help="traits plus fins que 2 x N px effacés (0 = rien)")
+    ap.add_argument("--liste", action="store_true", help="montre seulement les nouveautés, sans rien traiter")
+    ap.add_argument("--tout", action="store_true", help="retraite toutes les images (et recalcule les échelles)")
     args = ap.parse_args()
     manifest_chemin = args.manifest or os.path.join(args.sortie, "manifest.json")
+
+    manifest = {"images": {}}
+    if os.path.exists(manifest_chemin):
+        with open(manifest_chemin, encoding="utf-8") as fh:
+            manifest = json.load(fh)
+    connues = manifest["images"]
 
     fichiers = sorted(f for f in glob.glob(os.path.join(args.source, "*"))
                       if f.lower().endswith((".png", ".jpg", ".jpeg")))
@@ -376,32 +401,54 @@ def main():
         print("Aucune image dans", args.source)
         return
 
-    resultats = []
-    vus = {}
+    # Nouveautés : image absente du manifest, ou modifiée depuis (empreinte du fichier source)
+    a_traiter, a_jour, vus = [], [], {}
     for f in fichiers:
-        cle = re.sub(r"[-\s]+", "_", os.path.splitext(os.path.basename(f))[0].lower())
+        cle = nom_sortie(f)
         if cle in vus:
             print("  ignorée :", os.path.basename(f), "donnerait le même fichier que", os.path.basename(vus[cle]))
             continue
         vus[cle] = f
-        print("…", os.path.basename(f), flush=True)
-        resultats.append(traiter(f, args))
+        ancienne = connues.get(cle)
+        if ancienne is None:
+            etat = "nouvelle"
+        elif ancienne.get("empreinte") != empreinte(f):
+            etat = "modifiée"
+        else:
+            etat = None
+        if etat or args.tout:
+            a_traiter.append((f, etat or "retraitée"))
+        else:
+            a_jour.append(cle)
+    disparues = sorted(set(connues) - set(vus))
 
-    # Échelle commune par personnage : hauteur médiane de ses poses = HAUTEURS[préfixe]
+    print("Déjà traitées, inchangées : %d" % len(a_jour))
+    print("À traiter : %d" % len(a_traiter))
+    for f, etat in a_traiter:
+        print("  %-30s %s" % (os.path.basename(f), etat))
+    if disparues:
+        print("Dans le manifest mais plus dans la source (gardées) :", ", ".join(disparues))
+    if args.liste or not a_traiter:
+        return
+
+    resultats = []
+    for f, etat in a_traiter:
+        print("…", os.path.basename(f), flush=True)
+        res, image = traiter(f, args)
+        res["empreinte"] = empreinte(f)
+        resultats.append((res, image))
+
+    # Échelle commune par personnage : hauteur médiane de ses poses = HAUTEURS[préfixe].
+    # Un personnage déjà connu garde son échelle (ses nouvelles poses restent à la même taille).
+    echelles = {} if args.tout else dict(manifest.get("echelles_perso", {}))
     hauteurs = {}
     for res, image in resultats:
-        if image is not None and res["categorie"] == "perso":
-            hauteurs.setdefault(res["personnage"], []).append(image.height)
-    echelles = {}
-    for res, image in resultats:
         if image is not None and res["categorie"] == "perso" and res["personnage"] not in echelles:
-            echelles[res["personnage"]] = HAUTEURS[res["prefixe"]] / float(np.median(hauteurs[res["personnage"]]))
+            hauteurs.setdefault(res["personnage"], []).append((res["prefixe"], image.height))
+    for perso, liste in hauteurs.items():
+        echelles[perso] = HAUTEURS[liste[0][0]] / float(np.median([h for _, h in liste]))
 
     os.makedirs(args.sortie, exist_ok=True)
-    manifest = {"images": {}}
-    if os.path.exists(manifest_chemin):
-        with open(manifest_chemin, encoding="utf-8") as fh:
-            manifest = json.load(fh)
     traitees, anomalies = [], []
     for res, image in resultats:
         if image is not None:
@@ -411,9 +458,10 @@ def main():
             res["fichier"] = os.path.relpath(fichier, RACINE)
             traitees.append(res)
         entree = {k: v for k, v in res.items() if v is not None and k not in ("prefixe",)}
-        manifest["images"][res["nom"]] = entree
+        connues[res["nom"]] = entree
         if res["anomalies"]:
             anomalies.append(res)
+    manifest["echelles_perso"] = {k: round(v, 6) for k, v in sorted(echelles.items())}
     manifest["reglages"] = {"tolerance": args.tolerance, "douceur": args.douceur, "ouverture": args.ouverture,
                             "hauteurs_perso": HAUTEURS, "dalle": [DALLE_LARGEUR, DALLE_HAUTEUR],
                             "iso_rapport": ISO_RAPPORT, "largeur_case_texture": LARGEUR_CASE_ECRAN * TEXTURE_X}
