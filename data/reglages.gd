@@ -70,18 +70,19 @@ var JOYSTICK_ZONE_MORTE := 0.2      # entre 0 et 1 : en dessous, le héros ne bo
 # --- Zombie lent (gros et résistant) ---
 var ZOMBIE_LENT_VITESSE := 140.0             # vitesse quand il te poursuit
 var ZOMBIE_LENT_VITESSE_PATROUILLE := 55.0   # vitesse quand il se promène
-var ZOMBIE_LENT_PV := 4                      # nombre de coups de batte pour le battre
+var ZOMBIE_LENT_PV := 5                      # nombre de coups de batte pour le battre
+var ZOMBIE_LENT_GARDE := 2                   # garde : sonné et repoussé seulement un coup sur 2 (1 = à chaque coup)
 var ZOMBIE_LENT_DEGATS := 1                  # cœurs qu'il t'enlève quand il te touche
 
 # --- Zombie rapide (maigre et fragile) ---
 var ZOMBIE_RAPIDE_VITESSE := 210.0
 var ZOMBIE_RAPIDE_VITESSE_PATROUILLE := 80.0
-var ZOMBIE_RAPIDE_PV := 2
+var ZOMBIE_RAPIDE_PV := 3
 var ZOMBIE_RAPIDE_DEGATS := 1
 
 # --- Zombie coureur (combinaison orange) : il fonce sur toi, puis s'arrête essoufflé ---
 # Il ne t'entend pas et ne te sent pas de dos : il te repère seulement dans son cône de vue.
-var ZOMBIE_COUREUR_PV := 1                   # un seul coup de batte suffit
+var ZOMBIE_COUREUR_PV := 2                   # coups de batte pour le battre
 var ZOMBIE_COUREUR_VITESSE_FOIS := 1.8       # vitesse de charge = 1,8 x la vitesse du zombie lent (ZOMBIE_LENT_VITESSE)
 var ZOMBIE_COUREUR_VITESSE_PATROUILLE := 60.0
 var ZOMBIE_COUREUR_DEGATS := 1
@@ -97,6 +98,7 @@ var ZOMBIE_DELAI_RECHERCHE := 3.0            # secondes à te chercher avant de 
 var ZOMBIE_DELAI_BLOQUE := 1.0               # coincé contre le décor (en patrouille ou en rentrant) : il repart d'où il est
 var ZOMBIE_PORTEE_CONTACT := 45.0       # distance à laquelle il te touche
 var ZOMBIE_DELAI_DEGATS := 1.0          # secondes entre deux coups du même zombie
+var ZOMBIE_PREPARATION := 0.3          # secondes où il lève les bras avant de frapper (recule pour esquiver !)
 var ZOMBIE_RECUL := 350.0               # force du recul quand tu le frappes
 var ZOMBIE_ETOURDI := 0.4               # secondes où il est sonné après un coup
 var ZOMBIE_DELAI_CRI := 6.0             # secondes minimum entre deux cris du même zombie

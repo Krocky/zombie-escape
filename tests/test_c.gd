@@ -26,6 +26,8 @@ func _physics_process(_d):
 		_touch(1, bouton, false)
 	if f == 50: _touch(1, bouton, true)
 	if f == 58: _touch(1, bouton, false)
+	if f == 84: _touch(1, bouton, true)  # 3e coup : le maigre a 3 PV depuis le lot 3 b
+	if f == 92: _touch(1, bouton, false)
 	if f == 100:
 		print("zombie rapide battu: ", not is_instance_valid(zr) or zr._pv <= 0, " (OK si true)")
 		_touch(0, Vector2(200, taille.y - 200), false)

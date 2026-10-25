@@ -3,9 +3,12 @@ extends CharacterBody2D
 ## poursuit, cherche là où il l'a perdu, puis retourne patrouiller.
 ## Le niveau lui donne la position du héros (connaitre_heros) et les bruits (entendre).
 ## Origine = aux pieds (coordonnées monde). Affichage isométrique : sprites V2 dans le calque Vue,
-## yeux sur l'enfant « Yeux » (non assombri par la nuit), cône de vue sur le calque du sol.
+## yeux sur l'enfant « Yeux » (non assombri par la nuit), cône de vue sur le calque des repères (non assombri).
 ## Le zombie COUREUR (images V3) ne repère le héros que dans son cône (ni bruit, ni contact de dos) :
 ## il charge très vite, puis s'arrête ESSOUFFLE (immobile, inoffensif) avant de pouvoir recharger.
+## Au contact, il s'arrête et lève les bras (Reglages.ZOMBIE_PREPARATION) : le coup ne part qu'à la fin du geste,
+## si le héros est encore au contact (on peut esquiver en reculant). Le gros a une garde : il n'est sonné
+## et repoussé qu'un coup sur Reglages.ZOMBIE_LENT_GARDE.
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
@@ -55,6 +58,8 @@ var _delai_cri := 0.0     # évite qu'il crie en boucle
 var _charge := 0.0        # coureur : temps depuis le début de la charge
 var _souffle := 0.0       # coureur : temps restant essoufflé
 var _bloque := 0.0        # temps passé coincé contre le décor (patrouille, retour)
+var _preparation := 0.0   # temps restant du geste avant son coup (bras levés), 0 = pas de coup en préparation
+var _coups_recus := 0     # coups de batte reçus (garde du gros)
 # Yeux du dessin de secours (calculés pendant le dessin du corps)
 var _yeux_centre := Vector2.ZERO
 var _yeux_sens := 1.0
@@ -64,6 +69,7 @@ var _vue := Node2D.new()   # dans le calque Vue du niveau
 var _haut_icone := -120.0  # au-dessus de la tête : « ! », « ? », étoiles
 var _impact := 0.0         # temps restant de la gerbe d'étincelles du coup de batte
 const DUREE_IMPACT := 0.3
+const MONTEE_BRAS := 0.12   # secondes pour lever les bras (ils restent levés jusqu'au coup)
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
 @onready var _yeux: Node2D = $Yeux   # enfant de _vue
@@ -97,6 +103,7 @@ func _ready() -> void:
 	var sans_ombre := CanvasItemMaterial.new()
 	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	_yeux.material = sans_ombre
+	_cone.material = sans_ombre   # visible dans la nuit
 	_yeux.draw.connect(_dessiner_yeux)
 	remove_child(_yeux)
 	_vue.add_child(_yeux)
@@ -104,10 +111,15 @@ func _ready() -> void:
 	_vue.position = Iso.ecran(global_position)
 
 
-## Nœuds d'affichage, placés par le niveau.
+## Nœuds d'affichage, placés par le niveau (cône : calque des repères, non assombri).
 func visuels() -> Dictionary:
 	remove_child(_cone)
-	return {"vue": _vue, "sol": _cone}
+	return {"vue": _vue, "repere": _cone}
+
+
+## Vrai pendant qu'il lève les bras avant de frapper.
+func prepare_coup() -> bool:
+	return _preparation > 0.0
 
 
 func _exit_tree() -> void:
@@ -121,10 +133,14 @@ func recevoir_coup(degats: int, depuis: Vector2) -> void:
 	if _battu:
 		return
 	_pv -= degats
+	_coups_recus += 1
 	$Coup.stream = SONS_COUP.pick_random()
 	$Coup.play()
-	_recul = depuis.direction_to(global_position) * Reglages.ZOMBIE_RECUL
-	_etourdi = Reglages.ZOMBIE_ETOURDI
+	# Garde du gros : les autres coups font mal (flash) sans l'arrêter
+	if type != Type.LENT or _coups_recus % maxi(Reglages.ZOMBIE_LENT_GARDE, 1) == 0:
+		_recul = depuis.direction_to(global_position) * Reglages.ZOMBIE_RECUL
+		_etourdi = Reglages.ZOMBIE_ETOURDI
+		_preparation = 0.0   # sonné : son coup est annulé
 	_flash = 0.15
 	_impact = DUREE_IMPACT
 	_point_recherche = depuis
@@ -237,16 +253,23 @@ func _physics_process(delta: float) -> void:
 			if global_position.distance_to(_depart) < 10.0:
 				_changer_etat(Etat.PATROUILLE)
 
-	if voit and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT \
+	if _preparation > 0.0:
+		# Bras levés : le coup part à la fin du geste
+		_preparation = maxf(_preparation - delta, 0.0)
+		if _etat == Etat.ESSOUFFLE:
+			_preparation = 0.0   # coureur à bout de souffle pendant le geste : pas de coup
+		elif _preparation == 0.0:
+			_frapper()
+	elif voit and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT \
 			and _delai_coup == 0.0 and _etourdi == 0.0 and _etat != Etat.ESSOUFFLE:
-		_delai_coup = Reglages.ZOMBIE_DELAI_DEGATS
-		touche_heros.emit(_degats(), global_position)
-		if type == Type.COUREUR:
-			_changer_etat(Etat.ESSOUFFLE)   # sa charge s'arrête sur toi
+		if Reglages.ZOMBIE_PREPARATION > 0.0:
+			_preparation = Reglages.ZOMBIE_PREPARATION
+		else:
+			_frapper()
 
 	var direction := global_position.direction_to(cible) if global_position.distance_to(cible) > 4.0 else Vector2.ZERO
-	if _etourdi > 0.0:
-		direction = Vector2.ZERO
+	if _etourdi > 0.0 or _preparation > 0.0:
+		direction = Vector2.ZERO   # sonné, ou il lève les bras (il ne bouge plus)
 	velocity = direction * _vitesse() + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
@@ -256,6 +279,16 @@ func _physics_process(delta: float) -> void:
 	_temps += delta * (2.0 if _etat == Etat.POURSUITE else 1.0)
 	_suivre()
 	_cone.queue_redraw()
+
+
+## Fin du geste : le coup touche si le héros est encore au contact (sinon il l'a esquivé).
+## Dans les deux cas il attend Reglages.ZOMBIE_DELAI_DEGATS avant un nouveau coup.
+func _frapper() -> void:
+	_delai_coup = Reglages.ZOMBIE_DELAI_DEGATS
+	if _heros_detectable and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT:
+		touche_heros.emit(_degats(), global_position)
+	if type == Type.COUREUR:
+		_changer_etat(Etat.ESSOUFFLE)   # sa charge s'arrête sur toi
 
 
 ## Sans recherche de chemin, il peut rester coincé contre une étagère en patrouille ou en rentrant : s'il n'avance
@@ -343,6 +376,20 @@ func _dessiner() -> void:
 		_dessiner_secours(s)
 	v.draw_set_transform(Vector2.ZERO)
 	_haut_icone = haut
+	if _preparation > 0.0:
+		_dessiner_bras_leves(-haut - 8.0)
+
+
+## Bras levés au-dessus de la tête (il va frapper) : ils montent vite, puis restent levés jusqu'au coup.
+func _dessiner_bras_leves(hauteur: float) -> void:
+	var monte := minf((Reglages.ZOMBIE_PREPARATION - _preparation) / MONTEE_BRAS, 1.0)
+	var largeur := 26.0 if type == Type.LENT else 15.0
+	for cote: float in [-1.0, 1.0]:
+		var epaule := Vector2(cote * largeur, -hauteur * 0.62)
+		var main := Vector2(cote * (largeur + 10.0), -hauteur * (0.62 + 0.5 * monte) - 6.0)
+		_vue.draw_line(epaule, main, Palette.CONTOUR, 13.0)
+		_vue.draw_line(epaule, main, Palette.ZOMBIE_PEAU, 8.0)
+		Dessin.cercle(_vue, main, 7.0, Palette.ZOMBIE_PEAU)
 
 
 ## Dessin en code (si les images manquent).
@@ -419,6 +466,8 @@ func _dessiner_icone() -> void:
 	_yeux.draw_set_transform(Vector2.ZERO)
 	if _etourdi > 0.0:
 		_dessiner_etoiles(Vector2(0, _haut_icone))
+	elif _preparation > 0.0:
+		_dessiner_alerte(Vector2(0, _haut_icone - 14.0), Palette.ZOMBIE_PREPARATION)
 	elif _etat == Etat.ESSOUFFLE:
 		_dessiner_essouffle(Vector2(0, _haut_icone))
 	elif _etat == Etat.POURSUITE:
@@ -467,11 +516,11 @@ func _dessiner_yeux() -> void:
 		_yeux.draw_circle(oeil + Vector2(_yeux_sens, 0), 1.6, Palette.CONTOUR)
 
 
-func _dessiner_alerte(p: Vector2) -> void:
-	# Point d'exclamation : le zombie t'a vu !
+func _dessiner_alerte(p: Vector2, couleur := Palette.LAMPE) -> void:
+	# Point d'exclamation : le zombie t'a vu ! (rouge : il va frapper)
 	Dessin.polygone(_yeux, PackedVector2Array([
-		p + Vector2(-7, -26), p + Vector2(7, -26), p + Vector2(4, -4), p + Vector2(-4, -4)]), Palette.LAMPE)
-	Dessin.cercle(_yeux, p + Vector2(0, 5), 5, Palette.LAMPE)
+		p + Vector2(-7, -26), p + Vector2(7, -26), p + Vector2(4, -4), p + Vector2(-4, -4)]), couleur)
+	Dessin.cercle(_yeux, p + Vector2(0, 5), 5, couleur)
 
 
 func _dessiner_essouffle(p: Vector2) -> void:
@@ -504,8 +553,11 @@ func _dessiner_cone() -> void:
 	for i in 13:
 		var a := _regard.angle() - demi + 2.0 * demi * i / 12.0
 		points.append(Iso.ecran(global_position + Vector2(cos(a), sin(a)) * _portee_vue()))
-	var couleur := Palette.ZOMBIE_VUE_ALERTE if _etat == Etat.POURSUITE else Palette.ZOMBIE_VUE
-	_cone.draw_colored_polygon(points, couleur)
+	var alerte := _etat == Etat.POURSUITE
+	_cone.draw_colored_polygon(points, Palette.ZOMBIE_VUE_ALERTE if alerte else Palette.ZOMBIE_VUE)
+	# Contour net sur le calque sans ombre : on voit le cône dans la nuit
+	points.append(points[0])
+	_cone.draw_polyline(points, Palette.ZOMBIE_VUE_BORD_ALERTE if alerte else Palette.ZOMBIE_VUE_BORD, 3.0, true)
 
 
 func _dessiner_question(p: Vector2) -> void:

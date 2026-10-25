@@ -4,7 +4,8 @@ extends Node2D
 ## est dans sa scène (`scenes/lieux/`), qui hérite de `niveau.tscn` et règle taille, graine et débris.
 ## Un lieu peut avoir un `Rescape` (enlevé s'il est déjà sauvé).
 ## Monde (physique, IA) en coordonnées monde, caché ; l'affichage isométrique est dans les calques
-## SolEffets (ombres, cônes de vue) et Vue (trié en profondeur), voir Iso.
+## SolEffets (ombres), Reperes (cônes de vue, ondes de bruit : sans ombre, au-dessus de la brume du sol)
+## et Vue (trié en profondeur), voir Iso.
 
 const CASE := 200.0          # une dalle (3 x 3 carreaux) couvre une case du monde
 ## Le sol est dessiné en blocs de BLOC x BLOC cases : chaque bloc n'est éclairé que par les
@@ -68,6 +69,8 @@ func _ready() -> void:
 			var visuels: Dictionary = entite.visuels()
 			if visuels.has("sol"):
 				$SolEffets.add_child(visuels["sol"])
+			if visuels.has("repere"):
+				$Reperes.add_child(visuels["repere"])
 			if visuels.has("vue"):
 				$Vue.add_child(visuels["vue"])
 	_tirer_sol()
@@ -198,6 +201,7 @@ func _sur_cacher() -> void:
 
 
 func _sur_bruit(origine: Vector2, rayon: float) -> void:
+	$Reperes/Ondes.emettre(origine, rayon, rayon > Reglages.BRUIT_PAS)   # plus fort que les pas : coup de batte
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.entendre(origine, rayon)
 

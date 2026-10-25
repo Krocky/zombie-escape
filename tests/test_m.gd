@@ -4,7 +4,7 @@ extends SceneTree
 ##    (« La base d'Eliott », sauvegarde) ; bouton Héros -> écran de choix prérempli -> Base.
 ## 2. Supermarché avec l'héroïne : poses walk_a / walk_b en marche, attack au coup, idle à l'arrêt ;
 ##    sans poses de marche : rebond + inclinaison. Écran de fin avec l'héroïne (« sortie »).
-## 3. Coureur : 1 PV, charge à 1,8 x la vitesse du lent, sourd, ne sent pas de dos, essoufflé 1,5 s après sa charge.
+## 3. Coureur : 2 PV (lot 3 b), charge à 1,8 x la vitesse du lent, sourd, ne sent pas de dos, essoufflé 1,5 s après sa charge.
 ## Efface la sauvegarde à la fin.
 var f := 0
 var g := 0          # pas depuis le début de la phase
@@ -147,13 +147,13 @@ func _physics_process(_d):
 			if mesures.has("souffle_debut") and z._etat != 4 and not mesures.has("souffle_fin"):
 				mesures["souffle_fin"] = g
 				print("fin de l'essoufflement apres ", snappedf((g - mesures["souffle_debut"]) / 60.0, 0.01), " s -> ", E[z._etat])
-				# Un seul coup de batte
+				# Un coup de batte (il en faut 2 depuis le lot 3 b)
 				h.position = z.position + Vector2(-60, 0)
 				h._regard = Vector2.RIGHT
 			if mesures.has("souffle_fin") and g == mesures["souffle_fin"] + 3:
 				h.attaquer()
 			if mesures.has("souffle_fin") and g == mesures["souffle_fin"] + 10:
-				print("coureur apres 1 coup: battu=", z._battu, " (attendu true)")
+				print("coureur apres 1 coup: battu=", z._battu, " pv=", z._pv, " (attendu false, pv ", root.get_node("Reglages").ZOMBIE_COUREUR_PV - 1, ")")
 				_aller("fin")
 			if g > 600:
 				print("ECHEC : le coureur n'a pas fini sa charge"); _aller("fin")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/niveau.gd" id="1_niveau"]
 [ext_resource type="PackedScene" path="res://scenes/heros.tscn" id="3_heros"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/brouillard.tscn" id="9_brouillard"]
 [ext_resource type="PackedScene" path="res://scenes/vignette.tscn" id="10_vignette"]
 [ext_resource type="PackedScene" path="res://scenes/pause.tscn" id="11_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ondes.tscn" id="12_ondes"]
 
 [node name="Niveau" type="Node2D"]
 script = ExtResource("1_niveau")
@@ -22,6 +23,10 @@ z_index = 0
 force = 1.3
 lumineuse = true
 graine = 2
+
+[node name="Reperes" type="Node2D" parent="."]
+
+[node name="Ondes" parent="Reperes" instance=ExtResource("12_ondes")]
 
 [node name="Vue" type="Node2D" parent="."]
 z_index = 1

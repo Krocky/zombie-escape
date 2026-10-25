@@ -36,8 +36,10 @@ const PAGES := [
 		["ZOMBIE_VUE_ANGLE", "Largeur de vue (°)", 10.0, 30.0, 180.0],
 		["ZOMBIE_LENT_VITESSE", "Gros : vitesse", 10.0, 50.0, 400.0],
 		["ZOMBIE_LENT_PV", "Gros : coups pour le battre", 1, 1, 20],
+		["ZOMBIE_LENT_GARDE", "Gros : sonné un coup sur", 1, 1, 5],
 		["ZOMBIE_RAPIDE_VITESSE", "Maigre : vitesse", 10.0, 50.0, 400.0],
 		["ZOMBIE_RAPIDE_PV", "Maigre : coups pour le battre", 1, 1, 20],
+		["ZOMBIE_PREPARATION", "Bras levés avant le coup (s)", 0.05, 0.0, 1.0],
 	]],
 	["Zombie coureur", [
 		["ZOMBIE_COUREUR_PV", "Coups pour le battre", 1, 1, 20],

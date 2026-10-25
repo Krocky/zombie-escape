@@ -59,7 +59,16 @@ Petit script (non ajouté au dépôt) : le héros reste immobile dans l'allée c
 | Coureur seul | battu en 1 coup, 0,9 s, **0 cœur perdu** |
 | Gros + maigre de deux côtés | battus en 6 coups, 3,7 s, 1 cœur perdu |
 
-Explication : la batte touche à 90 px, le zombie blesse à 45 px ; chaque coup le repousse (350) et le sonne 0,4 s ; la batte est prête 0,5 s après. Le zombie n'a jamais le temps de revenir au contact.
+Mesure refaite après le lot 3 b (`tests/mesure_combat.gd`, même méthode ; 1 cœur de plus par zombie, garde du gros, bras levés 0,3 s) :
+
+| Situation | Avant | Après L3-b |
+|-----------|-------|------------|
+| Gros zombie seul | 4 coups, 3,5 s, 0 cœur perdu | 5 coups, 3,6 s, **1 cœur perdu** |
+| Maigre seul | 2 coups, 1,6 s, 0 cœur perdu | 3 coups, 2,2 s, 0 cœur perdu |
+| Coureur seul | 1 coup, 0,9 s, 0 cœur perdu | 2 coups, 1,4 s, 0 cœur perdu |
+| Gros + maigre de deux côtés | 6 coups, 3,6 s, 1 cœur perdu | 8 coups, 4,7 s, 2 cœurs perdus |
+
+Explication (avant L3-b) : la batte touche à 90 px, le zombie blesse à 45 px ; chaque coup le repousse (350) et le sonne 0,4 s ; la batte est prête 0,5 s après. Le zombie n'a jamais le temps de revenir au contact.
 
 ### 3.2 Ce qui marche bien
 - Boucle complète Base -> Carte -> Lieu -> Fin -> Base, sans game over brutal : idéal pour 10 ans.

@@ -85,8 +85,12 @@ const ZOMBIE_TSHIRT := Color("5a5266")
 const ZOMBIE_PANTALON := Color("2c3044")
 const ZOMBIE_YEUX := Color("f2e6a0")
 const ZOMBIE_YEUX_LUEUR := Color(0.95, 0.9, 0.4, 0.28)   # halo autour des yeux dans le noir
-const ZOMBIE_VUE := Color(0.56, 0.69, 0.54, 0.13)          # cône de vue calme
-const ZOMBIE_VUE_ALERTE := Color(0.88, 0.34, 0.42, 0.16)   # cône de vue en poursuite
+const ZOMBIE_VUE := Color(1.0, 0.94, 0.62, 0.05)           # cône de vue calme (non assombri par la nuit : léger)
+const ZOMBIE_VUE_ALERTE := Color(0.95, 0.25, 0.25, 0.08)   # cône de vue en poursuite
+const ZOMBIE_VUE_BORD := Color(1.0, 0.94, 0.62, 0.45)      # contour du cône, jaune pâle (patrouille)
+const ZOMBIE_VUE_BORD_ALERTE := Color(1.0, 0.28, 0.25, 0.8) # contour du cône, rouge (poursuite)
+const ZOMBIE_PREPARATION := Color("ff4a3d")                # « ! » rouge : il lève les bras, il va frapper
+const ONDE_BRUIT := Color("e4ecff")                        # onde de bruit (pas, batte) au sol
 
 # Interface
 const UI_FOND := Color(0.08, 0.07, 0.13, 0.55)
