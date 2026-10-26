@@ -18,6 +18,9 @@ const NOMS := {
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
 }
+## Pseudo-objet des objectifs « guérir N zombies » (après le remède) : une guérison faite compte comme un « guerison »
+## parmi les objets donnés à avancee_objectif.
+const GUERISON := "guerison"
 ## Objets à part, hors inventaire de la base, coûts, objectifs et bonus, jamais rapportés ni comptés dans
 ## « Objets à trouver » : la clef ouvre la porte (Porte) de même teinte (Palette.CLEF) dans le lieu.
 const NOMS_SPECIAUX := {"clef": "Clef"}
@@ -68,9 +71,9 @@ var etoiles_lieux := {}
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
 ## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array),
-## trouvailles (objets rapportés par les rescapés de la base, Array)
+## trouvailles (objets rapportés par les rescapés de la base, Array), gueris (zombies guéris avec une fiole, int)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
-	"intact": false, "jardin": [], "trouvailles": []}
+	"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}
 
 
 func _ready() -> void:
@@ -78,8 +81,9 @@ func _ready() -> void:
 
 
 ## Appelé par le niveau à la fin. En cas de défaite, on perd la moitié des objets (au hasard, arrondi en dessous).
-## rescape : le rescapé du lieu suivait le héros à la sortie ; intact : le héros n'a perdu aucun cœur.
-func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false) -> void:
+## rescape : le rescapé du lieu suivait le héros à la sortie ; intact : le héros n'a perdu aucun cœur ;
+## gueris : zombies guéris avec une fiole (chacun compte comme un rescapé sauvé, même en cas de défaite).
+func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false, gueris := 0) -> void:
 	var rapportes := ramasses.duplicate()
 	var perdus := []
 	if not victoire:
@@ -87,7 +91,7 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 		for i in rapportes.size() / 2:
 			perdus.append(rapportes.pop_back())
 	# Objectif rempli en sortant vivant : bonus d'objets au hasard (jamais de fiole, elle se mérite)
-	var mission := victoire and objectif_rempli(lieu, rapportes)
+	var mission := victoire and objectif_rempli(lieu, rapportes + avec_guerisons([], gueris))
 	var types := NOMS.keys()
 	types.erase("fiole")
 	var bonus := []
@@ -109,20 +113,23 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 	if sauve:
 		rescapes += 1
 		lieux_sauves.append(lieu)
+	rescapes += gueris
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
 		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact,
-		"jardin": jardin, "trouvailles": trouvailles}
+		"jardin": jardin, "trouvailles": trouvailles, "gueris": gueris}
 	# Meilleur nombre d'étoiles du lieu (gardé s'il n'est pas battu)
 	if etoiles() > meilleures_etoiles(lieu):
 		etoiles_lieux[lieu] = etoiles()
 	sauvegarder()
 
 
-## Étoiles de l'écran de victoire (0 à 3) : 1 pour être sorti, +1 objectif rempli, +1 rescapé sauvé ou aucun cœur perdu.
+## Étoiles de l'écran de victoire (0 à 3) : 1 pour être sorti, +1 objectif rempli, +1 rescapé sauvé (ou zombie guéri)
+## ou aucun cœur perdu.
 func etoiles() -> int:
 	if not resultat["victoire"]:
 		return 0
-	return 1 + int(resultat["mission"]) + int(resultat.get("rescape", false) or resultat.get("intact", false))
+	var sauve: bool = resultat.get("rescape", false) or resultat.get("gueris", 0) > 0
+	return 1 + int(resultat["mission"]) + int(sauve or resultat.get("intact", false))
 
 
 ## Meilleur nombre d'étoiles gagné dans un lieu (0 s'il n'a jamais été réussi).
@@ -207,11 +214,12 @@ func _propriete(etat: SceneState, noeud: int, nom_propriete: String, defaut: Var
 
 # --- Missions ---
 
-## Objets à rapporter dans un lieu : { type: nombre }.
+## Objets à rapporter dans un lieu : { type: nombre } (GUERISON : zombies à guérir).
+## Après le remède, le supermarché ne demande plus de fiole mais de guérir un zombie.
 func objectif(id: String) -> Dictionary:
 	match id:
 		"supermarche":
-			return Reglages.SUPERMARCHE_OBJECTIF
+			return Reglages.SUPERMARCHE_OBJECTIF_REMEDE if remede_trouve() else Reglages.SUPERMARCHE_OBJECTIF
 		"maison":
 			return Reglages.MAISON_OBJECTIF
 		"pharmacie":
@@ -219,16 +227,31 @@ func objectif(id: String) -> Dictionary:
 	return {}
 
 
-## L'objectif en quelques mots : « rapporter 2 bandages ».
+## L'objectif en quelques mots : « rapporter 2 bandages », « guérir 1 zombie ».
 func texte_objectif(id: String) -> String:
 	var morceaux := []
 	var o := objectif(id)
 	for type in o:
+		if type == GUERISON:
+			continue
 		var mots := nom(type).to_lower().split(" ")
 		if o[type] > 1 and not mots[0].ends_with("s"):
 			mots[0] += "s"
 		morceaux.append("%d %s" % [o[type], " ".join(mots)])
-	return "rapporter " + " et ".join(morceaux)
+	var phrases := []
+	if o.has(GUERISON):
+		phrases.append("guérir %d zombie%s" % [o[GUERISON], "s" if o[GUERISON] > 1 else ""])
+	if not morceaux.is_empty():
+		phrases.append("rapporter " + " et ".join(morceaux))
+	return " et ".join(phrases)
+
+
+## Objets ramassés + un GUERISON par zombie guéri (pour avancee_objectif et objectif_rempli).
+func avec_guerisons(objets: Array, gueris: int) -> Array:
+	var liste := objets.duplicate()
+	for i in gueris:
+		liste.append(GUERISON)
+	return liste
 
 
 func objectif_rempli(id: String, objets: Array) -> bool:

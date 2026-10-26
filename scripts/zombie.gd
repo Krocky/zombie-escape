@@ -9,6 +9,8 @@ extends CharacterBody2D
 ## Au contact, il s'arrête et lève les bras (Reglages.ZOMBIE_PREPARATION) : le coup ne part qu'à la fin du geste,
 ## si le héros est encore au contact (on peut esquiver en reculant). Le gros a une garde : il n'est sonné
 ## et repoussé qu'un coup sur Reglages.ZOMBIE_LENT_GARDE.
+## Après le remède, une fiole lancée (guerir) le guérit : nuage vert clair, il redevient un survivant
+## (image survivor_happy) assis par terre, inoffensif et immobile pour le reste de la partie.
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
@@ -72,6 +74,13 @@ var _vue := Node2D.new()   # dans le calque Vue du niveau
 var _haut_icone := -120.0  # au-dessus de la tête : « ! », « ? », étoiles
 var _impact := 0.0         # temps restant de la gerbe d'étincelles du coup de batte
 const DUREE_IMPACT := 0.3
+var _gueri := false        # vrai pour toujours dès qu'une fiole l'a touché
+var _guerison := 0.0       # temps depuis le lancer de la fiole
+var _lancer := Vector2.ZERO   # départ de la fiole, à l'écran, relatif à ses pieds
+const DUREE_LANCER := 0.35    # vol de la fiole
+const DUREE_NUAGE := 1.0      # nuage vert ; il change d'apparence au milieu
+const ECHELLE_GUERI := 0.45   # survivant (images V3 à 2x), comme le rescapé
+const PERSO_GUERI := "survivor"
 const MONTEE_BRAS := 0.12   # secondes pour lever les bras (ils restent levés jusqu'au coup)
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
@@ -123,6 +132,27 @@ func visuels() -> Dictionary:
 ## Vrai pendant qu'il lève les bras avant de frapper.
 func prepare_coup() -> bool:
 	return _preparation > 0.0
+
+
+## Vrai quand une fiole l'a guéri (il n'est plus un zombie).
+func gueri() -> bool:
+	return _gueri
+
+
+## Après le remède : le héros lui lance une fiole depuis « depuis » (monde). Il n'est plus un zombie
+## (hors du groupe, plus de collision) : il s'arrête, la fiole vole jusqu'à lui, nuage vert, il redevient humain.
+func guerir(depuis: Vector2) -> void:
+	if _battu or _gueri:
+		return
+	_gueri = true
+	_guerison = 0.0
+	_lancer = Iso.ecran(depuis) - Iso.ecran(global_position) + Vector2(0, -60)
+	_preparation = 0.0
+	_etourdi = 0.0
+	_recul = Vector2.ZERO
+	velocity = Vector2.ZERO
+	remove_from_group("zombies")
+	$CollisionShape2D.set_deferred("disabled", true)
 
 
 func _exit_tree() -> void:
@@ -200,6 +230,13 @@ func _voit_heros() -> bool:
 func _physics_process(delta: float) -> void:
 	_flash = maxf(_flash - delta, 0.0)
 	_impact = maxf(_impact - delta, 0.0)
+	if _gueri:
+		# Guéri : il ne bouge plus, il reste assis là
+		_guerison += delta
+		_temps += delta
+		_cone.visible = false
+		_suivre()
+		return
 	if _battu:
 		_disparition = maxf(_disparition - delta, 0.0)
 		_suivre()
@@ -353,6 +390,9 @@ func _pose() -> Array:
 
 func _dessiner() -> void:
 	var v := _vue
+	if _gueri and _guerison >= DUREE_LANCER + DUREE_NUAGE / 2.0 and Images.v3_pose(PERSO_GUERI, "happy") != "":
+		_dessiner_gueri()
+		return
 	var s := -1.0 if Iso.direction_ecran(_regard).x < 0.0 else 1.0
 	v.modulate = Color(2.0, 2.0, 2.0) if _flash > 0.0 else Color.WHITE  # éclair quand il est frappé
 	_corps_rotation = 0.0
@@ -381,6 +421,48 @@ func _dessiner() -> void:
 	_haut_icone = haut
 	if _preparation > 0.0:
 		_dessiner_bras_leves(-haut - 8.0)
+
+
+## Survivant assis (survivor_happy un peu tassé), qui se balance de joie de temps en temps.
+func _dessiner_gueri() -> void:
+	var v := _vue
+	v.modulate = Color.WHITE
+	var nom := Images.v3_pose(PERSO_GUERI, "happy")
+	Dessin.ombre(v, Rect2(-26, -9, 52, 18))
+	var apparition := minf((_guerison - DUREE_LANCER - DUREE_NUAGE / 2.0) / 0.3, 1.0)
+	var joie := absf(sin(_temps * 3.0)) * 4.0 if fmod(_temps, 3.0) < 1.0 else 0.0
+	# Assis : moins haut, un peu plus large ; il « pousse » en apparaissant
+	var base := Transform2D(0.0, Vector2(1.08, 0.82) * (0.6 + 0.4 * apparition), 0.0, Vector2(0, -joie))
+	v.draw_set_transform_matrix(base)
+	Images.v3_dessiner(v, nom, Vector2.ZERO, ECHELLE_GUERI, Iso.direction_ecran(_regard).x < 0.0, Color.WHITE, base)
+	v.draw_set_transform(Vector2.ZERO)
+	_haut_icone = -Images.v3_taille(nom).y * ECHELLE_GUERI * 0.82 - 8.0
+
+
+## Fiole qui vole jusqu'à lui en arc, puis nuage vert clair (bulles qui gonflent et s'effacent) et petites étoiles.
+func _dessiner_guerison() -> void:
+	_yeux.draw_set_transform(Vector2.ZERO)
+	var centre := Vector2(0, _haut_icone * 0.5)
+	if _guerison < DUREE_LANCER:
+		var t := _guerison / DUREE_LANCER
+		var p := _lancer.lerp(centre, t) + Vector2(0, -80.0 * sin(t * PI))
+		_yeux.draw_set_transform(p, t * TAU, Vector2.ONE)
+		Dessin.icone_objet(_yeux, "fiole", Vector2(0, 16), 32.0)
+		_yeux.draw_set_transform(Vector2.ZERO)
+		return
+	var t := (_guerison - DUREE_LANCER) / DUREE_NUAGE
+	if t >= 1.0:
+		return
+	var force := sin(t * PI)   # monte puis s'efface
+	var nombre := 5 if Qualite.basse else 9
+	for i in nombre:
+		var a := TAU * i / float(nombre) + i * 0.7
+		var c := centre + Vector2(cos(a) * 34.0, sin(a) * 26.0) * (0.4 + t)
+		_yeux.draw_circle(c, (22.0 + 6.0 * (i % 3)) * (0.5 + t), Color(Palette.GUERISON, 0.55 * force))
+	_yeux.draw_circle(centre, 40.0 * (0.6 + t), Color(Palette.GUERISON, 0.45 * force))
+	for i in 4:
+		var c := centre + Vector2.from_angle(TAU * i / 4.0 + t * 3.0) * (30.0 + 50.0 * t)
+		_yeux.draw_circle(c, 6.0 * force, Palette.UI_TEXTE)
 
 
 ## Bras levés au-dessus de la tête (il va frapper) : ils montent vite, puis restent levés jusqu'au coup.
@@ -467,6 +549,8 @@ func _dessiner_impact() -> void:
 ## « ! », « ? » ou étoiles au-dessus de la tête : sur le calque sans ombre, lisibles dans le noir.
 func _dessiner_icone() -> void:
 	_yeux.draw_set_transform(Vector2.ZERO)
+	if _gueri:
+		return
 	if _etourdi > 0.0:
 		_dessiner_etoiles(Vector2(0, _haut_icone))
 	elif _preparation > 0.0:
@@ -483,6 +567,10 @@ func _dessiner_icone() -> void:
 ## ou yeux dessinés en code.
 func _dessiner_yeux() -> void:
 	_dessiner_impact()
+	if _gueri:
+		_dessiner_guerison()
+		if _guerison >= DUREE_LANCER + DUREE_NUAGE / 2.0:
+			return   # plus de regard de zombie
 	if _battu:
 		return
 	_dessiner_icone()

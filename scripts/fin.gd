@@ -51,6 +51,9 @@ func _ready() -> void:
 		lignes.append("Pas grave%s : la prochaine fois sera la bonne !" % ((", " + Partie.prenom) if Partie.prenom != "" else ""))
 	if resultat.get("rescape", false):
 		lignes.append("Tu as sauvé un rescapé !")
+	if resultat.get("gueris", 0) > 0:
+		lignes.append("Tu as guéri %s : %s la base !" % ["un zombie" if resultat["gueris"] == 1 else "%d zombies" % resultat["gueris"],
+			"il rejoint" if resultat["gueris"] == 1 else "ils rejoignent"])
 	if resultat["mission"]:
 		lignes.append("Objectif rempli ! Bonus : " + _liste(resultat["bonus"]))
 	elif _victoire and Partie.total_objectif(Partie.lieu) > 0:

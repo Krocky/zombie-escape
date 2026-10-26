@@ -14,7 +14,7 @@ signal appuye
 @export var couleur := Color.WHITE
 ## Taille du texte des boutons en pilule (les ronds gardent leur taille).
 @export var taille_texte := 40
-## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause", "soigner" ou rien.
+## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause", "soigner", "guerir" ou rien.
 @export var icone := "":
 	set(valeur):
 		if icone != valeur:
@@ -213,6 +213,12 @@ func _icone(c: Vector2, r: float, encre: Color) -> void:
 			var bout := sens * r * 0.95
 			Dessin.polygone(self, PackedVector2Array([c - bout - large, c + bout - large, c + bout + large, c - bout + large]), Palette.UI_TEXTE)
 			draw_circle(c, r * 0.07, Palette.COEUR.darkened(0.3))
+		"guerir":
+			# Fiole de remède, avec trois petites bulles vertes qui s'en échappent
+			Dessin.icone_objet(self, "fiole", c + Vector2(0, r * 0.95), r * 1.9, Color.WHITE if actif else Color(0.6, 0.6, 0.65, 0.6))
+			draw_set_transform(Vector2.ZERO)
+			for k in 3:
+				draw_circle(c + Vector2(r * (0.55 + 0.2 * k), -r * (0.5 + 0.3 * k)), r * (0.16 - 0.03 * k), Palette.GUERISON if actif else encre)
 		"jouer":
 			Dessin.polygone(self, PackedVector2Array([c + Vector2(-r * 0.6, -r * 0.8), c + Vector2(r * 0.8, 0),
 				c + Vector2(-r * 0.6, r * 0.8)]), encre)

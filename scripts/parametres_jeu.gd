@@ -56,6 +56,7 @@ const PAGES := [
 		["RESCAPE_DISTANCE_MAX", "Réapparaît s'il est bloqué à", 50.0, 150.0, 1500.0],
 		["RESCAPE_OBJETS", "Objets trouvés par rescapé", 1, 0, 5],
 		["LIEUX_VARIES", "Places qui changent à chaque partie", 0, false, true],
+		["GUERIR_PORTEE", "Portée de la fiole qui guérit", 10.0, 50.0, 500.0],
 	]],
 ]
 

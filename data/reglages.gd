@@ -77,6 +77,10 @@ var MISSION_BONUS := 1                # objets en plus, au hasard, quand l'objec
 
 # --- Remède (jauge de la base) ---
 var REMEDE_FIOLES := 3                # fioles à rapporter pour trouver le remède
+# Après le remède (jauge pleine) : une fiole ramassée se lance sur un zombie proche (bouton Guérir),
+# il redevient humain et compte comme un rescapé sauvé
+var GUERIR_PORTEE := 200.0            # distance jusqu'à laquelle on peut lancer la fiole sur un zombie
+var SUPERMARCHE_OBJECTIF_REMEDE := {"guerison": 1}   # objectif du supermarché après le remède ("guerison" = zombies à guérir)
 
 # --- Joystick ---
 var JOYSTICK_ZONE_MORTE := 0.2      # entre 0 et 1 : en dessous, le héros ne bouge pas

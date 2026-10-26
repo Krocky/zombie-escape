@@ -39,6 +39,7 @@ var _cachette_occupee: Node2D = null
 var _meubles: Array = []   # décor qui devient transparent quand le héros est derrière
 var _bandages_soin := Partie.bandages_infirmerie()   # bandages de l'infirmerie (pas des objets à rapporter)
 var _soins := 0            # soins déjà faits dans cette mission
+var _gueris := 0           # zombies guéris avec une fiole (après le remède)
 var _places_objets: Array = []   # toutes les places possibles des objets (les débris les évitent toutes)
 
 @onready var _heros := $Monde/Heros
@@ -125,6 +126,7 @@ func _ready() -> void:
 	_heros.bruit.connect(_sur_bruit)
 	$HUD.cacher.connect(_sur_cacher)
 	$HUD.soigner.connect(_sur_soigner)
+	$HUD.guerir.connect(_sur_guerir)
 	$HUD.pause_demandee.connect(mettre_en_pause.bind(true))
 	$Pause.reprendre.connect(mettre_en_pause.bind(false))
 	$Pause.retour_base.connect(_abandonner)
@@ -194,6 +196,7 @@ func _physics_process(delta: float) -> void:
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
 	$HUD.afficher_recharge(_heros.recharge())
 	$HUD.etat_soin(_peut_soigner())
+	$HUD.etat_guerison(Partie.remede_trouve(), _zombie_a_guerir() != null)
 	# Un grand meuble devant le héros devient transparent : on le voit toujours
 	var pieds := Iso.ecran(_heros.global_position) if not _heros_mort and _cachette_occupee == null else Vector2.INF
 	for meuble in _meubles:
@@ -230,7 +233,7 @@ func _physics_process(delta: float) -> void:
 
 func _afficher_objectif() -> void:
 	$HUD.afficher_objectif(Partie.texte_objectif(Partie.lieu) if Partie.total_objectif(Partie.lieu) > 0 else "",
-		Partie.avancee_objectif(Partie.lieu, _ramasses), Partie.total_objectif(Partie.lieu))
+		Partie.avancee_objectif(Partie.lieu, Partie.avec_guerisons(_ramasses, _gueris)), Partie.total_objectif(Partie.lieu))
 
 
 ## Le joystick donne une direction à l'écran ; le héros se déplace dans le monde.
@@ -285,6 +288,34 @@ func _sur_soigner() -> void:
 	_heros.soigner(Reglages.SOIN_COEURS)
 
 
+## Zombie qu'une fiole peut guérir : le remède est trouvé, le héros (ni caché ni K.O.) a ramassé une fiole,
+## et le plus proche des zombies est à moins de Reglages.GUERIR_PORTEE. Sinon null.
+func _zombie_a_guerir() -> Node2D:
+	if _fini or _heros_mort or _cachette_occupee or not Partie.remede_trouve() or not "fiole" in _ramasses:
+		return null
+	var proche: Node2D = null
+	var meilleure := Reglages.GUERIR_PORTEE
+	for zombie in get_tree().get_nodes_in_group("zombies"):
+		var d: float = zombie.global_position.distance_to(_heros.global_position)
+		if d <= meilleure:
+			meilleure = d
+			proche = zombie
+	return proche
+
+
+## Bouton Guérir : la fiole est lancée (plus rapportée ni comptée), le zombie redevient humain ; il comptera
+## comme un rescapé sauvé au retour, et pour l'objectif « guérir ».
+func _sur_guerir() -> void:
+	var zombie := _zombie_a_guerir()
+	if zombie == null:
+		return
+	_ramasses.erase("fiole")
+	_gueris += 1
+	zombie.guerir(_heros.global_position)
+	$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
+	_afficher_objectif()
+
+
 func _sur_bruit(origine: Vector2, rayon: float) -> void:
 	$Reperes/Ondes.emettre(origine, rayon, rayon > Reglages.BRUIT_PAS)   # plus fort que les pas : coup de batte
 	for zombie in get_tree().get_nodes_in_group("zombies"):
@@ -311,7 +342,7 @@ func _finir(victoire: bool, attente := -1.0) -> void:
 		return
 	_fini = true
 	_heros.definir_direction(Vector2.ZERO)
-	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact())
+	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact(), _gueris)
 	if attente < 0.0:
 		attente = 0.5 if victoire else 2.0
 	if attente > 0.0:
