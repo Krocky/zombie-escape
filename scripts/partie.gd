@@ -169,6 +169,35 @@ func rescape_sauve(id: String) -> bool:
 	return id in lieux_sauves
 
 
+## Personnage (images V3 / V4 « <perso>_hiding / _follow / _happy ») du rescapé de chaque lieu, et de ceux
+## qui rejoignent la base autrement (zombies guéris), à tour de rôle. Garçon au chat si l'image manque.
+const RESCAPES_LIEUX := {"supermarche": "survivor", "maison": "survivor_girl", "pharmacie": "survivor_nurse"}
+const RESCAPES_GUERIS := ["survivor_grandpa", "survivor_teen"]
+
+
+func perso_rescape(id: String) -> String:
+	return _perso_ou_garcon(RESCAPES_LIEUX.get(id, "survivor"))
+
+
+## Personnage du n-ième zombie guéri (0 = le premier) : grand-père, ado, grand-père...
+func perso_gueri(n: int) -> String:
+	return _perso_ou_garcon(RESCAPES_GUERIS[posmod(n, RESCAPES_GUERIS.size())])
+
+
+## Rescapés de la base, dans l'ordre des tentes : ceux des lieux sauvés, puis les zombies guéris.
+func persos_base() -> Array:
+	var liste := []
+	for id in lieux_sauves:
+		liste.append(perso_rescape(id))
+	for n in maxi(rescapes - liste.size(), 0):
+		liste.append(perso_gueri(n))
+	return liste
+
+
+func _perso_ou_garcon(perso: String) -> String:
+	return perso if Images.v3_pose(perso, "happy") != "" else "survivor"
+
+
 func lieu_disponible(id: String) -> bool:
 	return LIEUX.has(id) and LIEUX[id]["scene"] != ""
 

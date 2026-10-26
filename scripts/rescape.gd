@@ -1,5 +1,5 @@
 extends CharacterBody2D
-## Un rescapé à sauver (enfant en pyjama avec son chat, images V3 survivor_*). Caché dans un coin du lieu
+## Un rescapé à sauver (un par lieu, Partie.perso_rescape : garçon au chat, fillette, infirmière...). Caché dans un coin du lieu
 ## (pose hiding, petit « ? » visible dans le noir), il suit le héros dès que celui-ci le touche (pose follow),
 ## à RESCAPE_DISTANCE derrière lui. Il glisse le long des obstacles (pas de recherche de chemin) ; bloqué trop loin,
 ## il réapparaît juste derrière le héros. Un zombie qui le touche le renvoie se cacher à sa place (pas de dégâts).
@@ -14,7 +14,6 @@ enum Etat { CACHE, SUIT, ATTEND, RETOUR }
 
 const MASQUE_DECOR := 1
 const ECHELLE := 0.45           # images V3 à 2x ; un peu plus petit que le héros (c'est un enfant)
-const PERSO := "survivor"       # images V3 (elles regardent à droite)
 const DELAI_BLOQUE := 0.6       # secondes sans avancer avant de réapparaître près du héros (ou à sa cachette)
 const VITESSE_RETOUR_FOIS := 1.2   # il court se cacher un peu plus vite
 
@@ -22,6 +21,7 @@ const VITESSE_RETOUR_FOIS := 1.2   # il court se cacher un peu plus vite
 @export var places := PackedVector2Array()
 
 var _etat := Etat.CACHE
+var _perso := "survivor"       # images V3 / V4 du rescapé de ce lieu (elles regardent à droite)
 var _depart := Vector2.ZERO
 var _position_heros := Vector2.ZERO
 var _regard_heros := Vector2.RIGHT
@@ -36,6 +36,7 @@ var _haut_icone := -110.0
 
 
 func _ready() -> void:
+	_perso = Partie.perso_rescape(Partie.lieu)
 	_depart = global_position
 	var sans_ombre := CanvasItemMaterial.new()
 	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
@@ -157,9 +158,9 @@ func _suivre() -> void:
 ## Pose V3 à dessiner : hiding (caché, ou il attend), sinon follow qui rebondit (Images.v3_animation).
 func _pose() -> Dictionary:
 	if _etat == Etat.CACHE or _etat == Etat.ATTEND:
-		return {"nom": Images.v3_pose(PERSO, "hiding"), "decalage": Vector2.ZERO, "angle": 0.0}
-	var anim := Images.v3_animation(PERSO, _temps, _temps > 0.0)
-	anim["nom"] = Images.v3_pose(PERSO, "follow")
+		return {"nom": Images.v3_pose(_perso, "hiding"), "decalage": Vector2.ZERO, "angle": 0.0}
+	var anim := Images.v3_animation(_perso, _temps, _temps > 0.0)
+	anim["nom"] = Images.v3_pose(_perso, "follow")
 	return anim
 
 

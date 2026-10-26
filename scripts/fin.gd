@@ -255,7 +255,7 @@ func _panneau(r: Rect2) -> void:
 
 ## Le rescapé sauvé, content, qui sautille (pieds sur « pieds »).
 func _rescape(pieds: Vector2) -> void:
-	var nom := Images.v3_pose("survivor", "happy")
+	var nom := Images.v3_pose(Partie.perso_rescape(Partie.lieu), "happy")
 	if nom == "":
 		return
 	var e := _e()

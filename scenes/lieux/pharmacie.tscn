@@ -115,6 +115,13 @@ hauteur = 70.0
 style = 2
 image = "prop_medical_cart"
 
+[node name="Fauteuil" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1880, 1220)
+taille = Vector2(70, 60)
+hauteur = 60.0
+style = 2
+image = "prop_wheelchair"
+
 [node name="ArmoireMedicale" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1400, 215)
 taille = Vector2(80, 45)

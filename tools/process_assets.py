@@ -62,6 +62,9 @@ DALLE_HAUTEUR = round(DALLE_LARGEUR * ISO_RAPPORT)   # 226
 # Hauteur (pose debout) des personnages, en pixels de texture : le héros V2 fait ~240 px
 # (affiché à 0,5 dans le jeu), le zombie maigre ~200, le gros ~217.
 HAUTEURS = {"heros": 240, "heroine": 240, "survivor": 230, "zombie": 210}
+# Rescapés V4 : chacun sa taille (fillette plus petite, adultes plus grands que le garçon au chat)
+ACCROUPI = 0.75                          # hauteur de la pose « hiding » des rescapés / hauteur debout
+HAUTEURS_PERSO = {"survivor_girl": 200, "survivor_teen": 245, "survivor_grandpa": 250, "survivor_nurse": 260}
 
 # Préfixe -> catégorie
 CATEGORIES = {
@@ -497,7 +500,11 @@ def traiter(chemin, args):
 
 def mettre_a_taille(res, image, echelles_perso, hauteurs):
     cat = res["categorie"]
-    if cat == "perso":
+    if cat == "perso" and res["prefixe"] == "survivor" and res["nom"].endswith("_hiding"):
+        # Accroupi : Gemini le dessine presque aussi haut que debout ; ramené à ACCROUPI de la hauteur debout
+        perso = res["personnage"]
+        e = ACCROUPI * HAUTEURS_PERSO.get(perso, HAUTEURS["survivor"]) / image.height
+    elif cat == "perso":
         e = echelles_perso[res["personnage"]]
     elif res["nom"] in COTE_NOM:
         e = echelle_vers(image, COTE_NOM[res["nom"]])
@@ -617,7 +624,7 @@ def main():
         if image is not None and res["categorie"] == "perso" and res["personnage"] not in echelles:
             hauteurs.setdefault(res["personnage"], []).append((res["prefixe"], image.height))
     for perso, liste in hauteurs.items():
-        echelles[perso] = HAUTEURS[liste[0][0]] / float(np.median([h for _, h in liste]))
+        echelles[perso] = HAUTEURS_PERSO.get(perso, HAUTEURS[liste[0][0]]) / float(np.median([h for _, h in liste]))
 
     # Hauteurs de référence (HAUTEUR_RELATIVE) : images de ce lot d'abord, sinon le manifest
     hauteurs = {k: v["taille"][1] for k, v in connues.items() if "taille" in v}

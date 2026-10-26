@@ -310,8 +310,9 @@ func _sur_guerir() -> void:
 	if zombie == null:
 		return
 	_ramasses.erase("fiole")
+	# Personnage du guéri : le suivant après ceux déjà à la base (comme dans les tentes, Partie.persos_base)
+	zombie.guerir(_heros.global_position, Partie.perso_gueri(Partie.rescapes - Partie.lieux_sauves.size() + _gueris))
 	_gueris += 1
-	zombie.guerir(_heros.global_position)
 	$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
 	_afficher_objectif()
 

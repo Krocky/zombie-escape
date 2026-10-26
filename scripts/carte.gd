@@ -471,7 +471,7 @@ func _dessiner_fiche() -> void:
 	var couleur := Palette.SORTIE if sauve else Palette.LAMPE if infos["rescapes"] > 0 else Palette.UI_BORD
 	fiche.draw_string_outline(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, 6, Palette.CONTOUR)
 	fiche.draw_string(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, couleur)
-	var image := Images.v3_pose("survivor", "happy" if sauve else "hiding") if infos["rescapes"] > 0 else ""
+	var image := Images.v3_pose(Partie.perso_rescape(_choisi), "happy" if sauve else "hiding") if infos["rescapes"] > 0 else ""
 	if image != "":
 		var pieds := Vector2(fiche.size.x - x - 60, 294)
 		Dessin.ombre(fiche, Rect2(pieds - Vector2(26, 7), Vector2(52, 14)))

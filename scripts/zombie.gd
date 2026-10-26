@@ -80,7 +80,7 @@ var _lancer := Vector2.ZERO   # départ de la fiole, à l'écran, relatif à ses
 const DUREE_LANCER := 0.35    # vol de la fiole
 const DUREE_NUAGE := 1.0      # nuage vert ; il change d'apparence au milieu
 const ECHELLE_GUERI := 0.45   # survivant (images V3 à 2x), comme le rescapé
-const PERSO_GUERI := "survivor"
+var _perso_gueri := "survivor"   # survivant qu'il devient (Partie.perso_gueri)
 const MONTEE_BRAS := 0.12   # secondes pour lever les bras (ils restent levés jusqu'au coup)
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
@@ -141,9 +141,10 @@ func gueri() -> bool:
 
 ## Après le remède : le héros lui lance une fiole depuis « depuis » (monde). Il n'est plus un zombie
 ## (hors du groupe, plus de collision) : il s'arrête, la fiole vole jusqu'à lui, nuage vert, il redevient humain.
-func guerir(depuis: Vector2) -> void:
+func guerir(depuis: Vector2, perso := "survivor") -> void:
 	if _battu or _gueri:
 		return
+	_perso_gueri = perso
 	_gueri = true
 	_guerison = 0.0
 	_lancer = Iso.ecran(depuis) - Iso.ecran(global_position) + Vector2(0, -60)
@@ -390,7 +391,7 @@ func _pose() -> Array:
 
 func _dessiner() -> void:
 	var v := _vue
-	if _gueri and _guerison >= DUREE_LANCER + DUREE_NUAGE / 2.0 and Images.v3_pose(PERSO_GUERI, "happy") != "":
+	if _gueri and _guerison >= DUREE_LANCER + DUREE_NUAGE / 2.0 and Images.v3_pose(_perso_gueri, "happy") != "":
 		_dessiner_gueri()
 		return
 	var s := -1.0 if Iso.direction_ecran(_regard).x < 0.0 else 1.0
@@ -427,7 +428,7 @@ func _dessiner() -> void:
 func _dessiner_gueri() -> void:
 	var v := _vue
 	v.modulate = Color.WHITE
-	var nom := Images.v3_pose(PERSO_GUERI, "happy")
+	var nom := Images.v3_pose(_perso_gueri, "happy")
 	Dessin.ombre(v, Rect2(-26, -9, 52, 18))
 	var apparition := minf((_guerison - DUREE_LANCER - DUREE_NUAGE / 2.0) / 0.3, 1.0)
 	var joie := absf(sin(_temps * 3.0)) * 4.0 if fmod(_temps, 3.0) < 1.0 else 0.0

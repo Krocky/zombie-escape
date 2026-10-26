@@ -3,6 +3,10 @@
   "heroine": 0.129695,
   "heros": 0.132597,
   "survivor": 0.138471,
+  "survivor_girl": 0.149589,
+  "survivor_grandpa": 0.192901,
+  "survivor_nurse": 0.191599,
+  "survivor_teen": 0.181481,
   "zombie_runner": 0.127273
  },
  "images": {
@@ -2274,6 +2278,54 @@
    "teinte_violette_px": 2390,
    "traits_fins_px": 0
   },
+  "prop_wheelchair": {
+   "ancre_pieds": [
+    152,
+    427
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (295965 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     161,
+     427
+    ],
+    "droit": [
+     374,
+     287
+    ],
+    "gauche": [
+     0,
+     363
+    ]
+   },
+   "defrange_px": 39215,
+   "echelle": 0.3819,
+   "empreinte": "fdaeaeb03a0e1058f51776d80b1e4ebf8c6fbba9",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_wheelchair.png",
+   "fond": [
+    253,
+    1,
+    253
+   ],
+   "largeur_socle_source": 1257,
+   "mauve_desature_px": 59988,
+   "nom": "prop_wheelchair",
+   "ombre_violette_px": 21138,
+   "poussieres_px": 0,
+   "socle_px": 295965,
+   "source": "docs/raw/V4/prop_wheelchair.jpg",
+   "taille": [
+    375,
+    465
+   ],
+   "teinte_violette_px": 4002,
+   "traits_fins_px": 0
+  },
   "survivor_follow": {
    "ancre_pieds": [
     71,
@@ -2305,6 +2357,168 @@
     230
    ],
    "traits_fins_px": 384
+  },
+  "survivor_girl_follow": {
+   "ancre_pieds": [
+    69,
+    199
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 37472,
+   "echelle": 0.1496,
+   "empreinte": "46abd6401fd5beafe21fc816ef722e141c1ee15e",
+   "fichier": "images/v3/survivor_girl_follow.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_girl_follow",
+   "ombre_violette_px": 21119,
+   "personnage": "survivor_girl",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_girl_follow.png",
+   "taille": [
+    121,
+    200
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_girl_happy": {
+   "ancre_pieds": [
+    57,
+    201
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 31956,
+   "echelle": 0.1496,
+   "empreinte": "87de8b978b3918413c5783c4ffeae427fa72b894",
+   "fichier": "images/v3/survivor_girl_happy.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_girl_happy",
+   "ombre_violette_px": 18430,
+   "personnage": "survivor_girl",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_girl_happy.png",
+   "taille": [
+    114,
+    202
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_girl_hiding": {
+   "ancre_pieds": [
+    44,
+    149
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 28522,
+   "echelle": 0.127,
+   "empreinte": "e6db383ff5125adeff94f2ec7365f44927abed59",
+   "fichier": "images/v3/survivor_girl_hiding.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_girl_hiding",
+   "ombre_violette_px": 16212,
+   "personnage": "survivor_girl",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_girl_hiding.png",
+   "taille": [
+    95,
+    150
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_grandpa_follow": {
+   "ancre_pieds": [
+    76,
+    249
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 34796,
+   "echelle": 0.1929,
+   "empreinte": "e0787fa6f364d80ec6c0bbf9f51fc48d2a160bf5",
+   "fichier": "images/v3/survivor_grandpa_follow.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_grandpa_follow",
+   "ombre_violette_px": 19243,
+   "personnage": "survivor_grandpa",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_grandpa_follow.png",
+   "taille": [
+    150,
+    250
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_grandpa_happy": {
+   "ancre_pieds": [
+    107,
+    278
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 33127,
+   "echelle": 0.1929,
+   "empreinte": "f53f32f294c0fc24ec8c75cd2a23317658b81484",
+   "fichier": "images/v3/survivor_grandpa_happy.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_grandpa_happy",
+   "ombre_violette_px": 18281,
+   "personnage": "survivor_grandpa",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_grandpa_happy.png",
+   "taille": [
+    166,
+    279
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_grandpa_hiding": {
+   "ancre_pieds": [
+    35,
+    187
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 23708,
+   "echelle": 0.1601,
+   "empreinte": "d7af75cfe075074aa378b9daba9541ec27de427b",
+   "fichier": "images/v3/survivor_grandpa_hiding.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_grandpa_hiding",
+   "ombre_violette_px": 12892,
+   "personnage": "survivor_grandpa",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_grandpa_hiding.png",
+   "taille": [
+    105,
+    188
+   ],
+   "traits_fins_px": 0
   },
   "survivor_happy": {
    "ancre_pieds": [
@@ -2338,15 +2552,15 @@
   },
   "survivor_hiding": {
    "ancre_pieds": [
-    53,
-    226
+    40,
+    171
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
    ],
    "categorie": "perso",
    "defrange_px": 30483,
-   "echelle": 0.1385,
+   "echelle": 0.1052,
    "empreinte": "fda9b9ec800206e2cbf88a1fb4d0265c0b921daa",
    "fichier": "images/v3/survivor_hiding.png",
    "fond": [
@@ -2360,10 +2574,172 @@
    "poussieres_px": 0,
    "source": "docs/raw/V3/survivor_hiding.jpg",
    "taille": [
-    143,
-    227
+    109,
+    172
    ],
    "traits_fins_px": 72
+  },
+  "survivor_nurse_follow": {
+   "ancre_pieds": [
+    77,
+    259
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 26692,
+   "echelle": 0.1916,
+   "empreinte": "208b30595434d44037b98f155f450225318627bd",
+   "fichier": "images/v3/survivor_nurse_follow.png",
+   "fond": [
+    253,
+    0,
+    249
+   ],
+   "nom": "survivor_nurse_follow",
+   "ombre_violette_px": 13377,
+   "personnage": "survivor_nurse",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_nurse_follow.png",
+   "taille": [
+    130,
+    260
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_nurse_happy": {
+   "ancre_pieds": [
+    62,
+    263
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 25947,
+   "echelle": 0.1916,
+   "empreinte": "3c6e7077f42d4b258d45cafabab181e823908fd4",
+   "fichier": "images/v3/survivor_nurse_happy.png",
+   "fond": [
+    253,
+    0,
+    249
+   ],
+   "nom": "survivor_nurse_happy",
+   "ombre_violette_px": 13594,
+   "personnage": "survivor_nurse",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_nurse_happy.png",
+   "taille": [
+    112,
+    264
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_nurse_hiding": {
+   "ancre_pieds": [
+    34,
+    194
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 17537,
+   "echelle": 0.169,
+   "empreinte": "4c702a51bfce13b7772d72189e5a060c321090d4",
+   "fichier": "images/v3/survivor_nurse_hiding.png",
+   "fond": [
+    253,
+    0,
+    249
+   ],
+   "nom": "survivor_nurse_hiding",
+   "ombre_violette_px": 8669,
+   "personnage": "survivor_nurse",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_nurse_hiding.png",
+   "taille": [
+    108,
+    195
+   ],
+   "traits_fins_px": 0
+  },
+  "survivor_teen_follow": {
+   "ancre_pieds": [
+    88,
+    244
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 29301,
+   "echelle": 0.1815,
+   "empreinte": "59fb3bcbeda4e0406d0bcb0c7d03992c913e08dc",
+   "fichier": "images/v3/survivor_teen_follow.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_teen_follow",
+   "ombre_violette_px": 15942,
+   "personnage": "survivor_teen",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_teen_follow.png",
+   "taille": [
+    138,
+    245
+   ],
+   "traits_fins_px": 112
+  },
+  "survivor_teen_happy": {
+   "ancre_pieds": [
+    70,
+    253
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 28159,
+   "echelle": 0.1815,
+   "empreinte": "5a8851c1f27f249c9c31e8674f550f973ab6d005",
+   "fichier": "images/v3/survivor_teen_happy.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_teen_happy",
+   "ombre_violette_px": 15827,
+   "personnage": "survivor_teen",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_teen_happy.png",
+   "taille": [
+    132,
+    254
+   ],
+   "traits_fins_px": 123
+  },
+  "survivor_teen_hiding": {
+   "ancre_pieds": [
+    37,
+    183
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 23597,
+   "echelle": 0.1552,
+   "empreinte": "bb155287b77015f4a97eabfcbb600c95f0eaa5d2",
+   "fichier": "images/v3/survivor_teen_hiding.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "survivor_teen_hiding",
+   "ombre_violette_px": 12909,
+   "personnage": "survivor_teen",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/survivor_teen_hiding.png",
+   "taille": [
+    109,
+    184
+   ],
+   "traits_fins_px": 99
   },
   "wall_house": {
    "ancre_pieds": [

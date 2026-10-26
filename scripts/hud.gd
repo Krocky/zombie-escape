@@ -212,7 +212,7 @@ func _dessiner_rescape() -> void:
 	cadre.set_border_width_all(3)
 	cadre.set_corner_radius_all(16)
 	_rescape.draw_style_box(cadre, Rect2(Vector2.ZERO, _rescape.size))
-	var nom := Images.v3_pose("survivor", "follow")
+	var nom := Images.v3_pose(Partie.perso_rescape(Partie.lieu), "follow")
 	var couleur := Color.WHITE if _rescape_suit else Color(0.4, 0.4, 0.48, 0.75)
 	if nom != "":
 		Images.v3_dessiner(_rescape, nom, Vector2(_rescape.size.x / 2.0, _rescape.size.y - 6), 72.0 / Images.v3_taille(nom).y, false, couleur)

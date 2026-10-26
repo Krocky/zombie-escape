@@ -291,12 +291,13 @@ func _elements(places: Dictionary, e: float) -> Array:
 	if Partie.est_construit("jardin"):
 		liste.append(_batiment("jardin", places["jardin"] * size, "base_garden", s, func(_p: Vector2) -> void: pass))
 	var tentes: Array = places["tentes"]
+	var persos := Partie.persos_base()
 	for k in mini(Partie.rescapes, tentes.size()):
 		var id := "tente_%d" % (k + 1)
 		var pieds: Vector2 = tentes[k] * size
 		liste.append(_batiment(id, pieds, "base_tent", s, _tente.bind(e)))
 		# Le rescapé, content, devant l'entrée de sa tente (côté gauche de l'image)
-		var rescape := _batiment("rescape_%d" % (k + 1), pieds + Vector2(-70, 14) * e, "survivor_happy", places["perso"] * e,
+		var rescape := _batiment("rescape_%d" % (k + 1), pieds + Vector2(-70, 14) * e, Images.v3_pose(persos[k] if k < persos.size() else "survivor", "happy"), places["perso"] * e,
 			func(_p: Vector2) -> void: pass)
 		rescape["attend"] = id
 		liste.append(rescape)
