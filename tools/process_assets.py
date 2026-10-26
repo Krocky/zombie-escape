@@ -63,7 +63,7 @@ DALLE_HAUTEUR = round(DALLE_LARGEUR * ISO_RAPPORT)   # 226
 # (affiché à 0,5 dans le jeu), le zombie maigre ~200, le gros ~217.
 HAUTEURS = {"heros": 240, "heroine": 240, "survivor": 230, "zombie": 210}
 # Zombies V4 (planches) : pieds au milieu des deux pieds (voir pieds_milieu)
-PIEDS_MILIEU = {"zombie_big", "zombie_thin", "zombie_runner"}   # coureur : seulement ses poses V4 (les V3 gardent leur ancre)
+PIEDS_MILIEU = {"zombie_big", "zombie_thin", "zombie_runner", "heros", "heroine"}   # coureur : seulement ses poses V4 (les V3 gardent leur ancre)
 # Rescapés V4 : chacun sa taille (fillette plus petite, adultes plus grands que le garçon au chat)
 ACCROUPI = 0.75                          # hauteur de la pose « hiding » des rescapés / hauteur debout
 HAUTEURS_PERSO = {"survivor_girl": 200, "survivor_teen": 245, "survivor_grandpa": 250, "survivor_nurse": 260,
@@ -386,6 +386,22 @@ def ancres(image):
             "pieds": [xp, int(yb)]}
 
 
+def sans_ombre_pieds(image, res):
+    """Ombre au sol peinte sous les pieds (ombre violette devenue noir semi-transparent) : effacée dans le
+    bas de l'image, sinon elle n'apparaît que sur certaines poses et clignote pendant la marche. Le contour
+    noir du personnage est opaque : il reste."""
+    p = np.asarray(image).copy()
+    bas = int(p.shape[0] * 0.9)
+    zone = p[bas:]
+    ombre = (zone[..., 3] > 0) & (zone[..., 3] < 235) & (zone[..., :3].max(-1) < 60)
+    if ombre.sum() > 400:                 # en dessous : seulement le bord adouci du contour des chaussures
+        zone[ombre] = 0
+        p[bas:] = zone
+        res["anomalies"].append("ombre sous les pieds effacée (%d px)" % int(ombre.sum()))
+        return Image.fromarray(p)
+    return image
+
+
 def pieds_milieu(image):
     """Pieds d'un personnage qui marche : milieu entre ses deux pieds (pixels les plus à gauche et à droite du
     bas de la silhouette), et non le pied le plus bas, qui change d'une pose de marche à l'autre (l'image sauterait)."""
@@ -552,6 +568,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         res["coins_sol"] = {"haut": [DALLE_LARGEUR // 2, 0], "gauche": [0, DALLE_HAUTEUR // 2],
                             "avant": [DALLE_LARGEUR // 2, DALLE_HAUTEUR], "droit": [DALLE_LARGEUR, DALLE_HAUTEUR // 2]}
     elif cat in ("perso", "prop", "wall", "map"):
+        if cat == "perso":
+            image = sans_ombre_pieds(image, res)
         a = ancres(image)
         if a:
             res["ancre_pieds"] = a["pieds"]

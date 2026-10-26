@@ -645,32 +645,40 @@
   },
   "heroine_attack": {
    "ancre_pieds": [
-    51,
+    77,
     245
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (189385 px)"
+    "faisceau de lampe peint, retiré (172226 px)",
+    "taches détachées du corps effacées (16418 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 61587,
+   "defrange_px": 68591,
    "echelle": 0.1297,
    "empreinte": "533e45dd0727673e49cd57ef4e89f17bd5f5bcd9",
-   "faisceau_retire_px": 189385,
+   "faisceau_retire_px": 172226,
    "fichier": "images/v3/heroine_attack.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
    "nom": "heroine_attack",
+   "ombre_violette_px": 42523,
    "personnage": "heroine",
-   "poussieres_px": 4,
+   "poussieres_px": 0,
    "source": "docs/raw/V3/Heroine-attack.jpg",
+   "taches_px": 16418,
    "taille": [
     146,
     246
    ],
-   "traits_fins_px": 1762
+   "traits_fins_px": 2227
   },
   "heroine_back_iddle": {
    "ancre_pieds": [
-    72,
+    57,
     230
    ],
    "anomalies": [
@@ -699,7 +707,7 @@
   },
   "heroine_back_walk_a": {
    "ancre_pieds": [
-    52,
+    55,
     231
    ],
    "anomalies": [
@@ -728,124 +736,218 @@
   },
   "heroine_back_walk_b": {
    "ancre_pieds": [
-    35,
-    224
+    69,
+    229
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
    ],
    "categorie": "perso",
-   "defrange_px": 36151,
-   "echelle": 0.1297,
-   "empreinte": "ea662ba43b595079a5d10355a0a02b207dc942fb",
+   "defrange_px": 42872,
+   "echelle": 0.1307,
+   "empreinte": "58659110e67fdca093b250645f066ae127f9c361",
    "fichier": "images/v3/heroine_back_walk_b.png",
    "fond": [
-    245,
-    11,
-    222
+    253,
+    1,
+    249
    ],
    "nom": "heroine_back_walk_b",
-   "ombre_violette_px": 18355,
+   "ombre_violette_px": 24203,
    "personnage": "heroine",
    "poussieres_px": 0,
-   "source": "docs/raw/V3/Heroine-back-walk-b.jpg",
+   "source": "docs/raw/V4/heroine_back_walk_b.jpg",
    "taille": [
-    145,
-    225
+    171,
+    230
    ],
-   "traits_fins_px": 16
+   "traits_fins_px": 0
+  },
+  "heroine_back_walk_c": {
+   "ancre_pieds": [
+    58,
+    232
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "faisceau de lampe peint, retiré (2 px)"
+   ],
+   "categorie": "perso",
+   "defrange_px": 34584,
+   "echelle": 0.1307,
+   "empreinte": "08bb22e3b384d8adef24453b990fc8496f2a40de",
+   "faisceau_retire_px": 2,
+   "fichier": "images/v3/heroine_back_walk_c.png",
+   "fond": [
+    253,
+    1,
+    246
+   ],
+   "nom": "heroine_back_walk_c",
+   "ombre_violette_px": 20207,
+   "personnage": "heroine",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/heroine_back_walk_c.jpg",
+   "taille": [
+    157,
+    233
+   ],
+   "traits_fins_px": 0
   },
   "heroine_iddle": {
    "ancre_pieds": [
-    48,
+    63,
     241
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (190479 px)"
+    "faisceau de lampe peint, retiré (177816 px)",
+    "taches détachées du corps effacées (12089 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 53903,
+   "defrange_px": 60309,
    "echelle": 0.1297,
    "empreinte": "6fa6c1cf4f77d0fd283754dafe047af8e2ae63ee",
-   "faisceau_retire_px": 190479,
+   "faisceau_retire_px": 177816,
    "fichier": "images/v3/heroine_iddle.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
    "nom": "heroine_iddle",
+   "ombre_violette_px": 35763,
    "personnage": "heroine",
    "poussieres_px": 0,
    "source": "docs/raw/V3/Heroine-iddle.jpg",
+   "taches_px": 12089,
    "taille": [
     129,
     242
    ],
-   "traits_fins_px": 1617
+   "traits_fins_px": 1905
   },
   "heroine_walk_a": {
    "ancre_pieds": [
-    79,
+    56,
     230
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (190406 px)"
+    "faisceau de lampe peint, retiré (176035 px)",
+    "taches détachées du corps effacées (13645 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 54546,
+   "defrange_px": 61144,
    "echelle": 0.1297,
    "empreinte": "dc7ce66b760cfd52a4faae8e2fdf49232aef3992",
-   "faisceau_retire_px": 190406,
+   "faisceau_retire_px": 176035,
    "fichier": "images/v3/heroine_walk_a.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
    "nom": "heroine_walk_a",
+   "ombre_violette_px": 37423,
    "personnage": "heroine",
-   "poussieres_px": 0,
+   "poussieres_px": 8,
    "source": "docs/raw/V3/Heroine-walk-a.jpg",
+   "taches_px": 13645,
    "taille": [
     129,
     231
    ],
-   "traits_fins_px": 1627
+   "traits_fins_px": 2170
   },
   "heroine_walk_b": {
    "ancre_pieds": [
-    85,
-    237
+    69,
+    230
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (188894 px)"
+    "faisceau de lampe peint, retiré (176417 px)",
+    "taches détachées du corps effacées (13214 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 58177,
-   "echelle": 0.1297,
-   "empreinte": "bb033d0a8b6a9a3163a1f2dd29cfc41f6d2b0089",
-   "faisceau_retire_px": 188894,
+   "defrange_px": 66677,
+   "echelle": 0.1307,
+   "empreinte": "2c2059c048893980392ba1cd9222a64e8856c312",
+   "faisceau_retire_px": 176417,
    "fichier": "images/v3/heroine_walk_b.png",
+   "fond": [
+    252,
+    2,
+    250
+   ],
    "nom": "heroine_walk_b",
+   "ombre_violette_px": 39241,
    "personnage": "heroine",
    "poussieres_px": 0,
-   "source": "docs/raw/V3/Heroine-walk-b.jpg",
+   "source": "docs/raw/V4/heroine_walk_b.jpg",
+   "taches_px": 13214,
    "taille": [
-    129,
-    238
+    130,
+    231
    ],
-   "traits_fins_px": 1681
+   "traits_fins_px": 2082
+  },
+  "heroine_walk_c": {
+   "ancre_pieds": [
+    58,
+    232
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "faisceau de lampe peint, retiré (178764 px)",
+    "taches détachées du corps effacées (11026 px)"
+   ],
+   "categorie": "perso",
+   "defrange_px": 61426,
+   "echelle": 0.1307,
+   "empreinte": "673fbf6306d8e591ae5fd7e2755077c25476a5f3",
+   "faisceau_retire_px": 178764,
+   "fichier": "images/v3/heroine_walk_c.png",
+   "fond": [
+    253,
+    1,
+    250
+   ],
+   "nom": "heroine_walk_c",
+   "ombre_violette_px": 34833,
+   "personnage": "heroine",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/heroine_walk_c.jpg",
+   "taches_px": 11026,
+   "taille": [
+    130,
+    233
+   ],
+   "traits_fins_px": 2187
   },
   "heros_attack": {
    "ancre_pieds": [
-    55,
+    79,
     251
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (124823 px)"
+    "faisceau de lampe peint, retiré (124733 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 44161,
+   "defrange_px": 50071,
    "echelle": 0.1326,
    "empreinte": "06f1bd327633486a830f76c1be1291162ceeb357",
-   "faisceau_retire_px": 124823,
+   "faisceau_retire_px": 124733,
    "fichier": "images/v3/heros_attack.png",
+   "fond": [
+    253,
+    0,
+    252
+   ],
    "nom": "heros_attack",
+   "ombre_violette_px": 25876,
    "personnage": "heros",
    "poussieres_px": 0,
    "source": "docs/raw/V3/Heros-attack.jpg",
@@ -853,11 +955,11 @@
     159,
     252
    ],
-   "traits_fins_px": 1266
+   "traits_fins_px": 1255
   },
   "heros_back_iddle": {
    "ancre_pieds": [
-    93,
+    77,
     230
    ],
    "anomalies": [
@@ -890,7 +992,7 @@
   },
   "heros_back_walk_a": {
    "ancre_pieds": [
-    57,
+    71,
     231
    ],
    "anomalies": [
@@ -919,49 +1021,84 @@
   },
   "heros_back_walk_b": {
    "ancre_pieds": [
-    41,
-    224
+    67,
+    233
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
    ],
    "categorie": "perso",
-   "defrange_px": 42847,
-   "echelle": 0.1326,
-   "empreinte": "b7405200fe4e84841075f3e926ba8c924e3a102b",
+   "defrange_px": 40293,
+   "echelle": 0.1339,
+   "empreinte": "1c2d6af2e5bf291900eacd318c2cd286c52195a6",
    "fichier": "images/v3/heros_back_walk_b.png",
    "fond": [
-    251,
-    4,
-    233
+    253,
+    1,
+    231
    ],
    "nom": "heros_back_walk_b",
-   "ombre_violette_px": 36648,
+   "ombre_violette_px": 21138,
    "personnage": "heros",
    "poussieres_px": 0,
-   "source": "docs/raw/V3/Heros-back-walk-b.jpg",
+   "source": "docs/raw/V4/heros_back_walk_b.jpg",
    "taille": [
-    171,
-    225
+    173,
+    234
    ],
-   "traits_fins_px": 8
+   "traits_fins_px": 10
+  },
+  "heros_back_walk_c": {
+   "ancre_pieds": [
+    66,
+    233
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "perso",
+   "defrange_px": 34996,
+   "echelle": 0.1339,
+   "empreinte": "42a68d1a1d1eab8f3ddffb42c1955ed3cbdaee69",
+   "fichier": "images/v3/heros_back_walk_c.png",
+   "fond": [
+    253,
+    2,
+    231
+   ],
+   "nom": "heros_back_walk_c",
+   "ombre_violette_px": 18659,
+   "personnage": "heros",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/heros_back_walk_c.jpg",
+   "taille": [
+    173,
+    234
+   ],
+   "traits_fins_px": 12
   },
   "heros_iddle": {
    "ancre_pieds": [
-    54,
+    72,
     244
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (124915 px)"
+    "faisceau de lampe peint, retiré (124843 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 37433,
+   "defrange_px": 42678,
    "echelle": 0.1326,
    "empreinte": "fa584120d1f966574fc7636035cbab1b3539ff17",
-   "faisceau_retire_px": 124915,
+   "faisceau_retire_px": 124843,
    "fichier": "images/v3/heros_iddle.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
    "nom": "heros_iddle",
+   "ombre_violette_px": 22516,
    "personnage": "heros",
    "poussieres_px": 0,
    "source": "docs/raw/V3/Heros-iddle.jpg",
@@ -969,24 +1106,30 @@
     144,
     245
    ],
-   "traits_fins_px": 1322
+   "traits_fins_px": 1344
   },
   "heros_walk_a": {
    "ancre_pieds": [
-    65,
+    61,
     227
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (124918 px)"
+    "faisceau de lampe peint, retiré (124853 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 37439,
+   "defrange_px": 42623,
    "echelle": 0.1326,
    "empreinte": "adacf5570a39e8bdfa08c0092626a7e57d2e9ef2",
-   "faisceau_retire_px": 124918,
+   "faisceau_retire_px": 124853,
    "fichier": "images/v3/heros_walk_a.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
    "nom": "heros_walk_a",
+   "ombre_violette_px": 22292,
    "personnage": "heros",
    "poussieres_px": 0,
    "source": "docs/raw/V3/Heros-walk-a.jpg",
@@ -994,32 +1137,70 @@
     144,
     228
    ],
-   "traits_fins_px": 1315
+   "traits_fins_px": 1319
   },
   "heros_walk_b": {
    "ancre_pieds": [
-    76,
-    234
+    83,
+    229
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "faisceau de lampe peint, retiré (124923 px)"
+    "faisceau de lampe peint, retiré (124511 px)"
    ],
    "categorie": "perso",
-   "defrange_px": 38590,
-   "echelle": 0.1326,
-   "empreinte": "0dd54a2252cd2b905b957c351e06490d5cee7417",
-   "faisceau_retire_px": 124923,
+   "defrange_px": 48433,
+   "echelle": 0.1339,
+   "empreinte": "af7b00d780f1c641e582d2e3b512daa13a226663",
+   "faisceau_retire_px": 124511,
    "fichier": "images/v3/heros_walk_b.png",
+   "fond": [
+    253,
+    0,
+    249
+   ],
    "nom": "heros_walk_b",
+   "ombre_violette_px": 24516,
    "personnage": "heros",
    "poussieres_px": 0,
-   "source": "docs/raw/V3/Heros-walk-b.jpg",
+   "source": "docs/raw/V4/heros_walk_b.jpg",
    "taille": [
-    144,
-    235
+    167,
+    230
    ],
-   "traits_fins_px": 1248
+   "traits_fins_px": 1389
+  },
+  "heros_walk_c": {
+   "ancre_pieds": [
+    63,
+    228
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "faisceau de lampe peint, retiré (124149 px)",
+    "ombre sous les pieds effacée (746 px)"
+   ],
+   "categorie": "perso",
+   "defrange_px": 68262,
+   "echelle": 0.1339,
+   "empreinte": "af8d31a3a1a29ec46ceacea89804b06f5c445a33",
+   "faisceau_retire_px": 124149,
+   "fichier": "images/v3/heros_walk_c.png",
+   "fond": [
+    254,
+    1,
+    249
+   ],
+   "nom": "heros_walk_c",
+   "ombre_violette_px": 47294,
+   "personnage": "heros",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/heros_walk_c.jpg",
+   "taille": [
+    145,
+    230
+   ],
+   "traits_fins_px": 1809
   },
   "icon_hide": {
    "anomalies": [

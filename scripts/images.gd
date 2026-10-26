@@ -200,14 +200,21 @@ func v3_pose(perso: String, pose: String) -> String:
 	return ""
 
 
-## Poses de marche du personnage (walk_a / walk_b, ou run_a / run_b), vide s'il n'y en a pas.
+## Poses de marche du personnage dans l'ordre du cycle : walk_a / walk_b (ou run_a / run_b), avec la pose de
+## passage walk_c entre les deux s'il en a une (a, c, b, c), vide s'il n'y en a pas.
 func v3_marche(perso: String) -> Array:
-	for paire in [["walk_a", "walk_b"], ["run_a", "run_b"]]:
+	for paire in [["walk_a", "walk_b", "walk_c"], ["run_a", "run_b", "run_c"]]:
 		var a := v3_pose(perso, paire[0])
 		var b := v3_pose(perso, paire[1])
 		if a != "" and b != "":
-			return [a, b]
+			var c := v3_pose(perso, paire[2])
+			return [a, c, b, c] if c != "" else [a, b]
 	return []
+
+
+## Pose du cycle de marche à l'instant « temps » : un pas (a puis b) dure autant avec ou sans pose de passage.
+func _pose_cycle(cycle: Array, temps: float, cadence: float) -> String:
+	return cycle[int(temps * cadence * cycle.size() / 2.0) % cycle.size()]
 
 
 func v3_taille(nom: String) -> Vector2:
@@ -410,15 +417,15 @@ func v3_animation(perso: String, temps: float, marche: bool, attaque := false, c
 	if attaque and v3_pose(perso, "attack") != "":
 		anim["nom"] = v3_pose(perso, "attack")
 		return anim
-	if dos and v3_pose(perso + "_back", "idle") != "" and v3_marche(perso + "_back").size() == 2:
+	if dos and v3_pose(perso + "_back", "idle") != "" and v3_marche(perso + "_back").size() >= 2:
 		anim["dos"] = true
-		anim["nom"] = v3_marche(perso + "_back")[int(temps * cadence) % 2] if marche else v3_pose(perso + "_back", "idle")
+		anim["nom"] = _pose_cycle(v3_marche(perso + "_back"), temps, cadence) if marche else v3_pose(perso + "_back", "idle")
 		return anim
 	if not marche or anim["nom"] == "":
 		return anim
 	var cycle := v3_marche(perso)
-	if cycle.size() == 2:
-		anim["nom"] = cycle[int(temps * cadence) % 2]
+	if cycle.size() >= 2:
+		anim["nom"] = _pose_cycle(cycle, temps, cadence)
 	else:
 		var phase := temps * cadence * PI / 2.0
 		anim["decalage"] = Vector2(0, -absf(sin(phase)) * REBOND_V3)
