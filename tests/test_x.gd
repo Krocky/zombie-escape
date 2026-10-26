@@ -34,7 +34,7 @@ func _physics_process(_d):
 	match phase:
 		"donnees":
 			if g == 2:
-				# Reprise d'une version 6 : tout est relu, pas d'étoiles, réécrite aussitôt en version 7
+				# Reprise d'une version 6 : tout est relu, pas d'étoiles, réécrite aussitôt dans la version courante (8 depuis le lot 4 b)
 				_vider()
 				Fichier.ecrire_json(partie.FICHIER, {"version": 6, "inventaire": {"eau": 2}, "constructions": ["atelier"],
 					"remede": 1, "remede_annonce": false, "skin": "heroine", "prenom": "Eliott", "rescapes": 1,
@@ -48,7 +48,7 @@ func _physics_process(_d):
 					partie.etoiles_lieux.is_empty() and partie.meilleures_etoiles("supermarche") == 0)
 				var fichier = Fichier.lire_json(partie.FICHIER)
 				_verifier("réécrite en version %s avec « etoiles »" % str(fichier.get("version")),
-					int(fichier.get("version", 0)) == 7 and fichier.get("etoiles") is Dictionary)
+					int(fichier.get("version", 0)) == partie.VERSION and fichier.get("etoiles") is Dictionary)
 
 				# Étoiles : le meilleur score seulement
 				_vider()
