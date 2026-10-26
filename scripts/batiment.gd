@@ -2,15 +2,13 @@ extends "res://scripts/mur.gd"
 ## Bâtiment du camp de la base (abri, feu, construction, tente) : un obstacle du décor (voir Mur) posé au sol
 ## sur son emprise, avec collision. Image V3 base_* découpée en bandes triées (Iso.habiller : ses coins au sol
 ## sur ceux de l'emprise, donc ses pieds dedans) ; sans image, dessin en code de secours (formes simples avec
-## contour épais). Feu : flammes animées et lueur au sol ; projecteur : faisceau et phares ; tente : son rescapé,
-## content, debout devant l'entrée.
+## contour épais). Feu : flammes animées et lueur au sol ; projecteur : faisceau et phares. Le rescapé d'une tente
+## est un personnage à part (RescapeBase) qui se promène ; devant() = sa place devant l'entrée.
 ## Il peut tomber du ciel (tomber) : chute, aplatissement et petit rebond, nuage de poussière, et il finit posé
 ## à sa place (la chute ne fait que décaler le dessin, jamais l'emprise).
 
 ## Nom du bâtiment : abri_1, abri_2, feu, barricade, atelier, lampe, jardin, tente_N (Partie.premiere_apparition).
 @export var id := ""
-## Tente : personnage du rescapé (pose « happy », voir Partie.persos_base) devant l'entrée ; "" = personne.
-@export var rescape := ""
 
 ## Chute du ciel : durée de la chute, du rebond, du nuage de poussière (s), hauteur de départ (pixels à l'écran)
 const DUREE_CHUTE := 0.55
@@ -23,9 +21,8 @@ const FEU_FLAMMES := 0.55
 const FEU_OPACITE := 0.5
 ## base_floodlight : centre des trois phares (pixels de l'image)
 const PHARE_IMAGE := Vector2(110, 60)
-## Rescapé devant sa tente : taille (images à 2x, comme le héros), place (monde, depuis `position`)
-const ECHELLE_RESCAPE := 0.5
-const DEVANT_TENTE := Vector2(-60, 45)
+## Place du rescapé devant sa tente (monde, depuis `position`)
+const DEVANT_TENTE := Vector2(-60, 30)
 ## Une case du monde (200 x 200) fait cette largeur à l'écran : échelle des dessins de secours
 const LARGEUR_CASE := 240.0
 
@@ -34,7 +31,6 @@ var _chute := -1.0              # instant (_temps) où la chute commence ; < 0 :
 var _bandes := []               # [bande, décalage, échelle] de l'image découpée
 var _corps: Node2D = null       # dessin de secours (sans image)
 var _effets := Node2D.new()     # flammes, phares, poussière : par-dessus le bâtiment
-var _perso: Node2D = null       # rescapé devant la tente
 var _pieds := Vector2.ZERO      # pieds du dessin à l'écran (milieu, vers l'avant de l'emprise)
 var _e := 1.0                   # échelle des dessins de secours et des effets (1 = une case)
 
@@ -44,6 +40,11 @@ func pieds() -> Vector2:
 	if _bandes.is_empty():
 		return emprise().get_center()
 	return Iso.monde(Iso.point_image(image, emprise(), Images.v3_pieds(image), _miroir()))
+
+
+## Devant l'entrée de la tente (monde) : place de son rescapé.
+func devant() -> Vector2:
+	return position + DEVANT_TENTE
 
 
 ## Posé au sol (pas en train de tomber ni en attente de tomber).
@@ -84,11 +85,6 @@ func _construire() -> void:
 	_effets.position = c[1] + Vector2(0, 1)   # trié juste devant le bâtiment
 	_effets.draw.connect(_dessiner_effets)
 	_vue.add_child(_effets)
-	if rescape != "":
-		_perso = Node2D.new()
-		_perso.position = Iso.ecran(global_position + DEVANT_TENTE)
-		_perso.draw.connect(_dessiner_rescape)
-		_vue.add_child(_perso)
 	_sol.draw.connect(_dessiner_sol)
 
 
@@ -139,8 +135,6 @@ func _appliquer_chute() -> void:
 		bande.offset.y = b[1].y + etat["dy"] / bande.scale.y
 	if _corps:
 		_corps.visible = not etat["cache"]
-	if _perso:
-		_perso.visible = etat["pose"]
 
 
 func _dessiner_sol() -> void:
@@ -202,15 +196,6 @@ func _phares(ci: CanvasItem, pieds_ecran: Vector2) -> void:
 		var c := Iso.point_image(image, emprise(), p, _miroir())
 		ci.draw_circle(c, 22.0 * e, Color(Palette.LAMPE, 0.22 + 0.04 * sin(_temps * 3.0)))
 		ci.draw_circle(c, 10.0 * e, Color(Palette.LAMPE, 0.5))
-
-
-## Le rescapé, content, devant l'entrée de sa tente (une fois la tente posée).
-func _dessiner_rescape() -> void:
-	var nom := Images.v3_pose(rescape, "happy")
-	if nom == "":
-		return
-	Dessin.ombre(_perso, Rect2(-28, -8, 56, 16))
-	Images.v3_dessiner(_perso, nom, Vector2.ZERO, ECHELLE_RESCAPE)
 
 
 ## Dessin de secours (sans image), pieds en (0, 0), décalé et aplati pendant la chute.

@@ -2,8 +2,9 @@ extends "res://scripts/niveau.gd"
 ## La base : un grand parking où le héros marche, avec la même mécanique que les lieux (Niveau : vue isométrique,
 ## joystick, caméra qui suit, tri en profondeur, collisions), sans zombie et éclairé (pas de nuit noire, lampe
 ## éteinte, Reglages.BASE_CLARTE). Le camp (Batiment) : abri (base_shelter_2 dès 2 constructions), feu, constructions
-## faites (barricade, atelier, projecteur, jardin), une tente par rescapé sauvé (au plus 4) avec lui devant ;
-## chacun posé au sol sur sa place fixe (PLACES, TENTES), avec collision. Un bâtiment qui apparaît pour la première
+## faites (barricade, atelier, projecteur, jardin), une tente par rescapé sauvé (au plus 10) ; chacun posé au sol
+## sur sa place fixe (PLACES, TENTES), avec collision. Chaque rescapé d'une tente est un personnage (RescapeBase)
+## qui se promène sur le parking et remercie le héros ; il apparaît quand sa tente est posée. Un bâtiment qui apparaît pour la première
 ## fois tombe du ciel (Partie.premiere_apparition, mémorisé) et finit posé à sa place.
 ## Interface (calque Interface) : titre, inventaire, jauge du remède, tiroir des constructions, boutons Héros et
 ## Réglages, et Start quand le héros est près de la voiture de survie : il ouvre la carte. Le héros arrive toujours
@@ -11,6 +12,7 @@ extends "res://scripts/niveau.gd"
 
 const CARTE := preload("res://scenes/carte_construction.tscn")
 const BATIMENT := preload("res://scenes/batiment.tscn")
+const RESCAPE := preload("res://scenes/rescape_base.tscn")
 
 const TAILLE_ICONE := 54.0
 ## Places fixes du camp (monde) : centre de l'emprise et taille (l'emprise prend ensuite les proportions de l'image).
@@ -22,8 +24,10 @@ const PLACES := {
 	"barricade": [Vector2(1560, 1120), Vector2(200, 200)],
 	"lampe": [Vector2(870, 1060), Vector2(68, 68)],
 }
-## Tentes des rescapés, groupées dans le coin du fond à droite (centre de l'emprise), une par rescapé sauvé.
-const TENTES := [Vector2(1900, 260), Vector2(2170, 260), Vector2(1900, 560), Vector2(2170, 560)]
+## Tentes des rescapés, groupées dans le coin de droite (centre de l'emprise), une par rescapé sauvé : 2 colonnes
+## de 5, de l'arrière vers l'avant (au-delà de 10 rescapés, pas de tente ni de personnage de plus).
+const TENTES := [Vector2(1900, 240), Vector2(2170, 240), Vector2(1900, 490), Vector2(2170, 490), Vector2(1900, 740),
+	Vector2(2170, 740), Vector2(1900, 990), Vector2(2170, 990), Vector2(1900, 1240), Vector2(2170, 1240)]
 const TAILLE_TENTE := Vector2(200, 200)
 ## Image V3 de chaque bâtiment (dessin de secours dans Batiment si elle manque).
 const IMAGES := {"abri_1": "base_shelter_1", "abri_2": "base_shelter_2", "feu": "base_campfire",
@@ -54,6 +58,7 @@ const TAILLE_START := Vector2(360, 110)
 
 var _pret := false
 var _batiments := {}                    # id -> Batiment
+var _rescapes := {}                     # id de la tente -> RescapeBase
 var _glissement: Tween                  # ouverture ou fermeture du tiroir en cours
 var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 	set(valeur):
@@ -129,6 +134,19 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(meuble):
 			meuble.voir_a_travers(pieds, delta)
 	_ui.get_node("Start").visible = $Monde/Voiture.distance_a(_heros.global_position) <= Reglages.VOITURE_PORTEE
+	# Les rescapés : chacun apparaît une fois sa tente posée
+	for id in _rescapes:
+		_rescapes[id].actif = _batiments[id].pose()
+		_rescapes[id].connaitre_heros(_heros.global_position)
+
+
+## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
+func rescapes_aux_tentes(oui: bool) -> void:
+	for rescape in _rescapes.values():
+		if oui:
+			rescape.aller_devant_tente()
+		else:
+			rescape.liberer()
 
 
 ## Pas de zombie à prévenir ni d'ondes de bruit dans la base.
@@ -175,11 +193,9 @@ func _ajouter_batiment(id: String) -> void:
 	var batiment := BATIMENT.instantiate()
 	batiment.id = id
 	var place: Array
-	if id.begins_with("tente_"):
-		var k := int(id.get_slice("_", 1)) - 1
-		place = [TENTES[k], TAILLE_TENTE]
-		var persos := Partie.persos_base()
-		batiment.rescape = persos[k] if k < persos.size() else "survivor"
+	var tente := id.begins_with("tente_")
+	if tente:
+		place = [TENTES[int(id.get_slice("_", 1)) - 1], TAILLE_TENTE]
 		batiment.image = IMAGES["tente"]
 	else:
 		place = PLACES[id.get_slice("_", 0)]
@@ -193,6 +209,24 @@ func _ajouter_batiment(id: String) -> void:
 		$SolEffets.add_child(visuels["sol"])
 		$Vue.add_child(visuels["vue"])
 		_meubles.append(batiment)
+	if tente:
+		_ajouter_rescape(id, batiment)
+
+
+## Le rescapé d'une tente, devant elle (Partie.persos_base, dans l'ordre des tentes).
+func _ajouter_rescape(id: String, tente: Node2D) -> void:
+	var k := int(id.get_slice("_", 1)) - 1
+	var persos := Partie.persos_base()
+	var rescape := RESCAPE.instantiate()
+	rescape.perso = persos[k] if k < persos.size() else "survivor"
+	rescape.parking = Rect2(Vector2.ZERO, taille)
+	rescape.tente = tente.devant()
+	rescape.position = rescape.tente
+	rescape.actif = false
+	$Monde.add_child(rescape)
+	_rescapes[id] = rescape
+	if _pret:
+		$Vue.add_child(rescape.visuels()["vue"])
 
 
 ## Bâtiments qui apparaissent pour la première fois : ils tomberont du ciel l'un après l'autre.
@@ -211,6 +245,9 @@ func _actualiser_camp(attente: float) -> void:
 			_meubles.erase(_batiments[id])
 			_batiments[id].queue_free()
 			_batiments.erase(id)
+			if _rescapes.has(id):
+				_rescapes[id].queue_free()
+				_rescapes.erase(id)
 	for id in ids:
 		if not _batiments.has(id):
 			_ajouter_batiment(id)

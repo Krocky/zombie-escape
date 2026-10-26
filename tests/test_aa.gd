@@ -115,8 +115,9 @@ func _physics_process(_d):
 						bat.pose() and e.grow(PRES).has_point(bat.pieds()) and parking.encloses(e))
 				for k in 4:
 					var tente = b._batiments["tente_%d" % (k + 1)]
-					_verifier("tente_%d dans le coin du fond a droite, rescape %s devant" % [k + 1, tente.rescape],
-						tente.emprise().get_center().x > b.taille.x * 0.7 and tente.emprise().get_center().y < b.taille.y * 0.5 and tente.rescape != "")
+					var r = b._rescapes.get("tente_%d" % (k + 1))
+					_verifier("tente_%d dans le coin du fond a droite, son rescape %s" % [k + 1, r.perso if r else "absent"],
+						tente.emprise().get_center().x > b.taille.x * 0.7 and tente.emprise().get_center().y < b.taille.y * 0.5 and r != null)
 				var emprises = _emprises()
 				var noms = emprises.keys()
 				var libres = true

@@ -52,7 +52,7 @@ position = Vector2(1200, 275)
 couleur = "bleue"
 
 [node name="Epave3" parent="Monde" instance=ExtResource("4_voiture")]
-position = Vector2(1880, 1555)
+position = Vector2(1720, 1555)
 couleur = "grise"
 
 [node name="Epave4" parent="Monde" instance=ExtResource("4_voiture")]
@@ -61,13 +61,13 @@ taille = Vector2(230, 110)
 couleur = "rouille"
 
 [node name="Bloc1" parent="Monde" instance=ExtResource("3_mur")]
-position = Vector2(2240, 925)
+position = Vector2(1340, 1240)
 taille = Vector2(90, 90)
 hauteur = 40.0
 style = 3
 
 [node name="Bloc2" parent="Monde" instance=ExtResource("3_mur")]
-position = Vector2(2240, 1035)
+position = Vector2(2290, 1500)
 taille = Vector2(90, 90)
 hauteur = 40.0
 style = 3
