@@ -1,16 +1,19 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 7 : {"version": 7, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 8 : {"version": 8, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
 ## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
 ## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus),
 ## "batiments_vus": [id, ...] bâtiments de la base déjà tombés du ciel (leur chute n'est montrée qu'une fois),
-## "etoiles": {id: meilleur nombre d'étoiles (1 à 3) gagné dans ce lieu}}.
-## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge), puis réécrite en version 7.
+## "etoiles": {id: meilleur nombre d'étoiles (1 à 3) gagné dans ce lieu},
+## "poses": [{"nom": construction, "x": .., "y": ..}, ...] constructions posées dans la base (centre de l'emprise,
+## dans l'ordre de pose ; une barricade par entrée)}.
+## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge, ses constructions gardent
+## leur place de l'étape a du lot 4, PLACES_DEPART), puis réécrite en version 8.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 7
+const VERSION := 8
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -32,6 +35,14 @@ const CONSTRUCTIONS := {
 	"infirmerie": "Infirmerie",
 	"jardin": "Jardin",
 }
+## Constructions qui ont un bâtiment dans la base, posé librement par le joueur (l'infirmerie n'en a pas) :
+## nom -> place d'origine (centre de l'emprise, monde), celle de l'étape a, gardée par les anciennes sauvegardes.
+const PLACES_DEPART := {
+	"barricade": Vector2(1560, 1120),
+	"atelier": Vector2(1600, 680),
+	"lampe": Vector2(870, 1060),
+	"jardin": Vector2(1250, 420),
+}
 ## Héros au choix (écran « Choisis ton héros ») : skin -> nom affiché. Images : images/v3/<skin>_<pose>.png
 const SKINS := {"heros": "Garçon", "heroine": "Fille"}
 const PRENOM_MAX := 12
@@ -51,8 +62,10 @@ var lieu := "supermarche"
 var derniers_tirages := {}
 ## Objets rangés à la base, cumulés sur toutes les parties : { type: nombre }
 var inventaire := {}
-## Constructions faites à la base (noms, voir CONSTRUCTIONS)
+## Constructions faites à la base (noms, voir CONSTRUCTIONS ; une seule fois chacun, même avec plusieurs barricades)
 var constructions := []
+## Constructions posées dans la base, dans l'ordre : [nom, centre de l'emprise (monde)] ; une entrée par barricade
+var poses := []
 ## Fioles versées dans la jauge du remède (au plus Reglages.REMEDE_FIOLES)
 var remede := 0
 ## Vrai quand l'écran « Remède trouvé ! » a été montré (une seule fois)
@@ -350,6 +363,8 @@ func cout(construction: String) -> Dictionary:
 func effet(construction: String) -> String:
 	match construction:
 		"barricade":
+			if est_construit("barricade"):
+				return "Bloque les zombies"   # seule la première barricade donne des cœurs
 			return "+%d cœur%s pour le héros" % [Reglages.BARRICADE_COEURS, "s" if Reglages.BARRICADE_COEURS > 1 else ""]
 		"atelier":
 			return "La batte fait +%d dégât%s" % [Reglages.ATELIER_DEGATS, "s" if Reglages.ATELIER_DEGATS > 1 else ""]
@@ -366,8 +381,36 @@ func est_construit(construction: String) -> bool:
 	return construction in constructions
 
 
+## Combien de fois cette construction est faite (0 ou 1, jusqu'à BARRICADE_MAX pour la barricade).
+func nombre_construit(construction: String) -> int:
+	if not est_construit(construction):
+		return 0
+	var n := 0
+	for pose in poses:
+		n += int(pose[0] == construction)
+	return maxi(n, 1)
+
+
+## Nombre de fois qu'on peut la faire : BARRICADE_MAX pour la barricade, 1 pour les autres.
+func maximum(construction: String) -> int:
+	return Reglages.BARRICADE_MAX if construction == "barricade" else 1
+
+
+## Bâtiments des constructions dans la base, dans l'ordre de pose : [nom, centre de l'emprise]. Une construction
+## faite sans position (ancienne sauvegarde) est à sa place d'origine (PLACES_DEPART), avant les autres.
+func poses_camp() -> Array:
+	var liste := []
+	for nom_construction in constructions:
+		if PLACES_DEPART.has(nom_construction) and not poses.any(func(p: Array) -> bool: return p[0] == nom_construction):
+			liste.append([nom_construction, PLACES_DEPART[nom_construction]])
+	for pose in poses:
+		if est_construit(pose[0]):
+			liste.append(pose)
+	return liste
+
+
 func peut_construire(construction: String) -> bool:
-	if est_construit(construction):
+	if nombre_construit(construction) >= maximum(construction):
 		return false
 	var c := cout(construction)
 	for type in c:
@@ -376,14 +419,19 @@ func peut_construire(construction: String) -> bool:
 	return true
 
 
-## Retire les objets de l'inventaire, ajoute la construction et sauvegarde. Faux si impossible.
-func construire(construction: String) -> bool:
+## Retire les objets de l'inventaire, ajoute la construction (posée à `centre` dans la base si elle a un
+## bâtiment, sinon à sa place d'origine) et sauvegarde. Faux si impossible.
+func construire(construction: String, centre := Vector2.INF) -> bool:
 	if not peut_construire(construction):
 		return false
 	var c := cout(construction)
 	for type in c:
 		inventaire[type] -= c[type]
-	constructions.append(construction)
+	if PLACES_DEPART.has(construction):
+		poses = poses_camp()   # une construction sans position garde sa place d'origine
+		poses.append([construction, centre if centre != Vector2.INF else PLACES_DEPART[construction]])
+	if not est_construit(construction):
+		constructions.append(construction)
 	sauvegarder()
 	return true
 
@@ -419,11 +467,13 @@ func premiere_apparition(id: String) -> bool:
 func sauvegarder() -> void:
 	Fichier.ecrire_json(FICHIER, {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
 		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
-		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux})
+		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux,
+		"poses": poses.map(func(p: Array) -> Dictionary: return {"nom": p[0], "x": p[1].x, "y": p[1].y})})
 
 
-## Lit la sauvegarde (version 1 à 7). Une version plus ancienne est aussitôt réécrite en version 7
-## (les fioles déjà rangées remplissent la jauge du remède). Fichier illisible : on reprend le .tmp.
+## Lit la sauvegarde (version 1 à 8). Une version plus ancienne est aussitôt réécrite en version 8
+## (les fioles déjà rangées remplissent la jauge du remède, les constructions restent à leur place d'origine).
+## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
 	var donnees = Fichier.lire_json(FICHIER)
 	if not donnees is Dictionary:
@@ -453,6 +503,12 @@ func charger() -> void:
 	if donnees.get("etoiles") is Dictionary:
 		for id in donnees["etoiles"]:
 			etoiles_lieux[str(id)] = clampi(int(donnees["etoiles"][id]), 0, 3)
+	poses = []
+	if donnees.get("poses") is Array:
+		for pose in donnees["poses"]:
+			if pose is Dictionary and PLACES_DEPART.has(str(pose.get("nom", ""))):
+				poses.append([str(pose["nom"]), Vector2(float(pose.get("x", 0.0)), float(pose.get("y", 0.0)))])
 	if int(donnees.get("version", 1)) < VERSION:
+		poses = poses_camp()
 		_remplir_remede()
 		sauvegarder()

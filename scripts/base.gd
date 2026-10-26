@@ -2,9 +2,12 @@ extends "res://scripts/niveau.gd"
 ## La base : un grand parking où le héros marche, avec la même mécanique que les lieux (Niveau : vue isométrique,
 ## joystick, caméra qui suit, tri en profondeur, collisions), sans zombie et éclairé (pas de nuit noire, lampe
 ## éteinte, Reglages.BASE_CLARTE). Le camp (Batiment) : abri (base_shelter_2 dès 2 constructions), feu, constructions
-## faites (barricade, atelier, projecteur, jardin), une tente par rescapé sauvé (au plus 4) avec lui devant ;
-## chacun posé au sol sur sa place fixe (PLACES, TENTES), avec collision. Un bâtiment qui apparaît pour la première
-## fois tombe du ciel (Partie.premiere_apparition, mémorisé) et finit posé à sa place.
+## faites (barricades, atelier, projecteur, jardin), une tente par rescapé sauvé (au plus 4) avec lui devant ;
+## chacun posé au sol avec collision : abri, feu et tentes sur leur place fixe (PLACES, TENTES), les constructions
+## là où le joueur les a posées (Partie.poses_camp). Un bâtiment qui apparaît pour la première fois tombe du ciel
+## (Partie.premiere_apparition, mémorisé) et finit posé à sa place.
+## Placement libre : « Construire » sur une carte ouvre le mode placement (fantôme vert si la place est libre, rouge
+## sinon ; toucher le sol le déplace, glisser fait défiler la vue ; Poser paie et construit, Annuler ne coûte rien).
 ## Interface (calque Interface) : titre, inventaire, jauge du remède, tiroir des constructions, boutons Héros et
 ## Réglages, et Start quand le héros est près de la voiture de survie : il ouvre la carte. Le héros arrive toujours
 ## à côté de la voiture. Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
@@ -17,11 +20,10 @@ const TAILLE_ICONE := 54.0
 const PLACES := {
 	"abri": [Vector2(900, 560), Vector2(160, 205)],
 	"feu": [Vector2(1200, 820), Vector2(200, 200)],
-	"jardin": [Vector2(1250, 420), Vector2(200, 200)],
-	"atelier": [Vector2(1600, 680), Vector2(200, 200)],
-	"barricade": [Vector2(1560, 1120), Vector2(200, 200)],
-	"lampe": [Vector2(870, 1060), Vector2(68, 68)],
 }
+## Taille des constructions posées par le joueur (place d'origine : Partie.PLACES_DEPART)
+const TAILLES := {"barricade": Vector2(200, 200), "atelier": Vector2(200, 200), "lampe": Vector2(68, 68),
+	"jardin": Vector2(200, 200)}
 ## Tentes des rescapés, groupées dans le coin du fond à droite (centre de l'emprise), une par rescapé sauvé.
 const TENTES := [Vector2(1900, 260), Vector2(2170, 260), Vector2(1900, 560), Vector2(2170, 560)]
 const TAILLE_TENTE := Vector2(200, 200)
@@ -51,9 +53,34 @@ const TAILLE_JAUGE := {true: Vector2(380, 106), false: Vector2(0, 100)}
 ## Boutons ronds Héros et Réglages ; bouton Start (remplace Partir)
 const TAILLE_ROND := Vector2(120, 120)
 const TAILLE_START := Vector2(360, 110)
+## Mode placement : boutons Poser et Annuler, distance du fantôme devant le héros (monde, en plus de sa demi-taille),
+## glissement au-delà duquel le doigt fait défiler la vue au lieu de déplacer le fantôme (pixels)
+const TAILLE_POSER := Vector2(280, 110)
+const DEVANT_HEROS := 60.0
+const SEUIL_GLISSE := 20.0
+## Couleurs du fantôme : place libre, place refusée
+const FANTOME_LIBRE := Color(0.55, 1.0, 0.55, 0.75)
+const FANTOME_REFUSE := Color(1.0, 0.4, 0.4, 0.75)
+## Le parking (dans les murets), la marge autour du héros, la case de la grille du chemin héros -> voiture (monde)
+const MARGE_PARKING := 40.0
+const RAYON_HEROS := 18.0
+const CASE_CHEMIN := 25.0
+## Place gardée libre autour de l'arrivée du héros (à côté de la voiture), monde
+const ARRIVEE := Vector2(140, 140)
+## Raisons d'un refus (fantôme rouge)
+const RAISONS := {"parking": "Hors du parking", "obstacle": "Il y a déjà quelque chose ici", "heros": "Trop près du héros",
+	"chemin": "Le héros serait enfermé"}
 
 var _pret := false
 var _batiments := {}                    # id -> Batiment
+var _arrivee := Vector2.ZERO            # où le héros arrive (gardé libre)
+var _placement := ""                    # construction en cours de placement ("" : pas de placement)
+var _fantome: StaticBody2D = null       # bâtiment fantôme (sans collision)
+var _centre_fantome := Vector2.ZERO     # centre demandé de son emprise (monde)
+var _raison := ""                       # pourquoi la place est refusée ("" : libre), clé de RAISONS
+var _zone := Node2D.new()               # emprise du fantôme au sol, verte ou rouge (calque Reperes)
+var _doigt := -1                        # doigt posé sur le sol pendant le placement
+var _glisse := 0.0                      # chemin parcouru par ce doigt (pixels)
 var _glissement: Tween                  # ouverture ou fermeture du tiroir en cours
 var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 	set(valeur):
@@ -67,13 +94,19 @@ func _ready() -> void:
 	var remede := Partie.annoncer_remede()
 	if remede:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/remede.tscn")
-	# Les débris du sol évitent toutes les places du camp (même celles pas encore construites)
-	for place in PLACES.values() + TENTES.map(func(p: Vector2) -> Array: return [p, TAILLE_TENTE]):
+	_arrivee = _heros.position
+	# Les débris du sol évitent toutes les places du camp (même celles pas encore construites ; places d'origine
+	# des constructions : le sol reste le même qu'à l'étape a)
+	var places_fixes: Array = PLACES.values() + TENTES.map(func(p: Vector2) -> Array: return [p, TAILLE_TENTE])
+	for nom in TAILLES:
+		places_fixes.append([Partie.PLACES_DEPART[nom], TAILLES[nom]])
+	for place in places_fixes:
 		var r := Rect2(place[0] - place[1] / 2.0, place[1])
 		for p in [r.position, r.end, Vector2(r.position.x, r.end.y), Vector2(r.end.x, r.position.y), r.get_center()]:
 			_places_objets.append(p)
-	for id in _batiments_visibles():
-		_ajouter_batiment(id)
+	var camp := _camp()
+	for id in camp:
+		_ajouter_batiment(id, camp[id])
 	super()
 	$Nuit.color = Palette.BASE_LUMIERE * Color(Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, 1.0)
 	for calque in [$BrumeSol, $Brouillard, $Vignette]:
@@ -109,6 +142,17 @@ func _preparer_interface() -> void:
 	_ui.get_node("Reglages").icone = "reglages"
 	_ui.get_node("Reglages").appuye.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/parametres.tscn"))
 	_ui.get_node("Tiroir").appuye.connect(func() -> void: ouvrir_tiroir(not tiroir_ouvert()))
+	var poser: Control = _ui.get_node("Poser")
+	poser.couleur = Palette.SORTIE
+	poser.appuye.connect(poser_construction)
+	_ui.get_node("Annuler").couleur = Palette.UI_BOUTON
+	_ui.get_node("Annuler").appuye.connect(annuler_placement)
+	var consigne: Label = _ui.get_node("Consigne")
+	consigne.add_theme_color_override("font_color", Palette.LAMPE)
+	consigne.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	_zone.draw.connect(_dessiner_zone)
+	$Reperes.add_child(_zone)
+	_montrer_placement(false)
 	for construction in Partie.CONSTRUCTIONS:
 		var carte := CARTE.instantiate()
 		carte.construction = construction
@@ -128,7 +172,7 @@ func _physics_process(delta: float) -> void:
 	for meuble in _meubles:
 		if is_instance_valid(meuble):
 			meuble.voir_a_travers(pieds, delta)
-	_ui.get_node("Start").visible = $Monde/Voiture.distance_a(_heros.global_position) <= Reglages.VOITURE_PORTEE
+	_ui.get_node("Start").visible = _placement == "" and $Monde/Voiture.distance_a(_heros.global_position) <= Reglages.VOITURE_PORTEE
 
 
 ## Pas de zombie à prévenir ni d'ondes de bruit dans la base.
@@ -141,10 +185,13 @@ func _afficher_objectif() -> void:
 	$HUD.afficher_objectif("", 0, 0)
 
 
-## Geste « retour » d'Android : écran précédent (le titre), comme avant.
+## Geste « retour » d'Android : annule le placement en cours, sinon écran précédent (le titre), comme avant.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
+		if _placement != "":
+			annuler_placement.call_deferred()
+		else:
+			get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
 
 
 func _changer_heros() -> void:
@@ -160,32 +207,44 @@ func _partir() -> void:
 
 ## Ids des bâtiments du camp, selon la sauvegarde.
 func _batiments_visibles() -> Array:
-	var ids := ["abri_2" if Partie.constructions.size() >= 2 else "abri_1", "feu"]
-	# L'infirmerie n'a pas d'image : rien de plus dans le camp
-	for construction in ["barricade", "atelier", "lampe", "jardin"]:
-		if Partie.est_construit(construction):
-			ids.append(construction)
+	return _camp().keys()
+
+
+## Bâtiments du camp, selon la sauvegarde : id -> [image, centre de l'emprise, taille, rescapé devant].
+## Ids : abri_1 / abri_2, feu, barricade, barricade_2..., atelier, lampe, jardin, tente_1... (l'infirmerie n'a pas
+## d'image : rien de plus dans le camp).
+func _camp() -> Dictionary:
+	var camp := {}
+	var abri := "abri_2" if Partie.constructions.size() >= 2 else "abri_1"
+	camp[abri] = [IMAGES[abri], PLACES["abri"][0], PLACES["abri"][1], ""]
+	camp["feu"] = [IMAGES["feu"], PLACES["feu"][0], PLACES["feu"][1], ""]
+	var nombres := {}
+	for pose in Partie.poses_camp():
+		var nom: String = pose[0]
+		nombres[nom] = nombres.get(nom, 0) + 1
+		var id := nom if nombres[nom] == 1 else "%s_%d" % [nom, nombres[nom]]
+		camp[id] = [IMAGES[nom], pose[1], TAILLES[nom], ""]
+	var persos := Partie.persos_base()
 	for k in mini(Partie.rescapes, TENTES.size()):
-		ids.append("tente_%d" % (k + 1))
-	return ids
+		camp["tente_%d" % (k + 1)] = [IMAGES["tente"], TENTES[k], TAILLE_TENTE, persos[k] if k < persos.size() else "survivor"]
+	return camp
+
+
+## Bâtiment posé sur son emprise (centre, taille avant d'en prendre les proportions de l'image), dans le monde.
+func _creer_batiment(id: String, image: String, centre: Vector2, taille_batiment: Vector2) -> StaticBody2D:
+	var batiment := BATIMENT.instantiate()
+	batiment.id = id
+	batiment.image = image
+	batiment.taille = taille_batiment
+	batiment.position = centre + Vector2(0, taille_batiment.y / 2.0)   # milieu du bord bas de l'emprise
+	return batiment
 
 
 ## Pose un bâtiment à sa place (dans le monde ; une fois la base prête, son affichage est ajouté ici).
-func _ajouter_batiment(id: String) -> void:
-	var batiment := BATIMENT.instantiate()
-	batiment.id = id
-	var place: Array
-	if id.begins_with("tente_"):
-		var k := int(id.get_slice("_", 1)) - 1
-		place = [TENTES[k], TAILLE_TENTE]
-		var persos := Partie.persos_base()
-		batiment.rescape = persos[k] if k < persos.size() else "survivor"
-		batiment.image = IMAGES["tente"]
-	else:
-		place = PLACES[id.get_slice("_", 0)]
-		batiment.image = IMAGES[id]
-	batiment.taille = place[1]
-	batiment.position = place[0] + Vector2(0, place[1].y / 2.0)   # milieu du bord bas de l'emprise
+## infos : [image, centre, taille, rescapé] (voir _camp).
+func _ajouter_batiment(id: String, infos: Array) -> void:
+	var batiment := _creer_batiment(id, infos[0], infos[1], infos[2])
+	batiment.rescape = infos[3]
 	$Monde.add_child(batiment)
 	_batiments[id] = batiment
 	if _pret:
@@ -205,15 +264,15 @@ func _preparer_chutes(attente: float) -> void:
 
 ## Après une construction : l'abri grandit, la nouvelle construction apparaît aussitôt à sa place (et tombe du ciel).
 func _actualiser_camp(attente: float) -> void:
-	var ids := _batiments_visibles()
+	var camp := _camp()
 	for id in _batiments.keys():
-		if not id in ids:
+		if not camp.has(id):
 			_meubles.erase(_batiments[id])
 			_batiments[id].queue_free()
 			_batiments.erase(id)
-	for id in ids:
+	for id in camp:
 		if not _batiments.has(id):
-			_ajouter_batiment(id)
+			_ajouter_batiment(id, camp[id])
 	_preparer_chutes(attente)
 
 
@@ -236,6 +295,14 @@ func _placer_interface() -> void:
 	var paysage := ecran.x > ecran.y
 	var tiroir: Control = _ui.get_node("Tiroir")
 	var remede: Control = _ui.get_node("Remede")
+	for nom in ["Poser", "Annuler"]:
+		var bouton: Control = _ui.get_node(nom)
+		bouton.custom_minimum_size = TAILLE_POSER
+		bouton.size = TAILLE_POSER
+		bouton.position = Vector2(ecran.x / 2.0 + (15.0 if nom == "Poser" else -15.0 - TAILLE_POSER.x), ecran.y - TAILLE_POSER.y - 40)
+	var consigne: Label = _ui.get_node("Consigne")
+	consigne.size = Vector2(ecran.x - 48, 60)
+	consigne.position = Vector2(24, ecran.y - TAILLE_POSER.y - 120)
 	tiroir.custom_minimum_size = TAILLE_TIROIR
 	tiroir.size = TAILLE_TIROIR
 	tiroir.position = Vector2(24, 24) if paysage else Vector2(ecran.x - TAILLE_TIROIR.x - 24, 236)
@@ -294,16 +361,256 @@ func _actualiser_tiroir() -> void:
 	_ui.get_node("Tiroir").couleur = Palette.SORTIE if possible else Palette.UI_BOUTON
 
 
-## Construction faite : on ferme le tiroir pour la voir tomber du ciel à sa place.
+## « Construire » sur une carte : le tiroir se ferme ; une construction avec un bâtiment passe par le placement
+## (rien n'est payé avant « Poser »), les autres (infirmerie) sont faites aussitôt.
 func _construire(construction: String) -> void:
-	if not Partie.construire(construction):
+	if not Partie.peut_construire(construction):
 		return
+	ouvrir_tiroir(false)
+	if TAILLES.has(construction):
+		commencer_placement(construction)
+	elif Partie.construire(construction):
+		_apres_construction(DUREE_TIROIR)
+
+
+## Construction payée : cartes, inventaire et bouton du tiroir à jour, elle apparaît (et tombe du ciel).
+func _apres_construction(attente: float) -> void:
 	for carte in _ui.get_node("Constructions").get_children():
 		carte.actualiser()
 	_ui.get_node("Haut/Inventaire").queue_redraw()
 	_actualiser_tiroir()
-	ouvrir_tiroir(false)
-	_actualiser_camp(DUREE_TIROIR)
+	_actualiser_camp(attente)
+
+
+# --- Placement libre des constructions ---
+
+## Mode placement : le fantôme apparaît devant le héros (ou à la place libre la plus proche), le joystick est
+## coupé (le héros s'arrête) ; Poser et Annuler remplacent les autres boutons.
+func commencer_placement(construction: String) -> void:
+	_placement = construction
+	$HUD.relacher()
+	_heros.definir_direction(Vector2.ZERO)
+	_montrer_placement(true)
+	var devant: Vector2 = _heros.global_position + _heros.regard() * (RAYON_HEROS + DEVANT_HEROS + TAILLES[construction].length() / 2.0)
+	placer_fantome(_place_libre_pres(devant))
+
+
+## Poser : paie, sauvegarde la position, le bâtiment tombe du ciel à cet endroit. Rien si la place est refusée.
+func poser_construction() -> void:
+	if _placement == "" or _raison != "":
+		return
+	var construction := _placement
+	var centre := _centre_fantome
+	_finir_placement()
+	if Partie.construire(construction, centre):
+		_apres_construction(0.0)
+
+
+## Annuler : rien n'est payé ni construit.
+func annuler_placement() -> void:
+	if _placement != "":
+		_finir_placement()
+
+
+func en_placement() -> bool:
+	return _placement != ""
+
+
+## Pourquoi la place du fantôme est refusée ("" : libre ; sinon clé de RAISONS).
+func raison_refus() -> String:
+	return _raison
+
+
+func _finir_placement() -> void:
+	_placement = ""
+	_doigt = -1
+	_enlever_fantome()
+	_heros.decalage_camera = Vector2.ZERO
+	_montrer_placement(false)
+
+
+## Pendant le placement : Poser, Annuler et la consigne ; sinon tiroir, jauge, Héros, Réglages (Start selon la
+## voiture) et joystick.
+func _montrer_placement(placement: bool) -> void:
+	for nom in ["Poser", "Annuler", "Consigne"]:
+		_ui.get_node(nom).visible = placement
+	for nom in ["Tiroir", "Remede", "Heros", "Reglages"]:
+		_ui.get_node(nom).visible = not placement
+	if placement:
+		_ui.get_node("Start").visible = false
+	$HUD.get_node("Joystick").visible = not placement
+	$HUD.get_node("Joystick").set_process_input(not placement)
+	_zone.visible = placement
+
+
+## Place le fantôme de la construction en cours, centré sur `centre` (monde), vert si la place est libre.
+func placer_fantome(centre: Vector2) -> void:
+	_enlever_fantome()
+	centre = centre.round()
+	_centre_fantome = centre
+	_fantome = _creer_batiment(_placement, IMAGES[_placement], centre, TAILLES[_placement])
+	_fantome.collision_layer = 0   # un fantôme ne bloque personne
+	_fantome.collision_mask = 0
+	$Monde.add_child(_fantome)
+	var visuels: Dictionary = _fantome.visuels()
+	$Vue.add_child(visuels["vue"])
+	_raison = _verifier_place(_fantome.emprise())
+	visuels["vue"].modulate = FANTOME_LIBRE if _raison == "" else FANTOME_REFUSE
+	visuels["sol"].visible = false   # pas d'ombre ni de lueur sous un fantôme
+	$SolEffets.add_child(visuels["sol"])
+	_ui.get_node("Poser").actif = _raison == ""
+	_ui.get_node("Consigne").text = "Touche le sol pour choisir la place" if _raison == "" else RAISONS[_raison]
+	_zone.queue_redraw()
+
+
+func _enlever_fantome() -> void:
+	if _fantome:
+		_fantome.queue_free()   # emporte son affichage (Batiment._exit_tree)
+		_fantome = null
+
+
+## Pendant le placement : un doigt posé puis levé sans glisser déplace le fantôme à cet endroit du sol ;
+## s'il glisse, il fait défiler la vue. Les boutons (Poser, Annuler) passent avant.
+func _input(event: InputEvent) -> void:
+	if _placement == "":
+		return
+	if event is InputEventScreenTouch:
+		if event.pressed and _doigt == -1:
+			_doigt = event.index
+			_glisse = 0.0
+		elif not event.pressed and event.index == _doigt:
+			_doigt = -1
+			if _glisse < SEUIL_GLISSE:
+				placer_fantome(Iso.monde(get_canvas_transform().affine_inverse() * event.position))
+	elif event is InputEventScreenDrag and event.index == _doigt:
+		_glisse += event.relative.length()
+		if _glisse >= SEUIL_GLISSE:
+			_faire_defiler(-event.relative)
+
+
+## Fait défiler la vue (décalage de la caméra du héros), sans sortir des limites de la caméra.
+func _faire_defiler(deplacement: Vector2) -> void:
+	var camera: Camera2D = _heros.get_node("Camera2D")
+	var moitie := get_viewport().get_visible_rect().size / 2.0
+	var mini_ := Vector2(camera.limit_left, camera.limit_top) + moitie
+	var maxi_ := Vector2(camera.limit_right, camera.limit_bottom) - moitie
+	var vise: Vector2 = _heros.vise_camera()
+	var cible: Vector2 = vise + _heros.decalage_camera + deplacement
+	cible = Vector2(clampf(cible.x, mini_.x, maxf(mini_.x, maxi_.x)), clampf(cible.y, mini_.y, maxf(mini_.y, maxi_.y)))
+	_heros.decalage_camera = cible - vise
+
+
+## Emprise du fantôme au sol, verte ou rouge.
+func _dessiner_zone() -> void:
+	if _fantome == null:
+		return
+	var c := Iso.coins(_fantome.emprise())
+	var libre := _raison == ""
+	var couleur := Palette.SORTIE if libre else Palette.COEUR
+	var losange := PackedVector2Array([c[0], c[1], c[2], c[3]])
+	_zone.draw_colored_polygon(losange, Color(couleur, 0.3))
+	losange.append(c[0])
+	_zone.draw_polyline(losange, couleur, 4.0, true)
+
+
+## Obstacles du parking (bâtiments, voitures, blocs, murets) : leurs emprises, sans le fantôme.
+func _obstacles() -> Array:
+	var liste := []
+	for noeud in $Monde.get_children():
+		if noeud is StaticBody2D and noeud != _fantome and noeud.has_method("emprise") and not noeud.is_queued_for_deletion():
+			liste.append(noeud.emprise())
+	return liste
+
+
+## Places gardées libres même vides : abri (grand abri compris), feu, toutes les tentes, arrivée du héros.
+func _reservees() -> Array:
+	var liste := []
+	for place in PLACES.values():
+		liste.append(Rect2(place[0] - place[1] / 2.0, place[1]))
+	for tente in TENTES:
+		liste.append(Rect2(tente - TAILLE_TENTE / 2.0, TAILLE_TENTE))
+	liste.append(Rect2(_arrivee - ARRIVEE / 2.0, ARRIVEE))
+	return liste
+
+
+## "" si une construction peut être posée sur cette emprise, sinon la raison du refus (clé de RAISONS).
+func _verifier_place(emprise: Rect2) -> String:
+	var parking := Rect2(Vector2.ONE * MARGE_PARKING, taille - Vector2.ONE * 2.0 * MARGE_PARKING)
+	if not parking.encloses(emprise):
+		return "parking"
+	for autre: Rect2 in _obstacles() + _reservees():
+		if autre.intersects(emprise):
+			return "obstacle"
+	if emprise.grow(RAYON_HEROS).has_point(_heros.global_position):
+		return "heros"
+	if not chemin_vers_voiture(emprise):
+		return "chemin"
+	return ""
+
+
+## Le héros peut-il encore aller jusqu'à la voiture (bouton Start) si `en_plus` est construit ? Grille grossière
+## du parking (CASE_CHEMIN) : une case est bloquée si un héros en son centre toucherait un obstacle.
+func chemin_vers_voiture(en_plus := Rect2()) -> bool:
+	var n := Vector2i((taille / CASE_CHEMIN).ceil())
+	var bloquees := PackedByteArray()
+	bloquees.resize(n.x * n.y)
+	var obstacles := _obstacles()
+	if en_plus.has_area():
+		obstacles.append(en_plus)
+	for r: Rect2 in obstacles:
+		var g := r.grow(RAYON_HEROS)
+		var debut := Vector2i(((g.position / CASE_CHEMIN) - Vector2(0.5, 0.5)).ceil()).clamp(Vector2i.ZERO, n - Vector2i.ONE)
+		var fin := Vector2i(((g.end / CASE_CHEMIN) - Vector2(0.5, 0.5)).floor()).clamp(Vector2i.ZERO, n - Vector2i.ONE)
+		for j in range(debut.y, fin.y + 1):
+			for i in range(debut.x, fin.x + 1):
+				bloquees[j * n.x + i] = 1
+	# Départ : la case libre la plus proche du héros
+	var depart := -1
+	var proche := INF
+	var case_heros := Vector2i(_heros.global_position / CASE_CHEMIN)
+	for j in range(case_heros.y - 3, case_heros.y + 4):
+		for i in range(case_heros.x - 3, case_heros.x + 4):
+			if i >= 0 and j >= 0 and i < n.x and j < n.y and bloquees[j * n.x + i] == 0:
+				var d := (Vector2(i, j) + Vector2(0.5, 0.5)).distance_to(_heros.global_position / CASE_CHEMIN)
+				if d < proche:
+					proche = d
+					depart = j * n.x + i
+	if depart == -1:
+		return false
+	var voiture = $Monde/Voiture
+	var vues := PackedByteArray()
+	vues.resize(n.x * n.y)
+	vues[depart] = 1
+	var file := [depart]
+	while not file.is_empty():
+		var k: int = file.pop_back()
+		var centre := (Vector2(k % n.x, k / n.x) + Vector2(0.5, 0.5)) * CASE_CHEMIN
+		if voiture.distance_a(centre) <= Reglages.VOITURE_PORTEE:
+			return true
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var v: Vector2i = Vector2i(k % n.x, k / n.x) + d
+			if v.x >= 0 and v.y >= 0 and v.x < n.x and v.y < n.y and vues[v.y * n.x + v.x] == 0 and bloquees[v.y * n.x + v.x] == 0:
+				vues[v.y * n.x + v.x] = 1
+				file.append(v.y * n.x + v.x)
+	return false
+
+
+## La place libre la plus proche de `centre` (des cercles de plus en plus grands autour du héros, en commençant
+## devant lui) ; `centre` s'il n'y en a aucune (le fantôme sera rouge).
+func _place_libre_pres(centre: Vector2) -> Vector2:
+	var taille_fantome: Vector2 = TAILLES[_placement]
+	if Images.existe(IMAGES[_placement]):
+		taille_fantome = Iso.taille_image(IMAGES[_placement], taille_fantome)[0]
+	var ecart: Vector2 = centre - _heros.global_position
+	for rayon in [ecart.length(), ecart.length() + 100.0, ecart.length() + 200.0, ecart.length() + 350.0, ecart.length() + 500.0]:
+		for k in 16:
+			var angle: float = ecart.angle() + ceili(k / 2.0) * (1 if k % 2 == 0 else -1) * TAU / 16.0
+			var essai: Vector2 = _heros.global_position + Vector2.from_angle(angle) * rayon
+			# Même emprise que celle du bâtiment posé là (_creer_batiment, puis proportions de l'image)
+			var bas: float = essai.y + TAILLES[_placement].y / 2.0
+			if _verifier_place(Rect2(essai.x - taille_fantome.x / 2.0, bas - taille_fantome.y, taille_fantome.x, taille_fantome.y)) == "":
+				return essai
+	return centre
 
 
 ## Haut de l'écran assombri pour que le titre et l'inventaire ressortent.

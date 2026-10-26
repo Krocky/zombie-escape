@@ -1,6 +1,6 @@
 extends SceneTree
 ## Lot 4 (a) : la base devient un parking où l'on marche. Une sauvegarde version 7 (toutes les constructions,
-## 4 rescapés) est reprise sans rien perdre ; aucun zombie, pas de bouton d'action ; chaque construction et chaque
+## 4 rescapés) est reprise sans rien perdre (réécrite en version 8 depuis le lot 4 b, constructions à leur place d'origine) ; aucun zombie, pas de bouton d'action ; chaque construction et chaque
 ## tente a ses pieds au sol dans son emprise, dans le parking, sans chevauchement, avec collision ; le héros arrive près
 ## de la voiture et se déplace au joystick ; une construction faite apparaît aussitôt et finit posée ; voiture -> Start
 ## -> Carte ; retour Android -> Titre. Captures : camp en paysage / portrait, chute, Start.
@@ -17,7 +17,7 @@ const FICHIER := "user://sauvegarde.json"
 const PRES := 16.0
 const TOUS := ["abri_1", "abri_2", "feu", "barricade", "atelier", "lampe", "jardin", "tente_1", "tente_2", "tente_3", "tente_4"]
 ## Sauvegarde version 7 écrite à la main, comme celle de la tablette
-var v7 := {"version": 7, "inventaire": {"conserve": 4, "eau": 2, "bandage": 1, "piles": 3, "fiole": 1},
+var v7 := {"version": 7, "inventaire": {"conserve": 4, "eau": 2, "bandage": 1, "piles": 3, "fiole": 0},
 	"constructions": ["barricade", "atelier", "lampe", "infirmerie", "jardin"], "remede": 2, "remede_annonce": false,
 	"skin": "heroine", "prenom": "Lou", "rescapes": 4, "lieux_sauves": ["supermarche", "maison", "pharmacie"],
 	"batiments_vus": TOUS, "etoiles": {"supermarche": 3, "maison": 2, "pharmacie": 1}}
@@ -84,7 +84,17 @@ func _physics_process(_d):
 			if g == 40:
 				var b = current_scene
 				_verifier("scene %s (attendu Base)" % b.name, b.name == "Base")
-				_verifier("sauvegarde inchangee apres la base (version 7, rien de perdu)", _pareil(_lire(), JSON.parse_string(JSON.stringify(v7))))
+				# Reprise : version 8, rien de perdu, constructions posées à leur place d'origine (lot 4 b)
+				var lu = _lire()
+				var attendu = JSON.parse_string(JSON.stringify(v7))
+				var pareil = lu["version"] == 8.0
+				for cle in attendu:
+					if cle != "version": pareil = pareil and _pareil(lu[cle], attendu[cle])
+				var poses = []
+				for nom in ["barricade", "atelier", "lampe", "jardin"]:
+					poses.append({"nom": nom, "x": partie.PLACES_DEPART[nom].x, "y": partie.PLACES_DEPART[nom].y})
+				_verifier("sauvegarde reprise en version 8, rien de perdu, poses d'origine %s" % [lu.get("poses")],
+					pareil and _pareil(lu.get("poses"), JSON.parse_string(JSON.stringify(poses))))
 				_verifier("aucun zombie", get_nodes_in_group("zombies").is_empty())
 				var hud = b.get_node("HUD")
 				var caches = true
@@ -168,11 +178,16 @@ func _physics_process(_d):
 					if c.construction == "jardin": _touch(_centre(c.get_node("Bouton")), true)
 			if g == 106: _touch(Vector2.ZERO, false)
 			if g == 112:
+				# Lot 4 b : placement, puis Poser
+				_verifier("jardin en placement", current_scene.en_placement() and current_scene.raison_refus() == "")
+				_touch(_centre(current_scene.get_node("Interface/Poser")), true)
+			if g == 118: _touch(Vector2.ZERO, false)
+			if g == 124:
 				var jardin = current_scene._batiments.get("jardin")
 				_verifier("jardin construit et ajoute aussitot", partie.est_construit("jardin") and jardin != null and jardin.is_inside_tree())
 				_verifier("jardin en train de tomber", jardin != null and not jardin.pose())
 				_heros().position = jardin.emprise().get_center() + Vector2(0, 220)
-			if g == 140: _snap("chute")
+			if g == 152: _snap("chute")
 			if g == 200:
 				var jardin = current_scene._batiments["jardin"]
 				_verifier("jardin pose au sol, pieds dans l'emprise", jardin.pose() and jardin.emprise().grow(PRES).has_point(jardin.pieds()))

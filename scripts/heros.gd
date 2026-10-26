@@ -40,6 +40,8 @@ var _regard := Vector2.RIGHT   # direction du regard et de la lampe (monde, 8 di
 var _vue := Node2D.new()       # dans le calque Vue du niveau
 var _fondu := 1.0              # 1 = visible, 0 = dans la cachette (animation)
 var _secousse := 0.0
+## Décalage de la caméra à l'écran (la base le règle quand on fait glisser la vue pour poser une construction)
+var decalage_camera := Vector2.ZERO
 
 @onready var _lampe: PointLight2D = $Lampe
 @onready var _halo: PointLight2D = $Halo
@@ -220,12 +222,16 @@ func _physics_process(delta: float) -> void:
 	_suivre()
 
 
+## Point visé par la caméra à l'écran (sans decalage_camera) : un peu en avant, du côté où il va.
+func vise_camera() -> Vector2:
+	return _vue.position + Vector2(0, -50) + Iso.direction_ecran(_regard) * Reglages.CAMERA_AVANCE
+
+
 ## Le dessin, les lumières et la caméra suivent la position projetée à l'écran.
 func _suivre() -> void:
 	_vue.position = Iso.ecran(global_position)
 	var regard := Iso.direction_ecran(_regard)
-	# La caméra regarde un peu en avant, du côté où il va
-	_camera.global_position = _vue.position + Vector2(0, -50) + regard * Reglages.CAMERA_AVANCE
+	_camera.global_position = vise_camera() + decalage_camera
 	# Tremblement quand il est touché (décalage de la caméra, de plus en plus faible)
 	var force := 12.0 * _secousse / DUREE_SECOUSSE
 	_camera.offset = Vector2(randf_range(-force, force), randf_range(-force, force)) if _secousse > 0.0 else Vector2.ZERO

@@ -54,10 +54,11 @@ var ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 var ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche
 var ATTAQUE_DELAI := 0.5            # secondes entre deux coups
 
-# --- Constructions de la base (chacune se construit une seule fois) ---
+# --- Constructions de la base (chacune une seule fois, sauf la barricade : jusqu'à BARRICADE_MAX) ---
 # Coût : { objet: nombre }. Objets : "conserve", "eau", "bandage", "piles" (pas "fiole" : elle sert au remède).
 var BARRICADE_COUT := {"conserve": 2, "eau": 1}
-var BARRICADE_COEURS := 1             # cœurs en plus pour le héros
+var BARRICADE_COEURS := 1             # cœurs en plus pour le héros (seulement la première barricade)
+var BARRICADE_MAX := 20               # barricades au plus dans la base (les suivantes bloqueront les zombies au niveau 4)
 var ATELIER_COUT := {"piles": 2, "conserve": 1}
 var ATELIER_DEGATS := 1               # dégâts en plus à chaque coup de batte
 var LAMPE_RENFORCEE_COUT := {"piles": 2}

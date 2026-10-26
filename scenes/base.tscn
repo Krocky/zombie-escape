@@ -143,3 +143,25 @@ texte = "Réglages"
 offset_right = 260.0
 offset_bottom = 100.0
 texte = "Construire"
+
+[node name="Consigne" type="Label" parent="Interface"]
+visible = false
+offset_right = 1232.0
+offset_bottom = 60.0
+mouse_filter = 2
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Annuler" parent="Interface" instance=ExtResource("5_bouton")]
+visible = false
+offset_right = 280.0
+offset_bottom = 110.0
+texte = "Annuler"
+
+[node name="Poser" parent="Interface" instance=ExtResource("5_bouton")]
+visible = false
+offset_right = 280.0
+offset_bottom = 110.0
+texte = "Poser"

@@ -80,6 +80,9 @@ func _physics_process(_d):
 		_snap("tiroir")
 		_touch(_centre(_carte("barricade").get_node("Bouton")), true)
 	if f == 196: _touch(Vector2.ZERO, false)
+	# Lot 4 b : placement, puis Poser
+	if f == 206: _touch(_centre(current_scene.get_node("Interface/Poser")), true)
+	if f == 212: _touch(Vector2.ZERO, false)
 	if f == 230:
 		var b = current_scene
 		print("apres construction: barricade=", partie.est_construit("barricade"), " tiroir ferme: ", not b.get_node("Interface/Constructions").visible,

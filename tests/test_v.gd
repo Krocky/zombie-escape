@@ -77,6 +77,9 @@ func _physics_process(_d):
 			if g == 60: current_scene.ouvrir_tiroir(true)
 			if g == 80: _appuyer("jardin")
 			if g == 86: _touch(Vector2.ZERO, false)
+			# Lot 4 b : le jardin passe par le placement, puis Poser (l'infirmerie n'a pas de bâtiment)
+			if g == 90: _touch(current_scene.get_node("Interface/Poser").get_global_rect().get_center(), true)
+			if g == 96: _touch(Vector2.ZERO, false)
 			if g == 100:
 				_verifier("construits : infirmerie %s, jardin %s" % [partie.est_construit("infirmerie"), partie.est_construit("jardin")],
 					partie.est_construit("infirmerie") and partie.est_construit("jardin"))

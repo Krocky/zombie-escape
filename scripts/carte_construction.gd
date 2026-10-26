@@ -1,6 +1,8 @@
 extends Control
 ## Carte d'une construction sur l'écran Base : nom, coût (icônes des objets), effet en une phrase,
 ## bouton « Construire » (actif seulement si on a assez d'objets) ou « Construit ».
+## La barricade se construit plusieurs fois (Partie.maximum) : le nombre déjà fait suit le nom (« x3 ») et
+## « Construire » reste jusqu'au maximum.
 ## Carte large (portrait) : le coût est sur la ligne du nom, la carte est moins haute.
 
 ## Toucher « Construire » : la base fait la construction.
@@ -22,15 +24,20 @@ func _ready() -> void:
 
 ## Appelé par la base quand l'inventaire ou les constructions changent.
 func actualiser() -> void:
-	var fait := Partie.est_construit(construction)
+	var fait := _complet()
 	_bouton.texte = "Construit" if fait else "Construire"
 	_bouton.couleur = Palette.SORTIE if fait else Palette.LAMPE
 	_bouton.actif = Partie.peut_construire(construction)
 	queue_redraw()
 
 
+## Plus rien à construire : faite (ou toutes les barricades faites).
+func _complet() -> bool:
+	return Partie.nombre_construit(construction) >= Partie.maximum(construction)
+
+
 func _draw() -> void:
-	var fait := Partie.est_construit(construction)
+	var fait := _complet()
 	var cadre := StyleBoxFlat.new()
 	cadre.bg_color = Palette.UI_CADRE
 	cadre.border_color = Palette.SORTIE if fait else Palette.CONTOUR
@@ -42,6 +49,8 @@ func _draw() -> void:
 	var largeur: float = _bouton.position.x - x - 10.0
 	# Nom (réduit s'il est trop long)
 	var titre: String = Partie.CONSTRUCTIONS.get(construction, construction)
+	if Partie.maximum(construction) > 1 and Partie.nombre_construit(construction) > 0:
+		titre += " x%d" % Partie.nombre_construit(construction)
 	var taille := 28
 	while taille > 16 and police.get_string_size(titre, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x > largeur:
 		taille -= 2

@@ -34,7 +34,8 @@ func _vers_supermarche(g):
 	if g == 18: _touch(Vector2.ZERO, false)
 func _physics_process(_d):
 	f += 1
-	if f in [12, 28, 42] and current_scene.has_method("ouvrir_tiroir"): current_scene.ouvrir_tiroir(true)
+	# Lot 4 b : « Construire » ouvre le placement, « Poser » construit (fantôme devant le héros, place libre)
+	if f in [12, 38, 64] and current_scene.has_method("ouvrir_tiroir"): current_scene.ouvrir_tiroir(true)
 	if f == 20:
 		print("avant: ", _etat(), " (attendu les 3 actifs)")
 		var ecran = current_scene.get_viewport_rect()
@@ -45,23 +46,25 @@ func _physics_process(_d):
 		_snap("avant")
 		_appuyer("barricade")
 	if f == 26: _touch(Vector2.ZERO, false)
-	if f == 34: _appuyer("atelier")
-	if f == 40: _touch(Vector2.ZERO, false)
-	if f == 48:
-		print("apres 2 constructions: ", _etat(), " (attendu barricade et atelier 'Construit' inactifs, lampe inactive)")
+	if f in [30, 56]: _touch(current_scene.get_node("Interface/Poser").get_global_rect().get_center(), true)
+	if f in [34, 60]: _touch(Vector2.ZERO, false)
+	if f == 46: _appuyer("atelier")
+	if f == 52: _touch(Vector2.ZERO, false)
+	if f == 74:
+		print("apres 2 constructions: ", _etat(), " (attendu barricade 'Construire' (plusieurs barricades) et atelier 'Construit' inactifs, lampe inactive)")
 		print("inventaire: ", partie.inventaire, " (attendu conserve 0, eau 0, piles 1, fiole 1)")
 		_appuyer("lampe")
-	if f == 54: _touch(Vector2.ZERO, false)
-	if f == 62:
+	if f == 80: _touch(Vector2.ZERO, false)
+	if f == 88:
 		print("lampe sans assez de piles: construite=", partie.est_construit("lampe"), " (attendu false)")
 		_snap("apres")
 		partie.constructions = []; partie.inventaire = {}
 		partie.charger()
 		print("sauvegarde relue: constructions ", partie.constructions, " inventaire ", partie.inventaire)
 		_touch(current_scene.get_node("Interface/Start").get_global_rect().get_center(), true)
-	if f == 68: _touch(Vector2.ZERO, false)
-	if f >= 74 and f < 94: _vers_supermarche(f - 74)
-	if f == 104:
+	if f == 94: _touch(Vector2.ZERO, false)
+	if f >= 100 and f < 120: _vers_supermarche(f - 100)
+	if f == 130:
 		print("scene: ", current_scene.name, " (attendu Supermarche)")
 		var h = current_scene.get_node("Monde/Heros")
 		print("coeurs: ", h._pv, "/", h._pv_max, " (attendu ", root.get_node("Reglages").HEROS_PV + root.get_node("Reglages").BARRICADE_COEURS, ")")
@@ -71,20 +74,20 @@ func _physics_process(_d):
 		zombie.position = h.position + h._regard * 50.0; zombie._depart = zombie.position
 		pv_zombie = zombie._pv
 		h.attaquer()
-	if f == 108:
+	if f == 134:
 		print("coup de batte: zombie ", pv_zombie, " -> ", zombie._pv, " PV (attendu -", root.get_node("Reglages").ATTAQUE_DEGATS + root.get_node("Reglages").ATELIER_DEGATS, ")")
 		_snap("niveau")
 		partie.constructions.append("lampe")
 		print("portee avec lampe renforcee: ", partie.portee_lampe(), " (attendu ", root.get_node("Reglages").LAMPE_PORTEE * (1 + root.get_node("Reglages").LAMPE_RENFORCEE_PORTEE / 100.0), ")")
 		change_scene_to_file("res://scenes/lieux/supermarche.tscn")
-	if f == 124:
+	if f == 150:
 		var h = current_scene.get_node("Monde/Heros")
 		var lampe = null
 		for n in h._vue.get_children(): if n.name == "Lampe": lampe = n
 		print("faisceau: texture_scale ", lampe.texture_scale, " (attendu ", partie.portee_lampe() * root.get_node("Iso").K / 256.0, ")")
 		_snap("niveau_lampe")
 		change_scene_to_file("res://scenes/base.tscn")
-	if f == 139:
+	if f == 165:
 		print("base, 3 constructions: ", _etat())
 		_snap("base_complete")
 		# Ne pas laisser de constructions aux autres tests
