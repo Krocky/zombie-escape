@@ -20,7 +20,7 @@ const INVENTAIRE := {"conserve": 20, "eau": 10, "piles": 4}
 ## Places libres du parking pour les barricades 2 et 3 (la 1re est touchée à l'écran près de P1)
 const P1 := Vector2(950, 1050)
 const P2 := Vector2(1450, 1200)
-const P3 := Vector2(1800, 1100)
+const P3 := Vector2(1550, 1450)
 
 
 func _initialize():
