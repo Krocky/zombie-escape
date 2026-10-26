@@ -4,7 +4,7 @@ Demandes d'Eliott recueillies le 26 octobre 2026. Un bloc = une nouvelle discuss
 Chaque bloc est complet (règles de session comprises) : il suffit de le copier en entier. Les valeurs entre crochets [ ] sont des propositions : Eliott peut les changer avant d'envoyer le prompt.
 Les prompts ont été écrits avant le début du lot : chaque session est priée de suivre le code réel si une étape précédente a fait autrement.
 
-Avancement : [x] L4-a [x] L4-b [ ] L4-c [ ] L4-d [ ] L4-e [ ] L4-f [ ] L4-g [ ] L4-h1 [ ] L4-h2 [ ] L4-i
+Avancement : [x] L4-a [x] L4-b [x] L4-c [ ] L4-d [ ] L4-e [ ] L4-f [ ] L4-g [ ] L4-h1 [ ] L4-h2 [ ] L4-i
 
 Règle commune : ne jamais casser une sauvegarde existante, ne jamais perdre ce que le joueur a déjà construit.
 

@@ -59,6 +59,14 @@ const PAGES := [
 		["LIEUX_VARIES", "Places qui changent à chaque partie", 0, false, true],
 		["GUERIR_PORTEE", "Portée de la fiole qui guérit", 10.0, 50.0, 500.0],
 	]],
+	["Rescapés à la base", [
+		["RESCAPE_BASE_VITESSE", "Vitesse de promenade", 10.0, 20.0, 300.0],
+		["RESCAPE_BASE_PAUSE_MIN", "Pause au moins (s)", 0.5, 0.0, 20.0],
+		["RESCAPE_BASE_PAUSE_MAX", "Pause au plus (s)", 0.5, 0.0, 30.0],
+		["RESCAPE_BASE_PORTEE_MERCI", "Distance pour dire merci", 10.0, 40.0, 400.0],
+		["RESCAPE_BASE_DUREE_MERCI", "Bulle « Merci » pendant (s)", 0.5, 0.5, 10.0],
+		["RESCAPE_BASE_DELAI_MERCI", "Merci au plus toutes les (s)", 1.0, 0.0, 120.0],
+	]],
 ]
 
 var _origine := {}   # nom -> valeur de data/reglages.gd

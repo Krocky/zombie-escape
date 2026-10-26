@@ -46,6 +46,14 @@ var RESCAPE_DISTANCE := 70.0        # il reste à cette distance derrière toi
 var RESCAPE_DISTANCE_MAX := 400.0   # bloqué plus loin que ça : il réapparaît juste derrière toi
 var RESCAPE_OBJETS := 1             # objets (au hasard, jamais de fiole) rapportés par chaque rescapé sauvé, à chaque retour
 
+# --- Rescapés dans la base (ils se promènent sur le parking et te remercient) ---
+var RESCAPE_BASE_VITESSE := 70.0       # vitesse de promenade (lente)
+var RESCAPE_BASE_PAUSE_MIN := 2.0      # arrêt entre deux promenades : au moins (s)
+var RESCAPE_BASE_PAUSE_MAX := 5.0      # ... et au plus (s)
+var RESCAPE_BASE_PORTEE_MERCI := 120.0 # le héros passe plus près que ça : il s'arrête et te remercie
+var RESCAPE_BASE_DUREE_MERCI := 2.5    # durée de la bulle « Merci » (s)
+var RESCAPE_BASE_DELAI_MERCI := 20.0   # un même rescapé ne remercie pas plus souvent que ça (s)
+
 # --- Variété des lieux ---
 var LIEUX_VARIES := true            # objets, rescapé et un zombie changent de place à chaque partie (places dans la scène du lieu)
 
