@@ -167,3 +167,55 @@ func ombre(ci: CanvasItem, emprise: Rect2, force := 1.0) -> void:
 	var c := coins(emprise)
 	var haut := c[3].y
 	Dessin.ombre(ci, Rect2(c[0].x - 14, haut - 6, c[2].x - c[0].x + 28, c[1].y - haut + 22), force)
+
+
+## Dessin en code découpé en bandes verticales triées, comme `habiller` pour une image : `formes` =
+## [[polygone à l'écran, couleur], ...] dans l'ordre du dessin. Chaque bande de LARGEUR_BANDE px garde les
+## morceaux des formes sous elle et est triée sur le bord avant de l'emprise (coins `c`) ; elle est dessinée
+## en un seul tableau de triangles (une commande de dessin). Les bandes sont ajoutées à `conteneur`.
+func bandes_dessin(formes: Array, c: PackedVector2Array, conteneur: Node2D) -> void:
+	var cadre := Rect2(formes[0][0][0], Vector2.ZERO)
+	for forme in formes:
+		for p: Vector2 in forme[0]:
+			cadre = cadre.expand(p)
+	var n := maxi(ceili(cadre.size.x / LARGEUR_BANDE), 1)
+	for i in n:
+		var x0 := cadre.position.x + cadre.size.x * i / n
+		var x1 := cadre.position.x + cadre.size.x * (i + 1) / n
+		var xc := (x0 + x1) * 0.5
+		var origine := Vector2(xc, bord_avant(c, xc))
+		var fenetre := PackedVector2Array([Vector2(x0, cadre.position.y - 1.0), Vector2(x1, cadre.position.y - 1.0),
+			Vector2(x1, cadre.end.y + 1.0), Vector2(x0, cadre.end.y + 1.0)])
+		var points := PackedVector2Array()
+		var couleurs := PackedColorArray()
+		var triangles := PackedInt32Array()
+		for forme in formes:
+			for morceau: PackedVector2Array in Geometry2D.intersect_polygons(forme[0], fenetre):
+				var debut := points.size()
+				for p in morceau:
+					points.append(p - origine)
+					couleurs.append(forme[1])
+				for k in Geometry2D.triangulate_polygon(morceau):
+					triangles.append(debut + k)
+		if triangles.is_empty():
+			continue
+		var bande := Node2D.new()
+		bande.position = origine
+		bande.draw.connect(func() -> void:
+			RenderingServer.canvas_item_add_triangle_array(bande.get_canvas_item(), triangles, points, couleurs))
+		conteneur.add_child(bande)
+
+
+## Contour épais d'un polygone (Dessin.EPAISSEUR, Palette.CONTOUR) en formes pour bandes_dessin : un rectangle
+## mince par côté, prolongé d'une demi-épaisseur pour fermer les angles.
+func contour(points: PackedVector2Array) -> Array:
+	var formes := []
+	for i in points.size():
+		var a := points[i]
+		var b := points[(i + 1) % points.size()]
+		if a.distance_to(b) < 0.5:
+			continue
+		var d := (b - a).normalized() * Dessin.EPAISSEUR / 2.0
+		var n := d.orthogonal()
+		formes.append([PackedVector2Array([a - d + n, b + d + n, b + d - n, a - d - n]), Palette.CONTOUR])
+	return formes

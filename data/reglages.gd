@@ -17,6 +17,7 @@ var LAMPE_ANGLE := 50.0             # largeur du faisceau, en degrés
 
 # --- Ambiance ---
 var NUIT_CLARTE := 1.0              # 1 = normal, 0.5 = deux fois plus sombre, 2 = deux fois plus clair
+var BASE_CLARTE := 1.0              # clarté de la base (parking éclairé, pas de lampe) : 1 = normal, 0.5 = plus sombre
 var BROUILLARD_OPACITE := 0.05      # 0 = pas de brouillard, 0.1 = brouillard épais
 var CAMERA_AVANCE := 70.0          # la caméra regarde en avant du héros (pixels), 0 = centrée sur lui
 var AFFICHER_IPS := false           # true = affiche les images par seconde en haut (pour tester la fluidité)
@@ -36,6 +37,7 @@ var CACHETTE_PORTEE := 70.0         # distance pour pouvoir se cacher
 var OBJET_PORTEE := 45.0            # distance pour ramasser un objet en marchant dessus
 var PORTE_PORTEE := 90.0            # distance de la porte à clef pour l'ouvrir (avec la clef)
 var SORTIE_PORTEE := 70.0           # distance de la porte pour sortir (victoire)
+var VOITURE_PORTEE := 110.0         # distance de la voiture de survie (base) pour voir le bouton Start
 
 # --- Rescapé (un enfant caché dans chaque lieu : touche-le, il te suit jusqu'à la sortie) ---
 var RESCAPE_VITESSE := 230.0        # sa vitesse quand il te suit (un peu moins vite que le héros)

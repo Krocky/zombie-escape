@@ -34,8 +34,8 @@ func _physics_process(_d):
 	if f == 16: _touch(Vector2.ZERO, false)
 	if f == 30:
 		print("scene: ", current_scene.name, " (attendu Base)")
-		var b = current_scene.get_node("Partir")
-		print("bouton Partir: ", b.size, " >= 100 px: ", b.size.y >= 100 and b.size.x >= 100,
+		var b = current_scene.get_node("Interface/Start")
+		print("bouton Start: ", b.size, " >= 100 px: ", b.size.y >= 100 and b.size.x >= 100,
 			" dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 		_snap("base")
 		_touch(_centre(b), true)

@@ -3,7 +3,7 @@ extends StaticBody2D
 ## position = milieu du bord bas de l'emprise au sol (coordonnées monde).
 ## Affichage isométrique (voir Iso) : le niveau place visuels() dans ses calques.
 
-enum Style { MUR, ETAGERE, CAISSE }
+enum Style { MUR, ETAGERE, CAISSE, BLOC }   # BLOC : bloc de béton (parking de la base), dessiné en code
 
 @export var taille := Vector2(200, 60)   # emprise au sol (collision)
 @export var hauteur := 60.0              # hauteur du dessin de secours (pixels d'écran)
@@ -113,6 +113,8 @@ func _construire() -> void:
 			var h := hash(Vector2i(position))
 			var nom := "caisse_grande" if h % 3 == 0 else "caisse"
 			_habiller(nom, emprise(), h % 2 == 0, Palette.CAISSE_BOIS, Palette.CAISSE_BOIS_FACE, Palette.CAISSE_BOIS_COTE)
+		Style.BLOC:
+			_secours(emprise(), hauteur, Palette.BETON, Palette.BETON_FACE, Palette.BETON_COTE)
 
 
 ## i-ème morceau (sur n) de l'emprise, découpée dans sa longueur.

@@ -35,7 +35,7 @@ func _verifier(texte: String, ok: bool) -> void:
 func _aller(p):
 	phase = p; g = 0
 func _carte(nom):
-	for c in current_scene.get_node("Constructions").get_children():
+	for c in current_scene.get_node("Interface/Constructions").get_children():
 		if c.construction == nom: return c
 func _appuyer(nom): _touch(_carte(nom).get_node("Bouton").get_global_rect().get_center(), true)
 func _soin(): return current_scene.get_node("HUD")._soin
@@ -59,7 +59,7 @@ func _physics_process(_d):
 				current_scene.ouvrir_tiroir(true)
 			if g == 40:
 				var ecran = current_scene.get_viewport_rect()
-				var cartes = current_scene.get_node("Constructions").get_children()
+				var cartes = current_scene.get_node("Interface/Constructions").get_children()
 				var dedans := true
 				var boutons := true
 				for c in cartes:

@@ -239,6 +239,13 @@ func _placer_objectif() -> void:
 	_guerir.position = Vector2(ecran.x + $BoutonCacher.offset_left - 24.0 - TAILLE_GUERIR.x, ecran.y + $BoutonCacher.offset_bottom - TAILLE_GUERIR.y)
 
 
+## Base (pas de zombie) : seul le joystick reste ; ni boutons d'action ni pause, ni cœurs, objets, objectif.
+func mode_base() -> void:
+	for noeud in [$BoutonAttaquer, $BoutonCacher, _pause, _soin, _guerir, $JaugePV, $CompteurObjets, $Objectif,
+			_icones, _rescape, _clef]:
+		noeud.visible = false
+
+
 ## Le jeu se fige : on oublie les doigts posés (joystick, boutons), leur lever n'arrivera pas.
 func relacher() -> void:
 	$Joystick.relacher()

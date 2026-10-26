@@ -17,11 +17,11 @@ func _touch(pos, pressed):
 	Input.parse_input_event(e)
 func _snap(n): root.get_texture().get_image().save_png(OS.get_environment("CAPTURES") + "/capture_i_%s.png" % n)
 func _carte(nom):
-	for c in current_scene.get_node("Constructions").get_children():
+	for c in current_scene.get_node("Interface/Constructions").get_children():
 		if c.construction == nom: return c
 func _etat():
 	var t := []
-	for c in current_scene.get_node("Constructions").get_children():
+	for c in current_scene.get_node("Interface/Constructions").get_children():
 		var b = c.get_node("Bouton")
 		t.append("%s: '%s' actif=%s" % [c.construction, b.texte, b.actif])
 	return ", ".join(t)
@@ -38,7 +38,7 @@ func _physics_process(_d):
 	if f == 20:
 		print("avant: ", _etat(), " (attendu les 3 actifs)")
 		var ecran = current_scene.get_viewport_rect()
-		for c in current_scene.get_node("Constructions").get_children():
+		for c in current_scene.get_node("Interface/Constructions").get_children():
 			var b = c.get_node("Bouton")
 			print("carte ", c.construction, " ", c.size, " dans l'ecran: ", ecran.encloses(c.get_global_rect()),
 				" bouton >= 100 px: ", b.size.y >= 100 and b.size.x >= 100)
@@ -58,7 +58,7 @@ func _physics_process(_d):
 		partie.constructions = []; partie.inventaire = {}
 		partie.charger()
 		print("sauvegarde relue: constructions ", partie.constructions, " inventaire ", partie.inventaire)
-		_touch(current_scene.get_node("Partir").get_global_rect().get_center(), true)
+		_touch(current_scene.get_node("Interface/Start").get_global_rect().get_center(), true)
 	if f == 68: _touch(Vector2.ZERO, false)
 	if f >= 74 and f < 94: _vers_supermarche(f - 74)
 	if f == 104:

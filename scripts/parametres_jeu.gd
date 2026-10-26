@@ -23,6 +23,7 @@ const PAGES := [
 		["LAMPE_PORTEE", "Longueur du faisceau", 20.0, 200.0, 1200.0],
 		["LAMPE_ANGLE", "Largeur du faisceau (°)", 5.0, 20.0, 120.0],
 		["NUIT_CLARTE", "Clarté de la nuit", 0.1, 0.3, 3.0],
+		["BASE_CLARTE", "Clarté de la base", 0.1, 0.3, 1.5],
 		["BROUILLARD_OPACITE", "Brouillard", 0.01, 0.0, 0.2],
 		["AFFICHER_IPS", "Images par seconde", 0, false, true],
 	]],

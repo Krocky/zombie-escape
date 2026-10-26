@@ -126,6 +126,22 @@ const PIERRE := Color("5d5f78")            # pierres autour du feu
 const FEU := Color("f08a3c")               # flammes
 const FEU_COEUR := Color("ffd25a")         # cœur des flammes
 const FEU_LUEUR := Color(1.0, 0.62, 0.25, 0.16)   # lumière chaude du feu sur le sol
+# Parking de la base (lot 4 a), couleurs prises sur bg_base : asphalte, fissures, lignes des places, blocs de béton
+const BASE_LUMIERE := Color(0.95, 0.95, 1.0)   # lumière du soir sur la base (CanvasModulate, x Reglages.BASE_CLARTE)
+const ASPHALTE := Color("474a5b")
+const ASPHALTE_TACHE := Color("3e4150")
+const ASPHALTE_FISSURE := Color("33354a")
+const LIGNE_PARKING := Color("8a8799")
+const BETON := Color("6a6c80")
+const BETON_FACE := Color("54566a")
+const BETON_COTE := Color("43455a")
+# Voitures (dessinées en code) : carrosseries, vitres, phares ; la voiture de survie est verte et chargée
+const VOITURES := {"survie": Color("5f8a5a"), "rouille": Color("8a5a44"), "bleue": Color("4f6390"), "grise": Color("7a7a88")}
+const VITRE := Color("2c3a58")
+const VITRE_REFLET := Color("7f9cc8")
+const PHARE := Color("ffe9a0")
+const PNEU := Color("1e1c26")
+const BAGAGE := Color("7a5c40")
 
 # Écrans de fin (images V3 bg_victory_* / bg_defeat_*)
 const AUBE := [Color("1f2150"), Color("5a3a7a"), Color("c8607e"), Color("f59a62"), Color("ffc27a")]   # ciel d'aube, du haut vers l'horizon

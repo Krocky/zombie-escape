@@ -42,10 +42,10 @@ func _physics_process(_d):
 	match phase:
 		"base":
 			if g == 20:
-				var b = current_scene.get_node("Reglages")
+				var b = current_scene.get_node("Interface/Reglages")
 				print("bouton Reglages: ", b.size, " dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 				_snap("base")
-			if g == 30 or g == 36: _appui("Reglages", 30)
+			if g == 30 or g == 36: _appui("Interface/Reglages", 30)
 			if g == 60:
 				print("scene: ", current_scene.name, " (attendu Parametres)")
 				_aller("page1")
@@ -76,11 +76,11 @@ func _physics_process(_d):
 			if g == 1 or g == 7: _appui(current_scene.get_node("Suivant"), 1)
 			if g == 20:
 				print("page suivante: ", current_scene.get_node("Titre").text)
-				var ips = _ligne(4)
+				var ips = _ligne(5)
 				print("interrupteur ips: '", ips[2].texte, "' valeur ", reg.AFFICHER_IPS)
-			if g == 30 or g == 36: _appui(_ligne(4)[2], 30)
+			if g == 30 or g == 36: _appui(_ligne(5)[2], 30)
 			if g == 60:
-				print("apres appui: '", _ligne(4)[2].texte, "' valeur ", reg.AFFICHER_IPS, " (attendu Oui / true, origine false)")
+				print("apres appui: '", _ligne(5)[2].texte, "' valeur ", reg.AFFICHER_IPS, " (attendu Oui / true, origine false)")
 				_snap("page2")
 			if g == 70 or g == 76: _appui(current_scene.get_node("Remettre"), 70)
 			if g == 100:

@@ -55,10 +55,10 @@ func _physics_process(_d):
 				_touch(_centre(current_scene.get_node("Valider")), true)
 			if g == 86: _touch(Vector2.ZERO, false)
 			if g == 110:
-				print("scene: ", current_scene.name, " (attendu Base) titre: '", current_scene.get_node("Haut/Titre").text,
+				print("scene: ", current_scene.name, " (attendu Base) titre: '", current_scene.get_node("Interface/Haut/Titre").text,
 					"' skin: ", partie.skin, " prenom: ", partie.prenom)
 				print("sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
-				var b = current_scene.get_node("Heros")
+				var b = current_scene.get_node("Interface/Heros")
 				print("bouton Heros: ", b.size, " dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 				_snap("base")
 				_touch(_centre(b), true)

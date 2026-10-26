@@ -59,7 +59,7 @@ func _physics_process(_d):
 		_touch(_centre(b), true)
 	if f == 176: _touch(Vector2.ZERO, false)
 	if f == 190:
-		print("scene: ", current_scene.name, " (attendu Base) jauge dans l'ecran: ", current_scene.get_viewport_rect().encloses(current_scene.get_node("Remede").get_global_rect()))
+		print("scene: ", current_scene.name, " (attendu Base) jauge dans l'ecran: ", current_scene.get_viewport_rect().encloses(current_scene.get_node("Interface/Remede").get_global_rect()))
 		_snap("base_jauge")
 		partie.choisir_lieu("maison")
 		change_scene_to_file(partie.scene_lieu())

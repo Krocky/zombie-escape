@@ -106,6 +106,12 @@ func couleur_lampe(couleur: Color) -> void:
 	_lampe.color = couleur
 
 
+## Appelé par le niveau : lampe torche et halo allumés (lieux) ou éteints (base éclairée).
+func allumer_lampe(allumee: bool) -> void:
+	_lampe.enabled = allumee
+	_halo.enabled = allumee
+
+
 ## Direction du regard dans le monde (le rescapé se place derrière).
 func regard() -> Vector2:
 	return _regard

@@ -145,6 +145,9 @@ const EMPRISES_V3 := {
 	"prop_medical_cart": [10.0, Vector2(145, 400), 250.0],
 	"prop_pharmacy_cross": [20.0, Vector2(150, 640), 280.0],
 	"prop_wheelchair": [5.0, Vector2(150, 425), 370.0],
+	# Base (lot 4 a) : les abris n'ont pas de socle, leurs coins du manifest suivent l'ombre
+	"base_shelter_1": [20.0, Vector2(211, 473), 456.0],
+	"base_shelter_2": [7.0, Vector2(249, 466), 445.0],
 }
 ## Fenêtre peinte sur les pans de mur V3 (« <mur>_fenetre », voir v3_fenetre) : le long du pan (0 à 1)
 ## et en hauteur au-dessus du bas du pan (pixels de l'image).

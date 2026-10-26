@@ -16,7 +16,7 @@ func _snap(n): root.get_texture().get_image().save_png(OS.get_environment("CAPTU
 func _centre(n): return n.get_global_rect().get_center()
 func _physics_process(_d):
 	f += 1
-	if f == 20: _touch(_centre(current_scene.get_node("Partir")), true)
+	if f == 20: _touch(_centre(current_scene.get_node("Interface/Start")), true)
 	if f == 26: _touch(Vector2.ZERO, false)
 	if f == 40:
 		print("scene: ", current_scene.name, " (attendu Carte)")

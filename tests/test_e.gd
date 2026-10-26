@@ -26,7 +26,7 @@ func _physics_process(_d):
 	if f == 28: _touch(Vector2.ZERO, false)
 	if f == 34:
 		print("scene: ", current_scene.name)
-		_touch(_centre(current_scene.get_node("Partir")), true)
+		_touch(_centre(current_scene.get_node("Interface/Start")), true)
 	if f == 40: _touch(Vector2.ZERO, false)
 	if f >= 50 and f < 70: _carte(f - 50)
 	if f == 80:
@@ -45,7 +45,7 @@ func _physics_process(_d):
 	if f == 158: _touch(Vector2.ZERO, false)
 	if f == 162:
 		print("scene: ", current_scene.name)
-		_touch(_centre(current_scene.get_node("Partir")), true)
+		_touch(_centre(current_scene.get_node("Interface/Start")), true)
 	if f == 168: _touch(Vector2.ZERO, false)
 	if f >= 180 and f < 200: _carte(f - 180)
 	if f == 210:

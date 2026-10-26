@@ -1,19 +1,93 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/base.gd" id="1_base"]
-[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+[ext_resource type="PackedScene" path="res://scenes/niveau.tscn" id="1_niveau"]
+[ext_resource type="Script" path="res://scripts/base.gd" id="2_base"]
+[ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="3_mur"]
+[ext_resource type="PackedScene" path="res://scenes/voiture.tscn" id="4_voiture"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="5_bouton"]
 
-[node name="Base" type="Control"]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("1_base")
+[node name="Base" instance=ExtResource("1_niveau")]
+script = ExtResource("2_base")
+taille = Vector2(2400, 1600)
+graine = 11
+nombre_debris = 14
 
-[node name="Haut" type="VBoxContainer" parent="."]
-layout_mode = 1
+[node name="Heros" parent="Monde" index="0"]
+position = Vector2(720, 1160)
+
+[node name="MurHaut" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(1200, 40)
+taille = Vector2(2400, 40)
+rebord = true
+cloison = true
+
+[node name="MurGauche" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(20, 1600)
+taille = Vector2(40, 1600)
+rebord = true
+cloison = true
+
+[node name="MurBas" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(1200, 1600)
+taille = Vector2(2400, 40)
+rebord = true
+
+[node name="MurDroit" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(2380, 1600)
+taille = Vector2(40, 1600)
+rebord = true
+
+[node name="Voiture" parent="Monde" instance=ExtResource("4_voiture")]
+position = Vector2(700, 1355)
+taille = Vector2(230, 110)
+couleur = "survie"
+survie = true
+
+[node name="Epave1" parent="Monde" instance=ExtResource("4_voiture")]
+position = Vector2(400, 275)
+couleur = "rouille"
+
+[node name="Epave2" parent="Monde" instance=ExtResource("4_voiture")]
+position = Vector2(1200, 275)
+couleur = "bleue"
+
+[node name="Epave3" parent="Monde" instance=ExtResource("4_voiture")]
+position = Vector2(1880, 1555)
+couleur = "grise"
+
+[node name="Epave4" parent="Monde" instance=ExtResource("4_voiture")]
+position = Vector2(160, 595)
+taille = Vector2(230, 110)
+couleur = "rouille"
+
+[node name="Bloc1" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(2240, 925)
+taille = Vector2(90, 90)
+hauteur = 40.0
+style = 3
+
+[node name="Bloc2" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(2240, 1035)
+taille = Vector2(90, 90)
+hauteur = 40.0
+style = 3
+
+[node name="Bloc3" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(1000, 1495)
+taille = Vector2(90, 90)
+hauteur = 40.0
+style = 3
+
+[node name="Bloc4" parent="Monde" instance=ExtResource("3_mur")]
+position = Vector2(560, 865)
+taille = Vector2(90, 90)
+hauteur = 40.0
+style = 3
+
+[node name="Interface" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="Haut" type="VBoxContainer" parent="Interface"]
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 24.0
@@ -22,71 +96,50 @@ grow_horizontal = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="Titre" type="Label" parent="Haut"]
+[node name="Titre" type="Label" parent="Interface/Haut"]
 layout_mode = 2
 theme_override_constants/outline_size = 14
 theme_override_font_sizes/font_size = 64
 text = "La base"
 horizontal_alignment = 1
 
-[node name="Inventaire" type="Control" parent="Haut"]
+[node name="Inventaire" type="Control" parent="Interface/Haut"]
 custom_minimum_size = Vector2(640, 110)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
 
-[node name="Constructions" type="GridContainer" parent="."]
+[node name="Constructions" type="GridContainer" parent="Interface"]
 visible = false
-layout_mode = 0
 offset_top = 240.0
 mouse_filter = 2
 theme_override_constants/h_separation = 14
 theme_override_constants/v_separation = 14
 columns = 3
 
-[node name="Remede" type="Control" parent="."]
+[node name="Remede" type="Control" parent="Interface"]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 380.0
 offset_bottom = 106.0
 mouse_filter = 2
 
-[node name="Partir" parent="." instance=ExtResource("2_bouton")]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -180.0
-offset_top = -150.0
-offset_right = 180.0
-offset_bottom = -40.0
-grow_horizontal = 2
-grow_vertical = 0
-texte = "Partir"
+[node name="Start" parent="Interface" instance=ExtResource("5_bouton")]
+offset_right = 360.0
+offset_bottom = 110.0
+texte = "Start"
 
-[node name="Heros" parent="." instance=ExtResource("2_bouton")]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -164.0
-offset_right = 144.0
-offset_bottom = -44.0
-grow_vertical = 0
+[node name="Heros" parent="Interface" instance=ExtResource("5_bouton")]
+offset_right = 120.0
+offset_bottom = 120.0
 texte = "Héros"
 
-[node name="Reglages" parent="." instance=ExtResource("2_bouton")]
-custom_minimum_size = Vector2(120, 120)
-layout_mode = 0
+[node name="Reglages" parent="Interface" instance=ExtResource("5_bouton")]
 offset_right = 120.0
 offset_bottom = 120.0
 texte = "Réglages"
 
-[node name="Tiroir" parent="." instance=ExtResource("2_bouton")]
-layout_mode = 0
+[node name="Tiroir" parent="Interface" instance=ExtResource("5_bouton")]
 offset_right = 260.0
 offset_bottom = 100.0
 texte = "Construire"
