@@ -61,7 +61,7 @@ Alternatives écartées pour l'instant : (B) plus de contenu d'exploration (3e z
 
 ## Méthode de travail
 - Le père lance une session Claude Code par étape (prompt de `docs/lot2-prompts.md`, puis `docs/lot3-prompts.md` s'il le retient), valide sur la tablette, puis lance la suivante.
-- Lot 4 (idées d'Eliott, octobre 2026) : `docs/lot4-prompts.md` (base explorable, placement libre, rescapés vivants, multi-sauvegarde, musiques, potager, tourelles, niveau 4 défense de la base, boss). Prompt complet de l'étape suivante rédigé après validation de la précédente.
+- Lot 4 (idées d'Eliott, octobre 2026) : `docs/lot4-prompts.md` (base explorable, placement libre, rescapés vivants, multi-sauvegarde, musiques, potager, tourelles, niveau 4 défense de la base, boss). 9 prompts complets prêts à copier-coller (a, b, c, d, e, f, g, h1, h2), le boss (i) reste à préciser avec Eliott.
 - Une AUTRE discussion travaille en parallèle sur le rendu visuel (dessins `_draw`, palette, `docs/reference`, `docs/raw`). Toujours `git pull origin main` avant de commencer ; ne pas réécrire le dessin des entités sans nécessité ; en cas de conflit, garder les changements visuels de l'autre discussion.
 - Pousser sur main (autorisé par le père) ; si la session impose une branche, pousser aussi sur main en fast-forward.
 - Le père ajoute parfois des fichiers directement sur GitHub (images, sons) : chaque ajout déclenche un build/une Release.
