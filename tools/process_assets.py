@@ -83,7 +83,10 @@ HAUTEUR_RELATIVE = {"base_floodlight": ("base_shelter_1", 1.4)}
 FOND_ECART = 100
 # Props posés sur un socle de dalles bleu-gris (joints noirs) à effacer ; les base_ gardent leur tapis
 SOCLE = {"prop_sofa_2c", "prop_bed_2c", "prop_fridge", "prop_kitchen_table_2c", "prop_shelf_food_2c",
-         "prop_freezer", "prop_checkout_2c", "prop_pallet", "prop_neon"}
+         "prop_freezer", "prop_checkout_2c", "prop_pallet", "prop_neon",
+         # V4 (pharmacie)
+         "prop_pharmacy_counter_2c", "prop_pharmacy_shelf_2c", "prop_pharmacy_display", "prop_wheelchair",
+         "prop_waiting_chairs_2c", "prop_medical_cabinet", "prop_medical_cart", "prop_pharmacy_cross"}
 SOCLE_COULEUR = np.array([52.0, 57.0, 82.0])
 TACHE_PART = 0.02                        # personnages : taches détachées < 2 % de la surface effacées
 
@@ -231,12 +234,12 @@ def taches(alpha, part):
 
 
 def effacer_socle(p, rgb, alpha, violet):
-    """Socle de dalles bleu-gris (dessus ~63,68,99, tranche ~35,37,66, joints et contour noirs) :
+    """Socle de dalles bleu-gris (dessus ~63,68,99 en V3, ~72,90,110 en V4 : plus vert, tranche ~35,37,66, joints et contour noirs) :
     remplissage depuis l'extérieur sur les pixels de cette teinte (bleu > rouge ~ vert, sombres),
     l'ombre violette et les traits sombres qui les bordent ; le contour noir de l'objet (3 px contre
     ses pixels propres) est rendu. Puis ombre elliptique noire douce sous l'objet."""
     r, g, b = p[..., 0], p[..., 1], p[..., 2]
-    bleute = (b - r > 15) & (b - r < 55) & (np.abs(r - g) < 14) & (p.max(-1) < 115) & (alpha > 0)
+    bleute = (b - r > 15) & (b - r < 55) & (g - r > -14) & (g - r < 30) & (p.max(-1) < 125) & (alpha > 0)
     sombre = (p.max(-1) < 75) & (alpha > 0)
     passable = bleute | violet | (alpha == 0) | (sombre & dilater(bleute, 6))
     etiquettes, _ = ndimage.label(passable)

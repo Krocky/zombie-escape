@@ -13,7 +13,7 @@
 [node name="Pharmacie" instance=ExtResource("1_niveau")]
 taille = Vector2(2000, 1400)
 ambiance = "supermarche"
-sol = "floor_market_tiles"
+sol = "floor_pharmacy"
 zones_sol = {
 "floor_house_kitchen": [Rect2(1300, 0, 700, 620)]
 }
@@ -30,7 +30,7 @@ hauteur = 120.0
 style = 0
 fenetres = PackedFloat32Array(-300, 100)
 portes = PackedFloat32Array(-700)
-image = "wall_market"
+image = "wall_pharmacy"
 
 [node name="MurBas" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1000, 1400)
@@ -44,7 +44,7 @@ position = Vector2(20, 1360)
 taille = Vector2(40, 1200)
 hauteur = 30.0
 style = 0
-image = "wall_market"
+image = "wall_pharmacy"
 
 [node name="MurDroit" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1980, 1360)
@@ -87,47 +87,68 @@ hauteur = 90.0
 style = 1
 image = "prop_shelf_wood"
 
-[node name="Comptoir1" parent="Monde" instance=ExtResource("2_mur")]
-position = Vector2(600, 430)
-taille = Vector2(66, 170)
+[node name="Comptoir" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(690, 430)
+taille = Vector2(340, 80)
 hauteur = 70.0
 style = 2
-image = "prop_checkout_2c"
+image = "prop_pharmacy_counter_2c"
 
-[node name="Comptoir2" parent="Monde" instance=ExtResource("2_mur")]
-position = Vector2(780, 430)
-taille = Vector2(66, 170)
+[node name="Chaises" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(75, 780)
+taille = Vector2(50, 220)
+hauteur = 60.0
+style = 2
+image = "prop_waiting_chairs_2c"
+
+[node name="Presentoir" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(900, 600)
+taille = Vector2(70, 70)
+hauteur = 100.0
+style = 2
+image = "prop_pharmacy_display"
+
+[node name="Chariot" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1240, 490)
+taille = Vector2(60, 50)
 hauteur = 70.0
 style = 2
-image = "prop_checkout_2c"
+image = "prop_medical_cart"
+
+[node name="ArmoireMedicale" parent="Monde" instance=ExtResource("2_mur")]
+position = Vector2(1400, 215)
+taille = Vector2(80, 45)
+hauteur = 130.0
+style = 2
+image = "prop_medical_cabinet"
 
 [node name="Etagere1" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(500, 800)
-taille = Vector2(420, 35.4)
+taille = Vector2(420, 42)
 hauteur = 80.0
 style = 1
-image = "prop_shelf_food_2c"
+image = "prop_pharmacy_shelf_2c"
 
 [node name="Etagere2" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1100, 800)
-taille = Vector2(420, 35.4)
+taille = Vector2(420, 42)
 hauteur = 80.0
 style = 1
-image = "prop_shelf_food_2c"
+image = "prop_pharmacy_shelf_2c"
 
 [node name="Etagere3" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(600, 1080)
-taille = Vector2(420, 35.4)
+taille = Vector2(420, 42)
 hauteur = 80.0
 style = 1
-image = "prop_shelf_food_2c"
+image = "prop_pharmacy_shelf_2c"
 
 [node name="Etagere4" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(1250, 1080)
-taille = Vector2(420, 35.4)
+taille = Vector2(420, 42)
 hauteur = 80.0
 style = 1
-image = "prop_shelf_food_2c"
+image = "prop_pharmacy_shelf_2c"
 
 [node name="Frigo" parent="Monde" instance=ExtResource("2_mur")]
 position = Vector2(90, 1000)
@@ -145,6 +166,7 @@ image = "prop_pallet"
 
 [node name="Neon" parent="Monde" instance=ExtResource("10_neon")]
 position = Vector2(1000, 940)
+image = "prop_pharmacy_cross"
 
 [node name="Carton" parent="Monde" instance=ExtResource("6_cachette")]
 position = Vector2(250, 1300)

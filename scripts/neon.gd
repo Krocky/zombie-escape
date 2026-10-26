@@ -1,15 +1,20 @@
 extends Node2D
-## Néon du supermarché (image V3 « prop_neon ») : un tube suspendu dont la lumière grésille au hasard.
+## Néon suspendu dont la lumière grésille au hasard : tube du supermarché (image V3 « prop_neon ») ou
+## croix verte de la pharmacie (« prop_pharmacy_cross », `image` réglée dans la scène du lieu).
 ## Pas de collision (il pend du plafond). Origine = au sol, milieu du bord bas de son emprise (monde).
 ## Affichage isométrique : le niveau place visuels() dans ses calques.
 
 const TAILLE := Vector2(110, 110)        # emprise au sol de l'image (monde)
+const TAILLE_CROIX := Vector2(80, 80)    # croix de la pharmacie, plus petite
 const ENERGIE := 0.6                     # lumière allumée
 const ENERGIE_COUPEE := 0.1              # lumière pendant un raté
 const ATTENTE := Vector2(1.5, 5.0)       # secondes entre deux grésillements (au hasard)
 const DUREE_GRESILLEMENT := Vector2(0.25, 0.9)
 const RATE := 0.06                       # durée d'un clignotement pendant le grésillement
-const FLAQUE := Vector2(110, 255)        # milieu de la flaque de lumière dans l'image (pixels)
+## Milieu de la flaque de lumière dans l'image (pixels) et couleur de la lumière, par image
+const FLAQUES := {"prop_neon": Vector2(110, 255), "prop_pharmacy_cross": Vector2(150, 565)}
+
+@export var image := "prop_neon"
 
 static var _texture_lumiere: GradientTexture2D
 
@@ -31,11 +36,12 @@ func visuels() -> Dictionary:
 func _ready() -> void:
 	_hasard.randomize()
 	_vue.y_sort_enabled = true
-	var emprise := Rect2(global_position + Vector2(-TAILLE.x / 2.0, -TAILLE.y), TAILLE)
+	var t := TAILLE_CROIX if image == "prop_pharmacy_cross" else TAILLE
+	var emprise := Rect2(global_position + Vector2(-t.x / 2.0, -t.y), t)
 	_coins = Iso.coins(emprise)
-	if Images.existe("prop_neon"):
-		_image_ecran = Iso.habiller("prop_neon", emprise, _vue)
-		_lumiere.position = Iso.point_image("prop_neon", emprise, FLAQUE)
+	if Images.existe(image):
+		_image_ecran = Iso.habiller(image, emprise, _vue)
+		_lumiere.position = Iso.point_image(image, emprise, FLAQUES.get(image, Vector2.ZERO))
 	else:
 		# Secours : un tube clair suspendu
 		var tube := Node2D.new()
@@ -56,7 +62,7 @@ func _ready() -> void:
 		_texture_lumiere.fill_to = Vector2(1.0, 0.5)
 	_lumiere.texture = _texture_lumiere
 	_lumiere.texture_scale = 2.6
-	_lumiere.color = Palette.NEON
+	_lumiere.color = Palette.NEON_PHARMACIE if image == "prop_pharmacy_cross" else Palette.NEON
 	_lumiere.energy = ENERGIE
 	_vue.add_child(_lumiere)
 	_attente = _hasard.randf_range(ATTENTE.x, ATTENTE.y)

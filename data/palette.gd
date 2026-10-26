@@ -48,6 +48,7 @@ const NUIT_SUPERMARCHE := Color(0.09, 0.15, 0.17)    # nuit froide, vert-cyan (n
 const FAISCEAU_MAISON := Color("ffb84a")             # lampe plus orangée, comme une ampoule
 const FAISCEAU_SUPERMARCHE := Color("fff0a0")        # lampe plus blanche sous les néons
 const NEON := Color("b8f5e0")                        # tube néon qui grésille (supermarché)
+const NEON_PHARMACIE := Color("3dff7a")              # croix verte lumineuse de la pharmacie
 ## Images V3 bien plus claires que les V2 (sol blanc, mur carrelé...) : leurs couleurs sont multipliées par
 ## ce facteur au chargement, pour que la nuit reste aussi sombre qu'avec les dalles et murs V2.
 const CLARTE_V3 := {
@@ -58,6 +59,12 @@ const CLARTE_V3 := {
 	"wall_house": 0.65,
 	"prop_freezer": 0.75,
 	"prop_checkout_2c": 0.8,
+	"floor_pharmacy": 0.4,
+	"wall_pharmacy": 0.45,
+	"prop_pharmacy_counter_2c": 0.75,
+	"prop_pharmacy_shelf_2c": 0.75,
+	"prop_medical_cabinet": 0.75,
+	"prop_pharmacy_display": 0.8,
 }
 ## ambiance -> [nuit, faisceau]
 const AMBIANCES := {

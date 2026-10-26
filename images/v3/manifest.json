@@ -596,6 +596,45 @@
     226
    ]
   },
+  "floor_pharmacy": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "floor",
+   "coins_sol": {
+    "avant": [
+     192,
+     226
+    ],
+    "droit": [
+     384,
+     113
+    ],
+    "gauche": [
+     0,
+     113
+    ],
+    "haut": [
+     192,
+     0
+    ]
+   },
+   "defrange_px": 19215,
+   "empreinte": "d606846530028eda7bf7551cec0f1e0fe41dc662",
+   "fichier": "images/v3/floor_pharmacy.png",
+   "fond": [
+    251,
+    0,
+    253
+   ],
+   "nom": "floor_pharmacy",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/floor_pharmacy.jpg",
+   "taille": [
+    384,
+    226
+   ]
+  },
   "heroine_attack": {
    "ancre_pieds": [
     51,
@@ -1617,6 +1656,102 @@
    "teinte_violette_px": 6075,
    "traits_fins_px": 0
   },
+  "prop_medical_cabinet": {
+   "ancre_pieds": [
+    105,
+    692
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (152537 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     104,
+     692
+    ],
+    "droit": [
+     314,
+     561
+    ],
+    "gauche": [
+     0,
+     571
+    ]
+   },
+   "defrange_px": 18962,
+   "echelle": 0.5269,
+   "empreinte": "2463c5cbee27e93fa7ef74a08fe109c18b319bc8",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_medical_cabinet.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "largeur_socle_source": 911,
+   "mauve_desature_px": 5837,
+   "nom": "prop_medical_cabinet",
+   "ombre_violette_px": 9543,
+   "poussieres_px": 0,
+   "socle_px": 152537,
+   "source": "docs/raw/V4/prop_medical_cabinet.jpg",
+   "taille": [
+    315,
+    724
+   ],
+   "teinte_violette_px": 1234,
+   "traits_fins_px": 2
+  },
+  "prop_medical_cart": {
+   "ancre_pieds": [
+    143,
+    406
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (384410 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     144,
+     406
+    ],
+    "droit": [
+     276,
+     157
+    ],
+    "gauche": [
+     0,
+     325
+    ]
+   },
+   "defrange_px": 23112,
+   "echelle": 0.3514,
+   "empreinte": "be09bea2fe05ed2c244b571b401972693c544fdb",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_medical_cart.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "largeur_socle_source": 1366,
+   "mauve_desature_px": 7652,
+   "nom": "prop_medical_cart",
+   "ombre_violette_px": 11090,
+   "poussieres_px": 0,
+   "socle_px": 384410,
+   "source": "docs/raw/V4/prop_medical_cart.jpg",
+   "taille": [
+    277,
+    435
+   ],
+   "teinte_violette_px": 1824,
+   "traits_fins_px": 0
+  },
   "prop_neon": {
    "ancre_pieds": [
     127,
@@ -1711,6 +1846,198 @@
     361
    ],
    "teinte_violette_px": 6963,
+   "traits_fins_px": 0
+  },
+  "prop_pharmacy_counter_2c": {
+   "ancre_pieds": [
+    491,
+    496
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (626938 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     496,
+     496
+    ],
+    "droit": [
+     616,
+     297
+    ],
+    "gauche": [
+     0,
+     111
+    ]
+   },
+   "defrange_px": 27779,
+   "echelle": 0.4921,
+   "empreinte": "fe875dd8381cee1361d706e7abda68a8da6f0ab7",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_pharmacy_counter_2c.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "largeur_socle_source": 1951,
+   "mauve_desature_px": 14678,
+   "nom": "prop_pharmacy_counter_2c",
+   "ombre_violette_px": 16650,
+   "poussieres_px": 0,
+   "socle_px": 626938,
+   "source": "docs/raw/V4/prop_pharmacy_counter_2c.jpg",
+   "taille": [
+    617,
+    559
+   ],
+   "teinte_violette_px": 3167,
+   "traits_fins_px": 0
+  },
+  "prop_pharmacy_cross": {
+   "ancre_pieds": [
+    166,
+    647
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (160554 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     168,
+     647
+    ],
+    "droit": [
+     306,
+     447
+    ],
+    "gauche": [
+     0,
+     331
+    ]
+   },
+   "defrange_px": 29758,
+   "echelle": 0.5206,
+   "empreinte": "c97dc56ea5bed365a612714ae1113bf33ddc129f",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_pharmacy_cross.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "largeur_socle_source": 922,
+   "mauve_desature_px": 8934,
+   "nom": "prop_pharmacy_cross",
+   "ombre_violette_px": 15077,
+   "poussieres_px": 0,
+   "socle_px": 160554,
+   "source": "docs/raw/V4/prop_pharmacy_cross.jpg",
+   "taille": [
+    307,
+    678
+   ],
+   "teinte_violette_px": 2723,
+   "traits_fins_px": 6
+  },
+  "prop_pharmacy_display": {
+   "ancre_pieds": [
+    170,
+    588
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (174829 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     136,
+     588
+    ],
+    "droit": [
+     359,
+     490
+    ],
+    "gauche": [
+     0,
+     514
+    ]
+   },
+   "defrange_px": 40423,
+   "echelle": 0.4589,
+   "empreinte": "4362a8552b05f4bd1de7c7c6b79c7c07f49338d6",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_pharmacy_display.png",
+   "fond": [
+    252,
+    1,
+    252
+   ],
+   "largeur_socle_source": 1046,
+   "mauve_desature_px": 20916,
+   "nom": "prop_pharmacy_display",
+   "ombre_violette_px": 21915,
+   "poussieres_px": 0,
+   "socle_px": 174829,
+   "source": "docs/raw/V4/prop_pharmacy_display.jpg",
+   "taille": [
+    360,
+    625
+   ],
+   "teinte_violette_px": 4256,
+   "traits_fins_px": 0
+  },
+  "prop_pharmacy_shelf_2c": {
+   "ancre_pieds": [
+    416,
+    700
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (452620 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     448,
+     700
+    ],
+    "droit": [
+     595,
+     596
+    ],
+    "gauche": [
+     0,
+     438
+    ]
+   },
+   "defrange_px": 32852,
+   "echelle": 0.553,
+   "empreinte": "7d0c6b218380b23bdc8c4f5c00f53b791ad910d1",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_pharmacy_shelf_2c.png",
+   "fond": [
+    252,
+    1,
+    251
+   ],
+   "largeur_socle_source": 1736,
+   "mauve_desature_px": 15009,
+   "nom": "prop_pharmacy_shelf_2c",
+   "ombre_violette_px": 18222,
+   "poussieres_px": 0,
+   "socle_px": 452620,
+   "source": "docs/raw/V4/prop_pharmacy_shelf_2c.jpg",
+   "taille": [
+    596,
+    761
+   ],
+   "teinte_violette_px": 3320,
    "traits_fins_px": 0
   },
   "prop_shelf_food_2c": {
@@ -1852,6 +2179,54 @@
     762
    ],
    "teinte_violette_px": 4925,
+   "traits_fins_px": 0
+  },
+  "prop_waiting_chairs_2c": {
+   "ancre_pieds": [
+    533,
+    603
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (838540 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     503,
+     603
+    ],
+    "droit": [
+     639,
+     578
+    ],
+    "gauche": [
+     0,
+     312
+    ]
+   },
+   "defrange_px": 36723,
+   "echelle": 0.5,
+   "empreinte": "e981f07c90847ab0b1c6f6dd4c45f9f48a0c6f32",
+   "emprise_cases": 2.0,
+   "fichier": "images/v3/prop_waiting_chairs_2c.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "largeur_socle_source": 1920,
+   "mauve_desature_px": 10844,
+   "nom": "prop_waiting_chairs_2c",
+   "ombre_violette_px": 18788,
+   "poussieres_px": 0,
+   "socle_px": 838540,
+   "source": "docs/raw/V4/prop_waiting_chairs_2c.jpg",
+   "taille": [
+    640,
+    668
+   ],
+   "teinte_violette_px": 3280,
    "traits_fins_px": 0
   },
   "prop_wardrobe": {
@@ -2076,6 +2451,49 @@
    ],
    "teinte_violette_px": 1777,
    "traits_fins_px": 0
+  },
+  "wall_pharmacy": {
+   "ancre_pieds": [
+    46,
+    449
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     44,
+     449
+    ],
+    "droit": [
+     348,
+     290
+    ],
+    "gauche": [
+     0,
+     424
+    ]
+   },
+   "defrange_px": 21459,
+   "echelle": 0.3064,
+   "empreinte": "0b5fc34842b4b3245808e0ea85892ee5dcf10a59",
+   "fichier": "images/v3/wall_pharmacy.png",
+   "fond": [
+    252,
+    0,
+    253
+   ],
+   "nom": "wall_pharmacy",
+   "ombre_violette_px": 10896,
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/wall_pharmacy.jpg",
+   "taille": [
+    349,
+    450
+   ],
+   "teinte_violette_px": 2048,
+   "traits_fins_px": 3
   },
   "zombie_runner_iddle": {
    "ancre_pieds": [

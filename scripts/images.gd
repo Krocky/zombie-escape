@@ -136,6 +136,14 @@ const EMPRISES_V3 := {
 	"prop_cart": [30.0, Vector2(170, 410), 440.0],
 	"prop_pallet": [2.0, Vector2(145, 324), 315.0],
 	"prop_neon": [0.0, Vector2(128, 340), 252.0],
+	# V4 (pharmacie)
+	"prop_pharmacy_counter_2c": [15.0, Vector2(497, 495), 605.0],
+	"prop_pharmacy_shelf_2c": [5.0, Vector2(455, 695), 590.0],
+	"prop_pharmacy_display": [40.0, Vector2(165, 548), 290.0],
+	"prop_waiting_chairs_2c": [5.0, Vector2(500, 598), 615.0],
+	"prop_medical_cabinet": [5.0, Vector2(105, 690), 300.0],
+	"prop_medical_cart": [10.0, Vector2(145, 400), 250.0],
+	"prop_pharmacy_cross": [20.0, Vector2(150, 640), 280.0],
 }
 ## Fenêtre peinte sur les pans de mur V3 (« <mur>_fenetre », voir v3_fenetre) : le long du pan (0 à 1)
 ## et en hauteur au-dessus du bas du pan (pixels de l'image).
