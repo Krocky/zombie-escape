@@ -1,5 +1,5 @@
 extends SceneTree
-## Écrans V3 : carte (bg_map défilable, vignettes, pharmacie « Bientôt » qui ne réagit pas, fiche même mise en page),
+## Écrans V3 : carte (bg_map défilable, vignettes, pharmacie qui ouvre sa fiche (« Bientôt » avant le lot 3 f1), fiche même mise en page),
 ## victoire (illustration sur ciel d'aube, étoiles, sac), défaite (plein écran, étiquette SORTIE, objets perdus).
 ## Captures garçon et fille. Efface la sauvegarde à la fin.
 var f := 0
@@ -60,7 +60,9 @@ func _physics_process(_d):
 		_touch(c._place("pharmacie"), true)
 	if f == 46: _touch(Vector2.ZERO, false)
 	if f == 52:
-		print("pharmacie touchee: fiche visible=", current_scene.get_node("Fiche").visible, " (attendu false)")
+		# Pharmacie disponible depuis le lot 3 f1 : sa fiche s'ouvre ; on la referme pour la suite
+		print("pharmacie touchee: fiche visible=", current_scene.get_node("Fiche").visible, " (attendu true)")
+		current_scene._ouvrir("")
 		# Glisser le doigt : la carte défile, aucune fiche ne s'ouvre
 		_touch(Vector2(current_scene.size.x / 2.0, 140), true)
 	if f == 54: _drag(Vector2(current_scene.size.x / 2.0 - 60, 140), Vector2(-60, 0))

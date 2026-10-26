@@ -19,6 +19,8 @@ var _ramasses := []
 var _nombre := 0
 var _rescape := Control.new()     # icône du rescapé, sous les cœurs
 var _rescape_suit := false
+var _clef := Control.new()        # clefs ramassées (teintes), sous l'icône du rescapé
+var _clefs := []
 var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
 var _soin: Control = BOUTON.instantiate()    # bouton Soigner, à gauche de Frapper
 
@@ -57,6 +59,12 @@ func _ready() -> void:
 	_rescape.visible = false
 	_rescape.draw.connect(_dessiner_rescape)
 	add_child(_rescape)
+	_clef.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_clef.position = Vector2(24, 184)
+	_clef.size = Vector2(72, 72)
+	_clef.visible = false
+	_clef.draw.connect(_dessiner_clefs)
+	add_child(_clef)
 	_pause.texte = "Pause"
 	_pause.icone = "pause"
 	_pause.couleur = Palette.UI_BOUTON
@@ -155,6 +163,28 @@ func afficher_rescape(present: bool, suit: bool) -> void:
 		create_tween().tween_property(_rescape, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
 	_rescape_suit = suit
 	_rescape.queue_redraw()
+
+
+## Clefs ramassées (teintes de Palette.CLEF) : une icône par clef dans un cadre, caché sans clef ; elle saute en arrivant.
+func afficher_clefs(teintes: Array) -> void:
+	if teintes.size() > _clefs.size():
+		_clef.pivot_offset = _clef.size / 2.0
+		_clef.scale = Vector2(1.3, 1.3)
+		create_tween().tween_property(_clef, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	_clefs = teintes.duplicate()
+	_clef.visible = not _clefs.is_empty()
+	_clef.queue_redraw()
+
+
+func _dessiner_clefs() -> void:
+	var cadre := StyleBoxFlat.new()
+	cadre.bg_color = Palette.UI_CADRE
+	cadre.border_color = Palette.LAMPE
+	cadre.set_border_width_all(3)
+	cadre.set_corner_radius_all(16)
+	_clef.draw_style_box(cadre, Rect2(Vector2.ZERO, _clef.size))
+	for i in _clefs.size():
+		Dessin.icone_objet(_clef, "clef", Vector2(_clef.size.x / 2.0 + i * 8.0, _clef.size.y - 14.0 - i * 8.0), 44.0, Color.WHITE, _clefs[i])
 
 
 func _dessiner_rescape() -> void:

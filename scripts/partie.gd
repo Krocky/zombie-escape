@@ -18,8 +18,8 @@ const NOMS := {
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
 }
-## Objets à part, hors inventaire de la base, coûts, objectifs et bonus (pas encore placés dans un lieu).
-## La clef ouvrira de futures portes verrouillées ; sa teinte (Palette.CLEF) dira laquelle.
+## Objets à part, hors inventaire de la base, coûts, objectifs et bonus, jamais rapportés ni comptés dans
+## « Objets à trouver » : la clef ouvre la porte (Porte) de même teinte (Palette.CLEF) dans le lieu.
 const NOMS_SPECIAUX := {"clef": "Clef"}
 ## Constructions de la base, dans l'ordre des cartes : nom -> nom affiché (coûts et effets dans Reglages)
 const CONSTRUCTIONS := {
@@ -38,7 +38,7 @@ const PRENOM_MAX := 12
 const LIEUX := {
 	"supermarche": {"nom": "Supermarché", "du": "du supermarché", "scene": "res://scenes/lieux/supermarche.tscn"},
 	"maison": {"nom": "Maison", "du": "de la maison", "scene": "res://scenes/lieux/maison.tscn"},
-	"pharmacie": {"nom": "Pharmacie", "du": "de la pharmacie", "scene": ""},
+	"pharmacie": {"nom": "Pharmacie", "du": "de la pharmacie", "scene": "res://scenes/lieux/pharmacie.tscn"},
 }
 
 ## Lieu choisi sur la carte (clé de LIEUX)
@@ -188,7 +188,9 @@ func infos_lieu(id: String) -> Dictionary:
 				if modele.resource_path == "res://scenes/zombie.tscn":
 					infos["zombies"].append(_propriete(etat, i, "type", 0))
 				elif modele.resource_path == "res://scenes/objet.tscn":
-					infos["objets"].append(_propriete(etat, i, "type", "conserve"))
+					var type: String = _propriete(etat, i, "type", "conserve")
+					if not NOMS_SPECIAUX.has(type):   # la clef n'est pas un objet à trouver
+						infos["objets"].append(type)
 				elif modele.resource_path == "res://scenes/rescape.tscn":
 					infos["rescapes"] += 1
 		_infos_lieux[id] = infos
@@ -212,6 +214,8 @@ func objectif(id: String) -> Dictionary:
 			return Reglages.SUPERMARCHE_OBJECTIF
 		"maison":
 			return Reglages.MAISON_OBJECTIF
+		"pharmacie":
+			return Reglages.PHARMACIE_OBJECTIF
 	return {}
 
 

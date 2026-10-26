@@ -34,6 +34,7 @@ var CACHETTE_PORTEE := 70.0         # distance pour pouvoir se cacher
 
 # --- Objets et sortie ---
 var OBJET_PORTEE := 45.0            # distance pour ramasser un objet en marchant dessus
+var PORTE_PORTEE := 90.0            # distance de la porte à clef pour l'ouvrir (avec la clef)
 var SORTIE_PORTEE := 70.0           # distance de la porte pour sortir (victoire)
 
 # --- Rescapé (un enfant caché dans chaque lieu : touche-le, il te suit jusqu'à la sortie) ---
@@ -71,6 +72,7 @@ var SOIN_PAR_MISSION := 1             # soins au plus par mission
 # --- Missions (objectif de chaque lieu : { objet: nombre } à rapporter en sortant vivant) ---
 var SUPERMARCHE_OBJECTIF := {"fiole": 1}
 var MAISON_OBJECTIF := {"bandage": 2}
+var PHARMACIE_OBJECTIF := {"piles": 2}
 var MISSION_BONUS := 1                # objets en plus, au hasard, quand l'objectif est rempli
 
 # --- Remède (jauge de la base) ---

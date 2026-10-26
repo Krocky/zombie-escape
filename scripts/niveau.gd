@@ -2,7 +2,8 @@ extends Node2D
 ## Logique commune à tous les lieux : relie le HUD au héros, gère cachettes, objets, rescapé, sortie et fin,
 ## et dessine le sol. Le contenu d'un lieu (murs, cachettes, objets, zombies, `Sortie`, départ du héros)
 ## est dans sa scène (`scenes/lieux/`), qui hérite de `niveau.tscn` et règle taille, graine et débris.
-## Un lieu peut avoir un `Rescape` (enlevé s'il est déjà sauvé).
+## Un lieu peut avoir un `Rescape` (enlevé s'il est déjà sauvé), et des portes à clef (`Porte`) : la clef
+## (Objet de type « clef ») n'est pas un objet à rapporter, elle ouvre la porte de même teinte.
 ## Monde (physique, IA) en coordonnées monde, caché ; l'affichage isométrique est dans les calques
 ## SolEffets (ombres), Reperes (cônes de vue, ondes de bruit : sans ombre, au-dessus de la brume du sol)
 ## et Vue (trié en profondeur), voir Iso.
@@ -31,6 +32,7 @@ const DEBRIS := ["debris_papiers", "debris_bout", "debris_planche", "debris_plan
 var _heros_mort := false
 var _fini := false
 var _ramasses: Array = []
+var _clefs: Array = []     # teintes des clefs ramassées (hors objets à rapporter)
 var _total_objets := 0
 var _cachette_proche: Node2D = null
 var _cachette_occupee: Node2D = null
@@ -133,7 +135,9 @@ func _ready() -> void:
 	_heros.regler_limites_camera(Rect2(gauche - 40, -330, droite - gauche + 80, bas + 400))
 	for zombie in get_tree().get_nodes_in_group("zombies"):
 		zombie.touche_heros.connect(_heros.recevoir_degats)
-	_total_objets = get_tree().get_nodes_in_group("objets").size()
+	for objet in get_tree().get_nodes_in_group("objets"):
+		if not Partie.NOMS_SPECIAUX.has(objet.type):
+			_total_objets += 1
 	$HUD.afficher_objets(0, _total_objets)
 	_afficher_objectif()
 	_sur_rescape(false)
@@ -196,12 +200,29 @@ func _physics_process(delta: float) -> void:
 		meuble.voir_a_travers(pieds, delta)
 	if _heros_mort or _fini or _cachette_occupee:
 		return
-	# Objets ramassés en marchant dessus
+	# Objets ramassés en marchant dessus (une clef va à part : ni compteur, ni objectif, ni base)
 	for objet in get_tree().get_nodes_in_group("objets"):
 		if _heros.global_position.distance_to(objet.global_position) <= Reglages.OBJET_PORTEE:
+			if Partie.NOMS_SPECIAUX.has(objet.type):
+				_clefs.append(objet.teinte)
+				objet.ramasser()
+				$HUD.afficher_clefs(_clefs)
+				continue
 			_ramasses.append(objet.ramasser())
 			$HUD.afficher_objets(_ramasses.size(), _total_objets, _ramasses)
 			_afficher_objectif()
+	# Porte à clef : elle s'ouvre quand le héros arrive devant avec la bonne clef (la clef sert une fois) ;
+	# sans elle, la porte montre la clef qu'il faut
+	for porte in get_tree().get_nodes_in_group("portes"):
+		if porte.ouverte():
+			continue
+		var devant: bool = porte.distance_a(_heros.global_position) <= Reglages.PORTE_PORTEE
+		if devant and porte.teinte in _clefs:
+			_clefs.erase(porte.teinte)
+			porte.ouvrir()
+			$HUD.afficher_clefs(_clefs)
+		else:
+			porte.indiquer(devant)
 	# Sortie atteinte : victoire
 	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)
