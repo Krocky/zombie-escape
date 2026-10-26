@@ -7,7 +7,11 @@
   "survivor_grandpa": 0.192901,
   "survivor_nurse": 0.191599,
   "survivor_teen": 0.181481,
-  "zombie_runner": 0.127273
+  "zombie_big": 0.198339,
+  "zombie_big|back": 0.172969,
+  "zombie_runner": 0.127273,
+  "zombie_thin": 0.188073,
+  "zombie_thin|back": 0.164131
  },
  "images": {
   "base_barricade": {
@@ -2871,6 +2875,303 @@
    "teinte_violette_px": 2048,
    "traits_fins_px": 3
   },
+  "zombie_big_attack": {
+   "ancre_pieds": [
+    54,
+    249
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 27192,
+   "echelle": 0.1983,
+   "empreinte": "0744c4747115b4b6eabbf25313298fe230173c44",
+   "fichier": "images/v3/zombie_big_attack.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_attack",
+   "ombre_violette_px": 15076,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_attack.png",
+   "taille": [
+    121,
+    250
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_back_iddle": {
+   "ancre_pieds": [
+    63,
+    214
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 21673,
+   "echelle": 0.173,
+   "empreinte": "8cfb7244d34e50bd9b3e5dc7fc1eb08957470334",
+   "fichier": "images/v3/zombie_big_back_iddle.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_back_iddle",
+   "ombre_violette_px": 12209,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_back_iddle.png",
+   "taille": [
+    119,
+    215
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_back_walk_a": {
+   "ancre_pieds": [
+    73,
+    216
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 25733,
+   "echelle": 0.173,
+   "empreinte": "e84412239e0c6117ab0d2a0af9cd2cb267546c06",
+   "fichier": "images/v3/zombie_big_back_walk_a.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_back_walk_a",
+   "ombre_violette_px": 14228,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_back_walk_a.png",
+   "taille": [
+    143,
+    217
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_back_walk_b": {
+   "ancre_pieds": [
+    71,
+    214
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 25829,
+   "echelle": 0.173,
+   "empreinte": "b252d1f7557a42ac553b5f81f43e69883a835080",
+   "fichier": "images/v3/zombie_big_back_walk_b.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_back_walk_b",
+   "ombre_violette_px": 14297,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_back_walk_b.png",
+   "taille": [
+    144,
+    215
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_iddle": {
+   "ancre_pieds": [
+    57,
+    212
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 18636,
+   "echelle": 0.1983,
+   "empreinte": "67978cdb4f23e987fc371f5e670ce71fff6c6479",
+   "fichier": "images/v3/zombie_big_iddle.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_iddle",
+   "ombre_violette_px": 10447,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_iddle.png",
+   "taille": [
+    116,
+    213
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_walk_a": {
+   "ancre_pieds": [
+    66,
+    214
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 21370,
+   "echelle": 0.1983,
+   "empreinte": "7e2bc0aa978632cfa900e2bd27d4f33216a7a7e9",
+   "fichier": "images/v3/zombie_big_walk_a.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_walk_a",
+   "ombre_violette_px": 11782,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_walk_a.png",
+   "taille": [
+    130,
+    215
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_big_walk_b": {
+   "ancre_pieds": [
+    61,
+    215
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 20350,
+   "echelle": 0.1983,
+   "empreinte": "1a094cb799e07c51b62f2fd055747f690a312b09",
+   "fichier": "images/v3/zombie_big_walk_b.png",
+   "fond": [
+    253,
+    0,
+    253
+   ],
+   "nom": "zombie_big_walk_b",
+   "ombre_violette_px": 11341,
+   "personnage": "zombie_big",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_big_walk_b.png",
+   "taille": [
+    123,
+    216
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_runner_attack": {
+   "ancre_pieds": [
+    80,
+    245
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 27246,
+   "echelle": 0.2019,
+   "empreinte": "70ea7b266ecddacbadc4d568c29b392b61f6cb91",
+   "fichier": "images/v3/zombie_runner_attack.png",
+   "fond": [
+    251,
+    0,
+    253
+   ],
+   "nom": "zombie_runner_attack",
+   "ombre_violette_px": 13573,
+   "personnage": "zombie_runner",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_runner_attack.png",
+   "taille": [
+    122,
+    246
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_runner_back_iddle": {
+   "ancre_pieds": [
+    39,
+    225
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 22787,
+   "echelle": 0.2019,
+   "empreinte": "cd6d1b1d6c3262115773991fb0c4697b8f5557b2",
+   "fichier": "images/v3/zombie_runner_back_iddle.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_runner_back_iddle",
+   "ombre_violette_px": 12888,
+   "personnage": "zombie_runner",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_runner_back_iddle.png",
+   "taille": [
+    78,
+    226
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_runner_back_run_a": {
+   "ancre_pieds": [
+    50,
+    209
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 25196,
+   "echelle": 0.2019,
+   "empreinte": "b879ec42cfe3ea60438ef4fc00940e96eb975245",
+   "fichier": "images/v3/zombie_runner_back_run_a.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_runner_back_run_a",
+   "ombre_violette_px": 13953,
+   "personnage": "zombie_runner",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_runner_back_run_a.png",
+   "taille": [
+    132,
+    210
+   ],
+   "traits_fins_px": 4
+  },
+  "zombie_runner_back_run_b": {
+   "ancre_pieds": [
+    122,
+    205
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 27036,
+   "echelle": 0.2019,
+   "empreinte": "449e3f4db4b9ec8f31785c5abf113b5bb2c1cf6b",
+   "fichier": "images/v3/zombie_runner_back_run_b.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_runner_back_run_b",
+   "ombre_violette_px": 14776,
+   "personnage": "zombie_runner",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_runner_back_run_b.png",
+   "taille": [
+    146,
+    206
+   ],
+   "traits_fins_px": 3
+  },
   "zombie_runner_iddle": {
    "ancre_pieds": [
     99,
@@ -2939,6 +3240,195 @@
     210
    ],
    "traits_fins_px": 83
+  },
+  "zombie_thin_attack": {
+   "ancre_pieds": [
+    55,
+    241
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 31572,
+   "echelle": 0.1881,
+   "empreinte": "296cbb8533ae2bbc53042506aa719878af2f8810",
+   "fichier": "images/v3/zombie_thin_attack.png",
+   "fond": [
+    253,
+    0,
+    252
+   ],
+   "nom": "zombie_thin_attack",
+   "ombre_violette_px": 17432,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_attack.png",
+   "taille": [
+    97,
+    242
+   ],
+   "traits_fins_px": 3
+  },
+  "zombie_thin_back_iddle": {
+   "ancre_pieds": [
+    40,
+    205
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 29518,
+   "echelle": 0.1641,
+   "empreinte": "21f6a6ad200c8dbe23590721fe4ce66ea9509b6a",
+   "fichier": "images/v3/zombie_thin_back_iddle.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_thin_back_iddle",
+   "ombre_violette_px": 17082,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_back_iddle.png",
+   "taille": [
+    74,
+    206
+   ],
+   "traits_fins_px": 20
+  },
+  "zombie_thin_back_walk_a": {
+   "ancre_pieds": [
+    56,
+    204
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 30608,
+   "echelle": 0.1641,
+   "empreinte": "555464715e11b375b035d7bd83fe8526f5bcf0ff",
+   "fichier": "images/v3/zombie_thin_back_walk_a.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_thin_back_walk_a",
+   "ombre_violette_px": 16851,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_back_walk_a.png",
+   "taille": [
+    137,
+    205
+   ],
+   "traits_fins_px": 24
+  },
+  "zombie_thin_back_walk_b": {
+   "ancre_pieds": [
+    56,
+    196
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 31105,
+   "echelle": 0.1641,
+   "empreinte": "355fa1ea4df5deda555b1b5c1b381ba4a7afebd0",
+   "fichier": "images/v3/zombie_thin_back_walk_b.png",
+   "fond": [
+    253,
+    0,
+    251
+   ],
+   "nom": "zombie_thin_back_walk_b",
+   "ombre_violette_px": 17270,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_back_walk_b.png",
+   "taille": [
+    134,
+    197
+   ],
+   "traits_fins_px": 17
+  },
+  "zombie_thin_iddle": {
+   "ancre_pieds": [
+    53,
+    204
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 24447,
+   "echelle": 0.1881,
+   "empreinte": "7ef23134f753e04a6a0529c46e7b8a7a7d4639b9",
+   "fichier": "images/v3/zombie_thin_iddle.png",
+   "fond": [
+    253,
+    0,
+    252
+   ],
+   "nom": "zombie_thin_iddle",
+   "ombre_violette_px": 13688,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_iddle.png",
+   "taille": [
+    90,
+    205
+   ],
+   "traits_fins_px": 1
+  },
+  "zombie_thin_walk_a": {
+   "ancre_pieds": [
+    94,
+    205
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 27928,
+   "echelle": 0.1881,
+   "empreinte": "615325e7bd3dcd618c54c329a722a1a7c9001c52",
+   "fichier": "images/v3/zombie_thin_walk_a.png",
+   "fond": [
+    253,
+    0,
+    252
+   ],
+   "nom": "zombie_thin_walk_a",
+   "ombre_violette_px": 15597,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_walk_a.png",
+   "taille": [
+    153,
+    206
+   ],
+   "traits_fins_px": 0
+  },
+  "zombie_thin_walk_b": {
+   "ancre_pieds": [
+    89,
+    203
+   ],
+   "anomalies": [],
+   "categorie": "perso",
+   "defrange_px": 27627,
+   "echelle": 0.1881,
+   "empreinte": "c4f5f43d755635a1de51321b51be0ddec6a65a5e",
+   "fichier": "images/v3/zombie_thin_walk_b.png",
+   "fond": [
+    253,
+    0,
+    252
+   ],
+   "nom": "zombie_thin_walk_b",
+   "ombre_violette_px": 15468,
+   "personnage": "zombie_thin",
+   "poussieres_px": 0,
+   "source": "docs/raw/V4/zombie_thin_walk_b.png",
+   "taille": [
+    147,
+    204
+   ],
+   "traits_fins_px": 0
   }
  },
  "reglages": {

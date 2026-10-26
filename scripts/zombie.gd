@@ -24,7 +24,9 @@ const SON_CRI_MAIGRE := preload("res://sons/zombie_maigre.mp3")
 const SONS_COUP := [preload("res://sons/taper1.mp3"), preload("res://sons/taper2.mp3"), preload("res://sons/taper3.mp3")]
 const ECHELLE := 0.5            # images à 2x : taille à l'écran
 const CADENCE_MARCHE := 5.0     # poses par seconde (en patrouille ; deux fois plus en poursuite)
-const PERSO_COUREUR := "zombie_runner"   # images V3 du coureur (elles regardent à gauche)
+## Images V3 / V4 de chaque zombie : profil qui regarde à gauche (immobile, marche ou course, coup bras levés),
+## dos qui part en haut à droite. Les images V2 (POSES) restent en secours.
+const PERSOS_V3 := {Type.LENT: "zombie_big", Type.RAPIDE: "zombie_thin", Type.COUREUR: "zombie_runner"}
 ## Poses : immobile, puis cycle de marche. « gauche » : les images regardent à gauche.
 const POSES := {
 	Type.LENT: {"face": ["gros_face_2", ["gros_face_2", "gros_face_4", "gros_face_5", "gros_face_4"]],
@@ -372,13 +374,14 @@ func _suivre() -> void:
 
 
 ## Nom de l'image à afficher (face ou dos, marche) et retournement.
-## Coureur : [pose V3, miroir, true, transformation du rebond] (images V3, un seul profil qui regarde à gauche).
+## Images V3 : [pose, miroir, true, transformation du rebond] ; bras levés pendant la préparation du coup.
 func _pose() -> Array:
 	var regard := Iso.direction_ecran(_regard)
-	if type == Type.COUREUR:
-		var anim := Images.v3_animation(PERSO_COUREUR, _temps, velocity.length() > 5.0 and not _battu, false, CADENCE_MARCHE)
-		if anim["nom"] != "":
-			return [anim["nom"], regard.x > 0.0, true, Transform2D(anim["angle"], anim["decalage"])]
+	var anim := Images.v3_animation(PERSOS_V3[type], _temps, velocity.length() > 5.0 and not _battu, _preparation > 0.0,
+		CADENCE_MARCHE, regard.y < -0.1)
+	if anim["nom"] != "":
+		var miroir: bool = (regard.x < 0.0) if anim["dos"] else (regard.x > 0.0)
+		return [anim["nom"], miroir, true, Transform2D(anim["angle"], anim["decalage"])]
 	var poses: Dictionary = POSES[POSES_SECOURS_COUREUR if type == Type.COUREUR else type]
 	var liste: Array = poses["dos" if regard.y < -0.1 else "face"]
 	var nom: String = liste[0]
@@ -420,8 +423,8 @@ func _dessiner() -> void:
 		_dessiner_secours(s)
 	v.draw_set_transform(Vector2.ZERO)
 	_haut_icone = haut
-	if _preparation > 0.0:
-		_dessiner_bras_leves(-haut - 8.0)
+	if _preparation > 0.0 and not String(pose[0]).ends_with("_attack"):
+		_dessiner_bras_leves(-haut - 8.0)   # secours : pas de pose « bras levés » en image
 
 
 ## Survivant assis (survivor_happy un peu tassé), qui se balance de joie de temps en temps.
@@ -466,7 +469,7 @@ func _dessiner_guerison() -> void:
 		_yeux.draw_circle(c, 6.0 * force, Palette.UI_TEXTE)
 
 
-## Bras levés au-dessus de la tête (il va frapper) : ils montent vite, puis restent levés jusqu'au coup.
+## Bras levés dessinés en code (zombie sans image « attack ») : ils montent vite, puis restent levés jusqu'au coup.
 func _dessiner_bras_leves(hauteur: float) -> void:
 	var monte := minf((Reglages.ZOMBIE_PREPARATION - _preparation) / MONTEE_BRAS, 1.0)
 	var largeur := 26.0 if type == Type.LENT else 15.0

@@ -62,9 +62,13 @@ DALLE_HAUTEUR = round(DALLE_LARGEUR * ISO_RAPPORT)   # 226
 # Hauteur (pose debout) des personnages, en pixels de texture : le héros V2 fait ~240 px
 # (affiché à 0,5 dans le jeu), le zombie maigre ~200, le gros ~217.
 HAUTEURS = {"heros": 240, "heroine": 240, "survivor": 230, "zombie": 210}
+# Zombies V4 (planches) : pieds au milieu des deux pieds (voir pieds_milieu)
+PIEDS_MILIEU = {"zombie_big", "zombie_thin", "zombie_runner"}   # coureur : seulement ses poses V4 (les V3 gardent leur ancre)
 # Rescapés V4 : chacun sa taille (fillette plus petite, adultes plus grands que le garçon au chat)
 ACCROUPI = 0.75                          # hauteur de la pose « hiding » des rescapés / hauteur debout
-HAUTEURS_PERSO = {"survivor_girl": 200, "survivor_teen": 245, "survivor_grandpa": 250, "survivor_nurse": 260}
+HAUTEURS_PERSO = {"survivor_girl": 200, "survivor_teen": 245, "survivor_grandpa": 250, "survivor_nurse": 260,
+                  # Zombies V4 : gros un peu plus haut que le coureur, maigre entre les deux (comme en V2)
+                  "zombie_big": 215, "zombie_thin": 205}
 
 # Préfixe -> catégorie
 CATEGORIES = {
@@ -382,6 +386,16 @@ def ancres(image):
             "pieds": [xp, int(yb)]}
 
 
+def pieds_milieu(image):
+    """Pieds d'un personnage qui marche : milieu entre ses deux pieds (pixels les plus à gauche et à droite du
+    bas de la silhouette), et non le pied le plus bas, qui change d'une pose de marche à l'autre (l'image sauterait)."""
+    a = np.asarray(image.getchannel("A")) > 128
+    ys, xs = np.nonzero(a)
+    yb = ys.max()
+    bas = xs[ys >= yb - a.shape[0] * 0.12]
+    return [int((bas.min() + bas.max()) / 2), int(yb)]
+
+
 def losange(image):
     """Texture carrée vue de dessus -> dalle isométrique DALLE_LARGEUR x DALLE_HAUTEUR."""
     w, h = image.size
@@ -505,7 +519,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         perso = res["personnage"]
         e = ACCROUPI * HAUTEURS_PERSO.get(perso, HAUTEURS["survivor"]) / image.height
     elif cat == "perso":
-        e = echelles_perso[res["personnage"]]
+        dos = res["personnage"] + "|back"
+        e = echelles_perso[dos if "_back_" in res["nom"] and dos in echelles_perso else res["personnage"]]
     elif res["nom"] in COTE_NOM:
         e = echelle_vers(image, COTE_NOM[res["nom"]])
     elif cat in COTE:
@@ -540,6 +555,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         a = ancres(image)
         if a:
             res["ancre_pieds"] = a["pieds"]
+            if cat == "perso" and res["personnage"] in PIEDS_MILIEU:
+                res["ancre_pieds"] = pieds_milieu(image)
             if cat in ("prop", "wall"):
                 res["coins_sol"] = {k: a[k] for k in ("gauche", "avant", "droit")}
     return image
@@ -619,12 +636,32 @@ def main():
     # Échelle commune par personnage : hauteur médiane de ses poses = HAUTEURS[préfixe].
     # Un personnage déjà connu garde son échelle (ses nouvelles poses restent à la même taille).
     echelles = {} if args.tout else dict(manifest.get("echelles_perso", {}))
+    # Planches V4 : les poses de dos sont souvent dessinées à une autre taille que celles de profil, d'où une
+    # échelle à part pour elles (clé « <perso>|back »). Le coup (bras levés) ne compte pas dans la médiane.
     hauteurs = {}
     for res, image in resultats:
         if image is not None and res["categorie"] == "perso" and res["personnage"] not in echelles:
-            hauteurs.setdefault(res["personnage"], []).append((res["prefixe"], image.height))
-    for perso, liste in hauteurs.items():
-        echelles[perso] = HAUTEURS_PERSO.get(perso, HAUTEURS[liste[0][0]]) / float(np.median([h for _, h in liste]))
+            groupe = res["personnage"] + ("|back" if "_back_" in res["nom"] else "")
+            if not res["nom"].endswith("_attack"):
+                hauteurs.setdefault(groupe, []).append((res["prefixe"], image.height))
+    for groupe, liste in hauteurs.items():
+        perso = groupe.split("|")[0]
+        echelles[groupe] = HAUTEURS_PERSO.get(perso, HAUTEURS[liste[0][0]]) / float(np.median([h for _, h in liste]))
+    hauteurs = {g.split("|")[0]: True for g in hauteurs}
+    # Personnage connu dont les nouvelles poses viennent d'ailleurs (planche V4 : autre résolution que ses
+    # images V3) : échelle de ce lot telle que leur hauteur médiane = celle de ses poses déjà traitées.
+    echelles_lot = dict(echelles)
+    nouvelles = {}
+    for res, image in resultats:
+        if image is not None and res["categorie"] == "perso" and res["personnage"] not in hauteurs:
+            nouvelles.setdefault(res["personnage"], []).append((res, image))
+    for perso, liste in nouvelles.items():
+        lot = {n: True for n in (r["nom"] for r, _ in liste)}
+        anciennes = [v for k, v in connues.items() if v.get("personnage") == perso and k not in lot and "taille" in v]
+        dossiers = {os.path.dirname(v["source"]) for v in anciennes}
+        if anciennes and os.path.dirname(liste[0][0]["source"]) not in dossiers:
+            debout = [im.height for r, im in liste if not r["nom"].endswith(("_attack", "_hiding"))] or [im.height for _, im in liste]
+            echelles_lot[perso] = float(np.median([v["taille"][1] for v in anciennes])) / float(np.median(debout))
 
     # Hauteurs de référence (HAUTEUR_RELATIVE) : images de ce lot d'abord, sinon le manifest
     hauteurs = {k: v["taille"][1] for k, v in connues.items() if "taille" in v}
@@ -634,7 +671,7 @@ def main():
     traitees, anomalies = [], []
     for res, image in resultats:
         if image is not None:
-            image = mettre_a_taille(res, image, echelles, hauteurs)
+            image = mettre_a_taille(res, image, echelles_lot, hauteurs)
             hauteurs[res["nom"]] = image.height
             fichier = os.path.join(args.sortie, res["nom"] + ".png")
             image.save(fichier, optimize=True)

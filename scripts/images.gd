@@ -111,10 +111,10 @@ func _dessiner(ci: CanvasItem, nom: String, cible: Rect2, miroir: bool, couleur:
 
 # --- Images V3 (une image par fichier, tools/process_assets.py) ---
 ## Poses d'un personnage V3 : images/v3/<perso>_<pose>.png, ancre aux pieds dans images/v3/manifest.json.
-## Les images regardent vers la droite (héros) ou vers la gauche (zombie coureur, voir V3_GAUCHE).
+## Les images regardent vers la droite (héros) ou vers la gauche (zombies, voir V3_GAUCHE).
 
 const DOSSIER_V3 := "res://images/v3/"
-const V3_GAUCHE := ["zombie_runner"]
+const V3_GAUCHE := ["zombie_runner", "zombie_big", "zombie_thin"]
 ## Noms de pose acceptés pour l'immobile (la source s'appelle « iddle »)
 const POSES_IMMOBILE := ["idle", "iddle"]
 
@@ -337,7 +337,7 @@ func v3_lampe(nom: String, gauche := false) -> Vector2:
 	return _v3_lampes[cle]
 
 
-## Yeux jaunes (zombie) : rectangle des pixels jaunes vifs dans le tiers haut de l'image.
+## Yeux jaunes (zombie) : rectangle des pixels jaunes vifs dans la moitié haute de l'image.
 func v3_yeux(nom: String) -> Rect2:
 	if not _v3_yeux.has(nom):
 		var zone := Rect2()
@@ -347,7 +347,7 @@ func v3_yeux(nom: String) -> Rect2:
 				image.decompress()
 			var t := v3_taille(nom)
 			var premier := true
-			for y in int(t.y * 0.35):
+			for y in int(t.y * 0.5):   # moitié haute : la tête est plus bas sur les poses bras levés
 				for x in int(t.x):
 					var c := image.get_pixel(x, y)
 					if c.a > 0.8 and c.r > 0.8 and c.g > 0.75 and c.b < 0.45:

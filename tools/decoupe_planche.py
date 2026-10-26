@@ -20,12 +20,17 @@ POSES = ["hiding", "follow", "happy"]   # défaut : les 3 poses d'un rescapé
 MARGE = 40
 
 
-def decouper(chemin, nom=None, poses=POSES):
+def decouper(chemin, nom=None, poses=POSES, miroir=False):
     img = Image.open(chemin).convert("RGB")
     p = np.asarray(img).astype(int)
     r, g, b = p[..., 0], p[..., 1], p[..., 2]
     sujet = ~((r - g > 100) & (b - g > 100))            # tout ce qui n'est pas magenta
     sujet = ndimage.binary_opening(sujet, iterations=2)  # bruit du JPEG
+    etiquettes, n = ndimage.label(sujet, structure=np.ones((3, 3)))
+    # Texte écrit par Gemini sous les poses (lettres : taches basses et plates) : effacé
+    for i, tranche in enumerate(ndimage.find_objects(etiquettes)):
+        if tranche[0].stop - tranche[0].start < 0.04 * p.shape[0]:
+            sujet[etiquettes == i + 1] = False
     etiquettes, n = ndimage.label(sujet, structure=np.ones((3, 3)))
     surfaces = ndimage.sum(sujet, etiquettes, index=np.arange(1, n + 1))
     grandes = list(np.argsort(-surfaces)[:len(poses)] + 1)
@@ -42,6 +47,8 @@ def decouper(chemin, nom=None, poses=POSES):
     sortie = os.path.dirname(os.path.dirname(chemin))
     fond = np.median(p[:20, :20].reshape(-1, 3), axis=0).astype(np.uint8)
     for i, pose in enumerate(poses):
+        if pose == "-":
+            continue   # pose de la planche qui ne sert pas
         masque = (pose_de[etiquettes] == i) & (etiquettes > 0)
         masque = ndimage.binary_dilation(masque, iterations=6)   # garde le liseré mêlé au fond
         ys, xs = np.nonzero(masque)
@@ -51,7 +58,8 @@ def decouper(chemin, nom=None, poses=POSES):
         toile[:] = fond
         toile[MARGE:-MARGE, MARGE:-MARGE] = morceau
         fichier = os.path.join(sortie, "%s_%s.png" % (nom, pose))
-        Image.fromarray(toile).save(fichier)
+        image = Image.fromarray(toile)
+        (image.transpose(Image.FLIP_LEFT_RIGHT) if miroir else image).save(fichier)
         print(fichier, toile.shape[1::-1])
 
 
@@ -59,7 +67,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("planches", nargs="+")
     ap.add_argument("--nom", help="début du nom des images (défaut : nom de la planche)")
-    ap.add_argument("--poses", default=",".join(POSES), help="poses de gauche à droite, séparées par des virgules")
+    ap.add_argument("--miroir", action="store_true", help="retourne les poses (pour qu'elles regardent à gauche)")
+    ap.add_argument("--poses", default=",".join(POSES), help="poses de gauche à droite, séparées par des virgules (« - » : pose ignorée)")
     args = ap.parse_args()
     for c in args.planches:
-        decouper(c, args.nom, args.poses.split(","))
+        decouper(c, args.nom, args.poses.split(","), args.miroir)
