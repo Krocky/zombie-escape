@@ -16,7 +16,9 @@ var zombie
 var avant := {}
 var echecs := 0
 
-const SAUVEGARDE := root.get_node("Partie").fichier()
+var SAUVEGARDE: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 const REGLAGES := "user://reglages.json"
 
 
