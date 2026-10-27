@@ -34,7 +34,9 @@ signal appuye
 
 const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette hauteur)
 ## Icônes en image V3 (images/v3), à TAILLE_IMAGE du diamètre du bouton rond. Sans image : dessin en code.
-const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide", "reparer": "icon_repair"}
+const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide", "reparer": "icon_repair", "soigner": "icon_heal",
+	"guerir": "icon_cure", "sortir": "icon_exit", "pause": "icon_pause", "jouer": "icon_play", "reglages": "icon_settings",
+	"heros": "icon_hero"}
 const TAILLE_IMAGE := 0.7
 const DUREE_REBOND := 0.35
 const ECART_ICONE := 18.0   # bouton en pilule : entre l'icône et le texte
@@ -147,7 +149,16 @@ func _draw() -> void:
 			var r_icone := 24.0
 			var largeur := ThemeDB.fallback_font.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_texte).x
 			var gauche := -(2.0 * r_icone + ECART_ICONE + largeur) / 2.0
-			_icone(milieu + Vector2(gauche + r_icone, 0), r_icone, couleur_texte)
+			var image: String = IMAGES_ICONES.get(icone, "")
+			if image != "" and Images.v3_existe(image):
+				# Image dans un carré un peu plus grand que l'icône dessinée (elle a du vide autour)
+				var texture := Images.v3_texture(image) if actif else Images.v3_gris(image)
+				var t := texture.get_size()
+				var e := r_icone * 2.5 / maxf(t.x, t.y)
+				draw_texture_rect(texture, Rect2(milieu + Vector2(gauche + r_icone, 0) - t * e / 2.0, t * e), false,
+					Color.WHITE if actif else Color(1, 1, 1, 0.45))
+			else:
+				_icone(milieu + Vector2(gauche + r_icone, 0), r_icone, couleur_texte)
 			_texte(milieu + Vector2(gauche + 2.0 * r_icone + ECART_ICONE + largeur / 2.0, taille_texte * 0.35), taille_texte, couleur_texte)
 		else:
 			_texte(milieu + Vector2(0, taille_texte * 0.35), taille_texte, couleur_texte)

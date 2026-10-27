@@ -1679,6 +1679,103 @@
    ],
    "traits_fins_px": 1809
   },
+  "icon_cure": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 46874,
+   "echelle": 0.1574,
+   "empreinte": "6dd0d31afaa15f7fc1a2e29bc0637a8da1c7e760",
+   "fichier": "images/v3/icon_cure.png",
+   "fond": [
+    252,
+    1,
+    252
+   ],
+   "nom": "icon_cure",
+   "ombre_violette_px": 32395,
+   "poussieres_px": 11,
+   "source": "docs/raw/V5/icon_cure.jpg",
+   "taille": [
+    192,
+    187
+   ],
+   "traits_fins_px": 2566
+  },
+  "icon_exit": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 30480,
+   "echelle": 0.1546,
+   "empreinte": "2f1c136a48c9a1199400f23b0f36919f886f17fb",
+   "fichier": "images/v3/icon_exit.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "nom": "icon_exit",
+   "ombre_violette_px": 19141,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/icon_exit.jpg",
+   "taille": [
+    192,
+    164
+   ],
+   "traits_fins_px": 2
+  },
+  "icon_heal": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 34861,
+   "echelle": 0.1307,
+   "empreinte": "3d9d3a056de6d883f2bfa8f0ffe8f61169648c66",
+   "fichier": "images/v3/icon_heal.png",
+   "fond": [
+    253,
+    1,
+    253
+   ],
+   "nom": "icon_heal",
+   "ombre_violette_px": 18650,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/icon_heal.jpg",
+   "taille": [
+    192,
+    168
+   ],
+   "traits_fins_px": 3145
+  },
+  "icon_hero": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "touche le bord de l'image : sujet peut-être coupé"
+   ],
+   "categorie": "icon",
+   "defrange_px": 31096,
+   "echelle": 0.1332,
+   "empreinte": "5ffceee83a26a7bfd324b0f3bf0f5a76b96ca42f",
+   "fichier": "images/v3/icon_hero.png",
+   "fond": [
+    252,
+    1,
+    252
+   ],
+   "nom": "icon_hero",
+   "ombre_violette_px": 14962,
+   "poussieres_px": 2,
+   "source": "docs/raw/V5/icon_hero.jpg",
+   "taille": [
+    167,
+    192
+   ],
+   "traits_fins_px": 653
+  },
   "icon_hide": {
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
@@ -1727,6 +1824,54 @@
    ],
    "traits_fins_px": 1670
   },
+  "icon_pause": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 37648,
+   "echelle": 0.1589,
+   "empreinte": "2d0eb4fd6c73f2ff7455f595c3d3e12320a8d345",
+   "fichier": "images/v3/icon_pause.png",
+   "fond": [
+    252,
+    1,
+    253
+   ],
+   "nom": "icon_pause",
+   "ombre_violette_px": 21987,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/icon_pause.jpg",
+   "taille": [
+    173,
+    192
+   ],
+   "traits_fins_px": 183
+  },
+  "icon_play": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 35551,
+   "echelle": 0.1961,
+   "empreinte": "a4e750ff530311a268bea800b88be0431054f738",
+   "fichier": "images/v3/icon_play.png",
+   "fond": [
+    252,
+    1,
+    252
+   ],
+   "nom": "icon_play",
+   "ombre_violette_px": 19164,
+   "poussieres_px": 33,
+   "source": "docs/raw/V5/icon_play.jpg",
+   "taille": [
+    191,
+    192
+   ],
+   "traits_fins_px": 13834
+  },
   "icon_repair": {
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
@@ -1750,6 +1895,30 @@
     178
    ],
    "traits_fins_px": 0
+  },
+  "icon_settings": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 55300,
+   "echelle": 0.141,
+   "empreinte": "04a9c407cfc45eb15760fa5c0efc860abfdc141d",
+   "fichier": "images/v3/icon_settings.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "nom": "icon_settings",
+   "ombre_violette_px": 27239,
+   "poussieres_px": 1,
+   "source": "docs/raw/V5/icon_settings.jpg",
+   "taille": [
+    192,
+    179
+   ],
+   "traits_fins_px": 586
   },
   "icon_star": {
    "anomalies": [
@@ -1927,6 +2096,35 @@
    ],
    "teinte_violette_px": 6791,
    "traits_fins_px": 59
+  },
+  "map_defense": {
+   "ancre_pieds": [
+    200,
+    337
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "map",
+   "defrange_px": 217647,
+   "echelle": 0.264,
+   "empreinte": "d1d9d56163ae015e0d4fc97d986f64c8576801bc",
+   "fichier": "images/v3/map_defense.png",
+   "fond": [
+    253,
+    1,
+    251
+   ],
+   "nom": "map_defense",
+   "ombre_violette_px": 200590,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/map_defense.jpg",
+   "taille": [
+    400,
+    351
+   ],
+   "teinte_violette_px": 60202,
+   "traits_fins_px": 1
   },
   "map_house": {
    "ancre_pieds": [

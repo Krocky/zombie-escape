@@ -18,7 +18,7 @@ const SEUIL_GLISSE := 20.0      # au-delà (pixels parcourus), le doigt fait dé
 const VITESSE_POINTILLES := 30.0   # pixels par seconde, de la base vers le lieu
 ## Vignette de chaque lieu (et de la base ; la défense de la base reprend celle de la base, teintée de rouge)
 const VIGNETTES := {"base": "map_base", "supermarche": "map_market", "maison": "map_house", "pharmacie": "map_pharmacy",
-	"defense": "map_base"}
+	"defense": "map_defense"}
 const TEINTE_DEFENSE := Color(1.0, 0.62, 0.58)
 ## Emplacements de la base et des lieux, en fraction de la carte ; « vue » = point de la carte au centre de l'écran
 ## à l'arrivée. En paysage puis en portrait. À l'arrivée, tous sont à l'écran et hors de la fiche.
@@ -304,6 +304,8 @@ func _etiquette(centre: Vector2, texte: String, couleur: Color, taille: int) -> 
 ## Vignette V3 d'un lieu (ou de la base), centrée sur c ; faux si l'image manque.
 func _vignette(id: String, c: Vector2, e: float, teinte: Color) -> bool:
 	var nom: String = VIGNETTES.get(id, "")
+	if id == Partie.DEFENSE and not Images.v3_existe(nom):
+		nom = VIGNETTES["base"]   # sans map_defense : la base teintée de rouge (TEINTE_DEFENSE)
 	if not Images.v3_existe(nom):
 		return false
 	var t := Images.v3_taille(nom)
@@ -333,7 +335,7 @@ func _marque_base(c: Vector2, e: float) -> void:
 func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 	var dispo := Partie.lieu_disponible(id)
 	var teinte := Color.WHITE if dispo else Color(0.5, 0.5, 0.6)
-	if id == Partie.DEFENSE:
+	if id == Partie.DEFENSE and not Images.v3_existe(VIGNETTES[id]):
 		teinte *= TEINTE_DEFENSE
 	if id == _choisi:
 		var pulse := 0.5 + 0.5 * sin(_temps * 5.0)
