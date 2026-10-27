@@ -93,7 +93,7 @@ var DEFENSE_RESCAPES := 1             # rescapés à la base qu'il faut avoir po
 var DEFENSE_VAGUES := [4, 6, 8]       # zombies de chaque vague, dans l'ordre (gros, maigre ou coureur au hasard)
 # Entrées des zombies au bord du parking (monde ; le parking fait 2400 x 1600, les tentes sont à droite ;
 # on ne peut rien construire dessus)
-var DEFENSE_ENTREES := [Vector2(700, 110), Vector2(110, 380), Vector2(110, 1250), Vector2(1250, 1520)]
+var DEFENSE_ENTREES := [Vector2(700, 110), Vector2(110, 380), Vector2(110, 1000), Vector2(1250, 1520)]
 var DEFENSE_DELAI_ZOMBIE := 1.5       # secondes entre deux zombies d'une même vague
 var DEFENSE_PAUSE_VAGUES := 8.0       # secondes de pause entre deux vagues (« Vague 2 / 3 » au centre)
 var DEFENSE_DEBUT := 3.0              # secondes avant le premier zombie
