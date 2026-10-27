@@ -106,9 +106,9 @@ func _physics_process(_d):
 				_verifier("zombie guéri (hors du groupe zombies)", zombie.gueri() and not zombie.is_in_group("zombies"))
 				_verifier("fiole consommée (%s)" % str(niveau._ramasses), not "fiole" in niveau._ramasses)
 				_verifier("HUD : objectif rempli '%s'" % _objectif(), "(1/1)" in _objectif())
-				_verifier("plus de zombie : Guérir inactif", not _bouton().actif)
 				place_gueri = zombie.global_position
 			if g == 46 + 40:
+				_verifier("plus de zombie : Guérir inactif", not _bouton().actif)   # quelques pas après (mis à jour par le niveau)
 				_snap("nuage")
 			if g == 46 + 120:
 				_verifier("guéri : il ne bouge plus", place_gueri.distance_to(zombie.global_position) < 1.0)
