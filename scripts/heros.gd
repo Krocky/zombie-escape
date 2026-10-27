@@ -40,6 +40,8 @@ var _regard := Vector2.RIGHT   # direction du regard et de la lampe (monde, 8 di
 var _vue := Node2D.new()       # dans le calque Vue du niveau
 var _fondu := 1.0              # 1 = visible, 0 = dans la cachette (animation)
 var _secousse := 0.0
+var _vitesse_fruit := 1.0      # vitesse multipliée par le fruit du potager...
+var _temps_fruit := 0.0        # ... pendant ce temps restant (s)
 ## Décalage de la caméra à l'écran (la base le règle quand on fait glisser la vue pour poser une construction)
 var decalage_camera := Vector2.ZERO
 
@@ -112,6 +114,17 @@ func couleur_lampe(couleur: Color) -> void:
 func allumer_lampe(allumee: bool) -> void:
 	_lampe.enabled = allumee
 	_halo.enabled = allumee
+
+
+## Fruit du potager mangé : il court `facteur` fois plus vite pendant `duree` secondes.
+func accelerer(facteur: float, duree: float) -> void:
+	_vitesse_fruit = facteur
+	_temps_fruit = duree
+
+
+## Temps restant du fruit (0 = vitesse normale).
+func temps_fruit() -> float:
+	return _temps_fruit
 
 
 ## Direction du regard dans le monde (le rescapé se place derrière).
@@ -211,7 +224,9 @@ func _physics_process(delta: float) -> void:
 	if direction != Vector2.ZERO and _temps_pas <= 0.0:
 		_temps_pas = 0.4
 		bruit.emit(global_position, Reglages.BRUIT_PAS)
-	velocity = direction * Reglages.HEROS_VITESSE + _recul
+	_temps_fruit = maxf(_temps_fruit - delta, 0.0)
+	var vitesse := Reglages.HEROS_VITESSE * (_vitesse_fruit if _temps_fruit > 0.0 else 1.0)
+	velocity = direction * vitesse + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
 	if direction != Vector2.ZERO:

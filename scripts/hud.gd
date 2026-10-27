@@ -23,6 +23,8 @@ var _rescape := Control.new()     # icône du rescapé, sous les cœurs
 var _rescape_suit := false
 var _clef := Control.new()        # clefs ramassées (teintes), sous l'icône du rescapé
 var _clefs := []
+var _fruit := Control.new()       # fruit du potager mangé : pomme + temps restant, sous la clef
+var _temps_fruit := 0.0
 var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
 var _soin: Control = BOUTON.instantiate()    # bouton Soigner, à gauche de Frapper
 var _guerir: Control = BOUTON.instantiate()  # bouton Guérir (après le remède), à gauche de Cacher
@@ -68,6 +70,12 @@ func _ready() -> void:
 	_clef.visible = false
 	_clef.draw.connect(_dessiner_clefs)
 	add_child(_clef)
+	_fruit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fruit.position = Vector2(24, 264)
+	_fruit.size = Vector2(132, 64)
+	_fruit.visible = false
+	_fruit.draw.connect(_dessiner_fruit)
+	add_child(_fruit)
 	_pause.texte = "Pause"
 	_pause.icone = "pause"
 	_pause.couleur = Palette.UI_BOUTON
@@ -194,6 +202,33 @@ func afficher_clefs(teintes: Array) -> void:
 	_clef.queue_redraw()
 
 
+## Fruit du potager : temps restant de la course rapide (0 : caché). Le cadre saute quand il apparaît.
+func afficher_fruit(restant: float) -> void:
+	if restant > 0.0 and not _fruit.visible:
+		_fruit.pivot_offset = _fruit.size / 2.0
+		_fruit.scale = Vector2(1.3, 1.3)
+		create_tween().tween_property(_fruit, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	_fruit.visible = restant > 0.0
+	if ceilf(restant) != ceilf(_temps_fruit):
+		_fruit.queue_redraw()
+	_temps_fruit = restant
+
+
+func _dessiner_fruit() -> void:
+	var cadre := StyleBoxFlat.new()
+	cadre.bg_color = Palette.UI_CADRE
+	cadre.border_color = Palette.POMME
+	cadre.set_border_width_all(3)
+	cadre.set_corner_radius_all(16)
+	_fruit.draw_style_box(cadre, Rect2(Vector2.ZERO, _fruit.size))
+	Dessin.pomme(_fruit, Vector2(34, _fruit.size.y / 2.0 + 5.0), 15.0)
+	var police := ThemeDB.fallback_font
+	var texte := "%d s" % ceili(_temps_fruit)
+	var p := Vector2(62, _fruit.size.y / 2.0 + police.get_ascent(30) / 2.0 - 2.0)
+	_fruit.draw_string_outline(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, 6, Palette.CONTOUR)
+	_fruit.draw_string(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, -1, 30, Palette.LAMPE)
+
+
 func _dessiner_clefs() -> void:
 	var cadre := StyleBoxFlat.new()
 	cadre.bg_color = Palette.UI_CADRE
@@ -242,7 +277,7 @@ func _placer_objectif() -> void:
 ## Base (pas de zombie) : seul le joystick reste ; ni boutons d'action ni pause, ni cœurs, objets, objectif.
 func mode_base() -> void:
 	for noeud in [$BoutonAttaquer, $BoutonCacher, _pause, _soin, _guerir, $JaugePV, $CompteurObjets, $Objectif,
-			_icones, _rescape, _clef]:
+			_icones, _rescape, _clef, _fruit]:
 		noeud.visible = false
 
 

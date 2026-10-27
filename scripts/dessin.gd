@@ -28,6 +28,24 @@ static func cercle(ci: CanvasItem, centre: Vector2, rayon: float, couleur: Color
 	ellipse(ci, centre, Vector2(rayon, rayon), couleur, contour)
 
 
+## Pomme rouge brillante (fruit du potager, HUD) : centre et rayon du fruit, queue et feuille au-dessus.
+static func pomme(ci: CanvasItem, centre: Vector2, rayon: float) -> void:
+	var r := rayon
+	ci.draw_line(centre + Vector2(0, -r * 0.7), centre + Vector2(r * 0.15, -r * 1.3), Palette.CONTOUR, r * 0.32, true)
+	ci.draw_line(centre + Vector2(0, -r * 0.7), centre + Vector2(r * 0.15, -r * 1.3), Palette.POMME_QUEUE, r * 0.16, true)
+	polygone(ci, PackedVector2Array([centre + Vector2(r * 0.15, -r * 1.05), centre + Vector2(r * 0.6, -r * 1.45),
+		centre + Vector2(r * 1.0, -r * 1.2), centre + Vector2(r * 0.55, -r * 0.9)]), Palette.POMME_FEUILLE)
+	# Deux lobes en haut, un peu plus large que haute
+	var points := PackedVector2Array()
+	for i in 32:
+		var a := TAU * i / 32.0
+		var creux := 1.0 - 0.14 * pow(maxf(-sin(a), 0.0), 8.0)   # creux de la queue, en haut
+		points.append(centre + Vector2(cos(a) * r * 1.05, sin(a) * r * 0.95) * creux)
+	polygone(ci, points, Palette.POMME)
+	ci.draw_circle(centre + Vector2(r * 0.25, r * 0.3), r * 0.55, Color(Palette.POMME_OMBRE, 0.55))
+	ci.draw_circle(centre + Vector2(-r * 0.4, -r * 0.3), r * 0.22, Palette.POMME_REFLET)
+
+
 # --- Dessin de secours en isométrique (quand une image V2 manque) ---
 
 static var _ombre: GradientTexture2D

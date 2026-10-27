@@ -10,6 +10,8 @@ extends "res://scripts/niveau.gd"
 ## sinon ; toucher le sol le déplace, glisser fait défiler la vue ; Poser paie et construit, Annuler ne coûte rien).
 ## Chaque rescapé d'une tente est un personnage (RescapeBase) qui se promène sur le parking et remercie le héros ;
 ## il apparaît quand sa tente est posée.
+## Potager (jardin construit) : un fruit (Fruit) y pousse toutes les Reglages.FRUIT_DELAI secondes, en vrai temps ;
+## le héros le cueille en arrivant au bord du potager, il sera mangé à l'arrivée dans le prochain lieu.
 ## Interface (calque Interface) : titre, inventaire, jauge du remède, tiroir des constructions, boutons Héros et
 ## Réglages, et Start quand le héros est près de la voiture de survie : il ouvre la carte. Le héros arrive toujours
 ## à côté de la voiture. Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
@@ -17,6 +19,7 @@ extends "res://scripts/niveau.gd"
 const CARTE := preload("res://scenes/carte_construction.tscn")
 const BATIMENT := preload("res://scenes/batiment.tscn")
 const RESCAPE := preload("res://scenes/rescape_base.tscn")
+const FRUIT := preload("res://scenes/fruit.tscn")
 
 const TAILLE_ICONE := 54.0
 ## Places fixes du camp (monde) : centre de l'emprise et taille (l'emprise prend ensuite les proportions de l'image).
@@ -72,6 +75,11 @@ const RAYON_HEROS := 18.0
 const CASE_CHEMIN := 25.0
 ## Place gardée libre autour de l'arrivée du héros (à côté de la voiture), monde
 const ARRIVEE := Vector2(140, 140)
+## Fruit du potager : point de base_garden où la pomme est posée (terre entre les plants, pixels de l'image) ;
+## distance au bord du potager pour lire quand pousse le prochain (monde) ; texte « Fruit cueilli » pendant (s)
+const POMME_IMAGE := Vector2(250, 232)
+const PRES_POTAGER := 160.0
+const DUREE_MESSAGE_FRUIT := 3.0
 ## Raisons d'un refus (fantôme rouge)
 const RAISONS := {"parking": "Hors du parking", "obstacle": "Il y a déjà quelque chose ici", "heros": "Trop près du héros",
 	"chemin": "Le héros serait enfermé"}
@@ -87,6 +95,8 @@ var _zone := Node2D.new()               # emprise du fantôme au sol, verte ou r
 var _doigt := -1                        # doigt posé sur le sol pendant le placement
 var _glisse := 0.0                      # chemin parcouru par ce doigt (pixels)
 var _rescapes := {}                     # id de la tente -> RescapeBase
+var _fruit: Node2D = FRUIT.instantiate()   # fruit du potager (caché sans jardin)
+var _message_fruit := 0.0               # temps restant du texte « Fruit cueilli »
 var _glissement: Tween                  # ouverture ou fermeture du tiroir en cours
 var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 	set(valeur):
@@ -113,6 +123,7 @@ func _ready() -> void:
 	var camp := _camp()
 	for id in camp:
 		_ajouter_batiment(id, camp[id])
+	$Monde.add_child(_fruit)
 	super()
 	$Nuit.color = Palette.BASE_LUMIERE * Color(Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, 1.0)
 	for calque in [$BrumeSol, $Brouillard, $Vignette]:
@@ -183,6 +194,43 @@ func _physics_process(delta: float) -> void:
 	for id in _rescapes:
 		_rescapes[id].actif = _batiments[id].pose()
 		_rescapes[id].connaitre_heros(_heros.global_position)
+	_actualiser_fruit(delta)
+
+
+## Fruit du potager : la pomme est sur le potager posé quand le fruit est prêt ; le héros la cueille en arrivant
+## au bord (Reglages.OBJET_PORTEE, comme un objet), s'il n'a pas déjà un fruit en réserve. Près du potager, un
+## petit texte dit dans combien de temps pousse le prochain.
+func _actualiser_fruit(delta: float) -> void:
+	_message_fruit = maxf(_message_fruit - delta, 0.0)
+	var potager: StaticBody2D = _batiments.get("jardin")
+	var texte := ""
+	_fruit.pret = false
+	if potager and potager.pose() and _placement == "":
+		var e: Rect2 = potager.emprise()
+		_fruit.position = e.end   # coin avant : la pomme passe devant le potager
+		_fruit.sommet = potager.point_ecran(POMME_IMAGE) if Images.existe(potager.image) else Iso.ecran(e.get_center()) + Vector2(0, -60)
+		var pieds: Vector2 = _heros.global_position
+		var distance := pieds.distance_to(pieds.clamp(e.position, e.end))
+		if Partie.fruit_pret():
+			_fruit.pret = true
+			if distance <= Reglages.OBJET_PORTEE and Partie.cueillir_fruit():
+				_fruit.cueillir()
+				_message_fruit = DUREE_MESSAGE_FRUIT
+			elif distance <= PRES_POTAGER and Partie.fruit:
+				texte = "Tu as déjà un fruit pour le prochain lieu"
+		elif distance <= PRES_POTAGER:
+			texte = "Prochain fruit dans " + texte_duree(Partie.secondes_avant_fruit())
+		if _message_fruit > 0.0:
+			texte = "Fruit cueilli : plus rapide au prochain niveau !"
+	_fruit.texte = texte
+
+
+## « 2 h 14 » (heures et minutes, minutes arrondies au-dessus), « 5 min » sous une heure.
+static func texte_duree(secondes: float) -> String:
+	var minutes := ceili(secondes / 60.0)
+	if minutes < 60:
+		return "%d min" % maxi(minutes, 1)
+	return "%d h %02d" % [minutes / 60, minutes % 60]
 
 
 ## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
@@ -196,6 +244,11 @@ func rescapes_aux_tentes(oui: bool) -> void:
 
 ## Pas de zombie à prévenir ni d'ondes de bruit dans la base.
 func _sur_bruit(_origine: Vector2, _rayon: float) -> void:
+	pass
+
+
+## Le fruit cueilli se garde pour le prochain lieu (il n'est pas mangé dans la base).
+func _manger_fruit() -> void:
 	pass
 
 

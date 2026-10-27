@@ -42,6 +42,13 @@ func pieds() -> Vector2:
 	return Iso.monde(Iso.point_image(image, emprise(), Images.v3_pieds(image), _miroir()))
 
 
+## Un point de l'image (pixels de l'image) à l'écran, bâtiment posé ; sans image, le milieu de l'emprise.
+func point_ecran(pixel: Vector2) -> Vector2:
+	if _bandes.is_empty():
+		return Iso.ecran(emprise().get_center())
+	return Iso.point_image(image, emprise(), pixel, _miroir())
+
+
 ## Devant l'entrée de la tente (monde) : place de son rescapé.
 func devant() -> Vector2:
 	return position + DEVANT_TENTE

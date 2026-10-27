@@ -87,13 +87,13 @@ func _physics_process(_d):
 				# Reprise : version 8, rien de perdu, constructions posées à leur place d'origine (lot 4 b)
 				var lu = _lire()
 				var attendu = JSON.parse_string(JSON.stringify(v7))
-				var pareil = lu["version"] == 8.0
+				var pareil = lu["version"] == 9.0
 				for cle in attendu:
 					if cle != "version": pareil = pareil and _pareil(lu[cle], attendu[cle])
 				var poses = []
 				for nom in ["barricade", "atelier", "lampe", "jardin"]:
 					poses.append({"nom": nom, "x": partie.PLACES_DEPART[nom].x, "y": partie.PLACES_DEPART[nom].y})
-				_verifier("sauvegarde reprise en version 8, rien de perdu, poses d'origine %s" % [lu.get("poses")],
+				_verifier("sauvegarde reprise en version 9, rien de perdu, poses d'origine %s" % [lu.get("poses")],
 					pareil and _pareil(lu.get("poses"), JSON.parse_string(JSON.stringify(poses))))
 				_verifier("aucun zombie", get_nodes_in_group("zombies").is_empty())
 				var hud = b.get_node("HUD")

@@ -76,6 +76,11 @@ var INFIRMERIE_BANDAGES := 1          # bandages de soin donnés au début de ch
 var JARDIN_COUT := {"eau": 2, "conserve": 1}
 var JARDIN_CONSERVES := 1             # conserves offertes à chaque retour de mission (gagnée ou perdue)
 
+# --- Fruit du potager (le jardin construit fait pousser un fruit, cueilli à la base, mangé au lieu suivant) ---
+var FRUIT_DELAI := 10800.0            # secondes entre deux fruits (3 h, en vrai temps, même jeu fermé)
+var FRUIT_VITESSE := 1.5              # le héros court 1,5 fois plus vite...
+var FRUIT_DUREE := 10.0               # ... pendant 10 secondes, à l'arrivée dans le lieu suivant
+
 # --- Soin pendant la mission (bouton Soigner : un bandage ramassé ou de l'infirmerie -> des cœurs) ---
 var SOIN_COEURS := 1                  # cœurs rendus par un bandage
 var SOIN_PAR_MISSION := 1             # soins au plus par mission

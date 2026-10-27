@@ -143,6 +143,7 @@ func _ready() -> void:
 	$HUD.afficher_objets(0, _total_objets)
 	_afficher_objectif()
 	_sur_rescape(false)
+	_manger_fruit()
 	Qualite.surveiller(true)
 
 
@@ -195,6 +196,7 @@ func _physics_process(delta: float) -> void:
 				_cachette_proche = cachette
 	$HUD.etat_cachette(_cachette_proche != null, _cachette_occupee != null)
 	$HUD.afficher_recharge(_heros.recharge())
+	$HUD.afficher_fruit(_heros.temps_fruit())
 	$HUD.etat_soin(_peut_soigner())
 	$HUD.etat_guerison(Partie.remede_trouve(), _zombie_a_guerir() != null)
 	# Un grand meuble devant le héros devient transparent : on le voit toujours
@@ -229,6 +231,13 @@ func _physics_process(delta: float) -> void:
 	# Sortie atteinte : victoire
 	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)
+
+
+## Fruit du potager cueilli à la base : mangé à l'arrivée (même si la mission est perdue ensuite), le héros court
+## plus vite un moment (Reglages.FRUIT_VITESSE, FRUIT_DUREE).
+func _manger_fruit() -> void:
+	if Partie.manger_fruit():
+		_heros.accelerer(Reglages.FRUIT_VITESSE, Reglages.FRUIT_DUREE)
 
 
 func _afficher_objectif() -> void:

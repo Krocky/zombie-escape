@@ -67,6 +67,10 @@ const PAGES := [
 		["RESCAPE_BASE_DUREE_MERCI", "Bulle « Merci » pendant (s)", 0.5, 0.5, 10.0],
 		["RESCAPE_BASE_DELAI_MERCI", "Merci au plus toutes les (s)", 1.0, 0.0, 120.0],
 	]],
+	["Fruit du potager", [
+		["FRUIT_VITESSE", "Vitesse avec le fruit (x)", 0.1, 1.0, 3.0],
+		["FRUIT_DUREE", "Durée du fruit (s)", 1.0, 1.0, 60.0],
+	]],
 ]
 
 var _origine := {}   # nom -> valeur de data/reglages.gd
