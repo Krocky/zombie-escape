@@ -74,10 +74,13 @@ func _physics_process(_d):
 				_snap("tiroir")
 				_appuyer("infirmerie")
 			if g == 46: _touch(Vector2.ZERO, false)
-			if g == 60: current_scene.ouvrir_tiroir(true)
+			# Images V5 : l'infirmerie a un bâtiment, elle passe aussi par le placement
+			if g == 50: _touch(current_scene.get_node("Interface/Poser").get_global_rect().get_center(), true)
+			if g == 56: _touch(Vector2.ZERO, false)
+			if g == 66: current_scene.ouvrir_tiroir(true)
 			if g == 80: _appuyer("jardin")
 			if g == 86: _touch(Vector2.ZERO, false)
-			# Lot 4 b : le jardin passe par le placement, puis Poser (l'infirmerie n'a pas de bâtiment)
+			# Lot 4 b : le jardin passe par le placement, puis Poser
 			if g == 90: _touch(current_scene.get_node("Interface/Poser").get_global_rect().get_center(), true)
 			if g == 96: _touch(Vector2.ZERO, false)
 			if g == 100:

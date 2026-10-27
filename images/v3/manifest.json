@@ -62,48 +62,48 @@
   "base_barricade_broken": {
    "ancre_pieds": [
     238,
-    314
+    315
    ],
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
-    "fond magenta délavé [231, 34, 199] : détouré sur cette couleur"
+    "fond magenta délavé [232, 26, 205] : détouré sur cette couleur"
    ],
    "categorie": "prop",
    "coins_sol": {
     "avant": [
      236,
-     314
+     315
     ],
     "droit": [
      479,
-     185
+     186
     ],
     "gauche": [
      0,
-     185
+     187
     ]
    },
-   "defrange_px": 26198,
-   "echelle": 0.272,
-   "empreinte": "33ef4119322c0d5252a1847c23da798ad2d874a7",
+   "defrange_px": 25238,
+   "echelle": 0.2718,
+   "empreinte": "fdab78de7dfc19bce7d5998357c30e771c245ba4",
    "emprise_cases": 1.0,
    "fichier": "images/v3/base_barricade_broken.png",
    "fond": [
-    231,
-    34,
-    199
+    232,
+    26,
+    205
    ],
-   "mauve_desature_px": 94785,
+   "mauve_desature_px": 71691,
    "nom": "base_barricade_broken",
-   "ombre_violette_px": 11117,
+   "ombre_violette_px": 9046,
    "poussieres_px": 0,
    "source": "docs/raw/V5/base_barricade_broken.jpg",
    "taille": [
     480,
-    315
+    316
    ],
-   "teinte_violette_px": 7813,
-   "traits_fins_px": 62
+   "teinte_violette_px": 6534,
+   "traits_fins_px": 0
   },
   "base_barricade_damaged_1": {
    "ancre_pieds": [

@@ -34,7 +34,7 @@ const PLACES := {
 }
 ## Taille des constructions posées par le joueur (place d'origine : Partie.PLACES_DEPART)
 const TAILLES := {"barricade": Vector2(200, 200), "atelier": Vector2(200, 200), "lampe": Vector2(68, 68),
-	"jardin": Vector2(200, 200), "tourelle": Vector2(90, 90)}
+	"jardin": Vector2(200, 200), "tourelle": Vector2(90, 90), "infirmerie": Vector2(200, 200)}
 ## Tentes des rescapés, groupées dans le coin de droite (centre de l'emprise), une par rescapé sauvé : 2 colonnes
 ## de 5, de l'arrière vers l'avant (au-delà de 10 rescapés, pas de tente ni de personnage de plus).
 const TENTES := [Vector2(1900, 240), Vector2(2170, 240), Vector2(1900, 490), Vector2(2170, 490), Vector2(1900, 740),
@@ -43,7 +43,7 @@ const TAILLE_TENTE := Vector2(200, 200)
 ## Image V3 de chaque bâtiment (dessin de secours dans Batiment si elle manque).
 const IMAGES := {"abri_1": "base_shelter_1", "abri_2": "base_shelter_2", "feu": "base_campfire",
 	"barricade": "base_barricade", "atelier": "base_workshop", "lampe": "base_floodlight", "jardin": "base_garden",
-	"tente": "base_tent", "tourelle": "base_turret"}
+	"tente": "base_tent", "tourelle": "base_turret", "infirmerie": "base_infirmary"}
 ## Lignes blanches des places de parking (monde) : [début, fin, pas, de, à, le long de x ?]. Une ligne tous les
 ## « pas » entre début et fin ; elle va de « de » à « à » dans l'autre sens.
 const LIGNES := [[160.0, 1600.0, 160.0, 40.0, 280.0, false], [1000.0, 2200.0, 160.0, 1320.0, 1560.0, false],
@@ -409,8 +409,7 @@ func _batiments_visibles() -> Array:
 
 
 ## Bâtiments du camp, selon la sauvegarde : id -> [image, centre de l'emprise, taille, rescapé devant].
-## Ids : abri_1 / abri_2, feu, barricade, barricade_2..., atelier, lampe, jardin, tente_1... (l'infirmerie n'a pas
-## d'image : rien de plus dans le camp).
+## Ids : abri_1 / abri_2, feu, barricade, barricade_2..., atelier, lampe, jardin, infirmerie, tourelle..., tente_1...
 func _camp() -> Dictionary:
 	var camp := {}
 	var abri := "abri_2" if Partie.constructions.size() >= 2 else "abri_1"
@@ -592,7 +591,8 @@ func _actualiser_tiroir() -> void:
 
 
 ## « Construire » sur une carte : le tiroir se ferme ; une construction avec un bâtiment passe par le placement
-## (rien n'est payé avant « Poser »), les autres (infirmerie) sont faites aussitôt.
+## (rien n'est payé avant « Poser ») ; une construction sans bâtiment serait faite aussitôt (plus aucune depuis
+## l'infirmerie en image V5).
 func _construire(construction: String) -> void:
 	if not Partie.peut_construire(construction):
 		return

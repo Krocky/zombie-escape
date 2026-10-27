@@ -234,7 +234,7 @@ func _dessiner_secours() -> void:
 			_atelier(_corps, Vector2.ZERO, _e)
 		"lampe":
 			_lampe(_corps, Vector2.ZERO, _e)
-		"tente":
+		"tente", "infirmerie":
 			_tente(_corps, Vector2.ZERO, _e)
 		_:
 			# Jardin : un bac de terre

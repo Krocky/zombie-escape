@@ -20,6 +20,7 @@ func _initialize():
 	partie.batiments_vus = ["abri_1", "abri_2", "feu", "barricade", "barricade_2", "atelier", "lampe", "jardin", "tourelle", "tourelle_2"]
 	for k in 10: partie.batiments_vus.append("tente_%d" % (k + 1))
 	partie.fruit_cueilli = 0.0; partie.fruit = false
+	partie.sauvegarder()   # sinon une partie laissée par un test interrompu serait relue à la place
 	var scene := OS.get_environment("SCENE")
 	if scene == "defense":
 		partie.lieu = "defense"

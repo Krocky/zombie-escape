@@ -6,6 +6,8 @@ class_name DecorEcran
 enum Scene { TITRE, VICTOIRE, DEFAITE }
 
 const SOMBRE := Color(0.42, 0.43, 0.56)   # les personnages hors de la lampe
+## Pose V2 -> image V3 / V4 des zombies (immobiles, ils regardent à gauche)
+const ZOMBIES_V3 := {"gros_face_2": "zombie_big_iddle", "maigre_profil_2": "zombie_thin_iddle"}
 
 
 static func dessiner(ci: CanvasItem, taille: Vector2, temps: float, scene := Scene.TITRE) -> void:
@@ -104,8 +106,21 @@ static func _personnage(ci: CanvasItem, nom: String, pieds: Vector2, e: float, m
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 
-## Zombie dans l'ombre, mais ses yeux brillent (et clignent de temps en temps).
+## Zombie dans l'ombre, mais ses yeux brillent (et clignent de temps en temps) : image V3 / V4 immobile qui regarde à
+## gauche vers le héros (ZOMBIES_V3), sinon la pose V2 « nom ».
 static func _zombie(ci: CanvasItem, nom: String, pieds: Vector2, e: float, temps: float) -> void:
+	var v3: String = ZOMBIES_V3.get(nom, "")
+	if Images.v3_existe(v3):
+		Dessin.ombre(ci, Rect2(pieds - Vector2(50, 14) * e, Vector2(100, 28) * e))
+		Images.v3_dessiner(ci, v3, pieds, e * 0.9, false, SOMBRE)
+		if fmod(temps, 4.0) < 0.15:
+			return
+		var zone := Images.v3_yeux(v3)
+		if zone.size == Vector2.ZERO:
+			return
+		ci.draw_circle(Images.v3_point(v3, zone.get_center(), pieds, e * 0.9), 13.0 * e, Palette.ZOMBIE_YEUX_LUEUR)
+		Images.v3_dessiner(ci, v3, pieds, e * 0.9, false, Color.WHITE, Transform2D.IDENTITY, zone)
+		return
 	_personnage(ci, nom, pieds, e, true, SOMBRE, 0.0)
 	if not Images.existe(nom + "_yeux") or fmod(temps, 4.0) < 0.15:
 		return

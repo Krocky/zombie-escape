@@ -19,3 +19,5 @@ murs à retoucher : references/retouche_wall_*.jpg.
 Lot 4 déposé et traité (7 images gardées sur 8) : wall_market_exit écartée (cadrage raté), à refaire en retouche de references/retouche_wall_market.jpg.
 Sortie du supermarché refaite (2e retouche, flaque verte sous le mur effacée). Barricade effondrée à refaire :
 references/planche_barricade_effondree.jpg.
+Barricade effondrée refaite (vrai tas au sol, la 1re dans ecartees/). Infirmerie branchée dans la base, zombies V4
+sur l'écran titre. Images V5 terminées. Restent non faits : muret du parking (toujours dessiné en code).

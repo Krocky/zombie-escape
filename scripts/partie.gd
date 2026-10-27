@@ -52,15 +52,17 @@ const CONSTRUCTIONS := {
 	"jardin": "Jardin",
 	"tourelle": "Tourelle",
 }
-## Constructions qui ont un bâtiment dans la base, posé librement par le joueur (pas l'infirmerie).
-const BATIMENTS := ["barricade", "atelier", "lampe", "jardin", "tourelle"]
+## Constructions qui ont un bâtiment dans la base, posé librement par le joueur (l'infirmerie depuis les images V5).
+const BATIMENTS := ["barricade", "atelier", "lampe", "jardin", "tourelle", "infirmerie"]
 ## Place d'origine des constructions de l'étape a (centre de l'emprise, monde), gardée par les anciennes
-## sauvegardes : nom -> place (la tourelle, venue après, n'en a pas : elle est toujours posée par le joueur).
+## sauvegardes : nom -> place (la tourelle, venue après, n'en a pas : elle est toujours posée par le joueur ;
+## l'infirmerie, sans bâtiment avant les images V5, a la sienne pour les parties où elle était déjà construite).
 const PLACES_DEPART := {
 	"barricade": Vector2(1560, 1120),
 	"atelier": Vector2(1600, 680),
 	"lampe": Vector2(870, 1060),
 	"jardin": Vector2(1250, 420),
+	"infirmerie": Vector2(450, 1000),
 }
 ## Héros au choix (écran « Choisis ton héros ») : skin -> nom affiché. Images : images/v3/<skin>_<pose>.png
 const SKINS := {"heros": "Garçon", "heroine": "Fille"}

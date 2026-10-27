@@ -7,7 +7,7 @@ extends "res://scripts/batiment.gd"
 ## points tant qu'elle n'est pas effondrée. La solidité n'est pas sauvegardée : chaque niveau (et la base) la
 ## retrouve entière.
 ## Images V5 des stades (STADES : abîmée, très abîmée, effondrée) : l'image change avec la solidité, sans fissures en
-## code ; effondrée, l'image du tas est seulement tassée à RESTE_IMAGE. Sans elles : fissures et écrasement en code.
+## code ; effondrée, l'image du tas couché remplace la barricade telle quelle. Sans elles : fissures et écrasement en code.
 
 ## Éclats de bois et tremblement après un coup, effondrement (s)
 const DUREE_ECLATS := 0.45
@@ -16,9 +16,8 @@ const DUREE_EFFONDREMENT := 0.8
 ## Effondrée, elle garde cette part de sa hauteur (un tas de planches), assombrie
 const RESTE := 0.28
 const TEINTE_EFFONDREE := Color(0.6, 0.58, 0.66)
-## Images V5 : abîmée (plus de la moitié de la solidité), très abîmée, effondrée ; tas tassé à cette part de sa hauteur
+## Images V5 : abîmée (plus de la moitié de la solidité), très abîmée, effondrée (déjà un tas bas : pas d'écrasement)
 const STADES := ["base_barricade_damaged_1", "base_barricade_damaged_2", "base_barricade_broken"]
-const RESTE_IMAGE := 0.7
 ## Nuage de l'effondrement : sans ombre (visible la nuit), donc plus léger que celui de la chute du ciel
 const OPACITE_POUSSIERE := 0.22
 ## Barre de solidité (pixels d'écran) : taille, écart au-dessus de l'image
@@ -114,11 +113,13 @@ func _actualiser_image() -> void:
 
 ## Effondrement : le dessin s'écrase vers le sol (f de 0 à 1) jusqu'à RESTE de sa hauteur, et s'assombrit.
 func _affaisser(f: float) -> void:
-	var haut := lerpf(1.0, RESTE_IMAGE if _stades else RESTE, f)
+	if _stades:
+		return
+	var haut := lerpf(1.0, RESTE, f)
 	for b in _bandes:
 		b[0].scale.y = b[2].y * haut
 		b[0].offset.y = b[1].y
-		b[0].modulate = Color.WHITE if _stades else Color.WHITE.lerp(TEINTE_EFFONDREE, f)
+		b[0].modulate = Color.WHITE.lerp(TEINTE_EFFONDREE, f)
 	if _corps:
 		_corps.scale.y = haut   # écrasé vers ses pieds
 		_corps.modulate = Color.WHITE.lerp(TEINTE_EFFONDREE, f)
