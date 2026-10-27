@@ -205,7 +205,7 @@ func _dessiner_liste() -> void:
 		var x := r.position.x + 120.0
 		var largeur_texte := bouton_effacer(k).position.x - x - 12.0
 		_texte(zone, infos["nom"], Vector2(x, r.position.y + 46), 38, Palette.LAMPE, largeur_texte)
-		var heros: String = infos["prenom"] if infos["prenom"] != "" else (Partie.SKINS.get(skin, "pas encore choisi"))
+		var heros: String = infos["prenom"] if infos["prenom"] != "" else (Partie.SKINS.get(skin, "?"))
 		_texte(zone, "Héros : %s   Rescapés : %d" % [heros, infos["rescapes"]], Vector2(x, r.position.y + 86), 26,
 			Palette.UI_TEXTE, largeur_texte)
 		var date: String = Partie.texte_date(infos["date"])
@@ -233,9 +233,12 @@ func _dessiner_effacer(zone: Control, r: Rect2, actif: bool) -> void:
 	_texte(zone, "Effacer", Vector2(r.get_center().x - largeur / 2.0, r.get_center().y + 7), 32, couleur)
 
 
-## Texte cerclé de sombre (p = début de la ligne de base), coupé à « largeur » si elle est donnée.
+## Texte cerclé de sombre (p = début de la ligne de base) ; s'il dépasse « largeur », il rapetisse (jusqu'à 18),
+## puis il est coupé.
 func _texte(zone: Control, texte: String, p: Vector2, taille: int, couleur: Color, largeur := -1.0) -> void:
 	var police := ThemeDB.fallback_font
+	while largeur > 0.0 and taille > 18 and police.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x > largeur:
+		taille -= 1
 	zone.draw_string_outline(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, largeur, taille, 7, Palette.CONTOUR,
 		TextServer.JUSTIFICATION_NONE)
 	zone.draw_string(police, p, texte, HORIZONTAL_ALIGNMENT_LEFT, largeur, taille, couleur, TextServer.JUSTIFICATION_NONE)
