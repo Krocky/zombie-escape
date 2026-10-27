@@ -127,7 +127,7 @@ func _physics_process(_d):
 			if g == 40:
 				var balles = current_scene.get_node("Monde/ObjetBalles")
 				_verifier("boite de balles dans le supermarche, comptee dans les objets",
-					balles.type == "balles" and current_scene._total_objets == 6)
+					balles.type == "balles" and current_scene._total_objets == 7)   # 7 avec la ferraille (lot 4 h2)
 				_heros().position = balles.position
 			if g == 60:
 				_verifier("boite ramassee", "balles" in current_scene._ramasses)

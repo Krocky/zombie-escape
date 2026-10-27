@@ -9,6 +9,10 @@ extends "res://scripts/base.gd"
 ## (Zombie.marcher_vers), poursuit le héros s'il le voit ; un zombie qui touche un rescapé l'emporte (nuage) : il
 ## quittera la base (Partie.emporter_rescapes). Les tourelles chargées tirent.
 ## Flèches autour du héros vers chaque zombie hors de l'écran (couleur du type, plus transparente s'il est loin).
+## Barricades (Barricade, lot 4 h2) : un zombie bloqué contre l'une d'elles la frappe (Zombie.frappe_barricade) ;
+## effondrée, elle ne bloque plus. Près d'une barricade abîmée, avec de la ferraille, le bouton Réparer (tenu) lui rend
+## un point toutes les Reglages.REPARATION_DELAI secondes contre Reglages.REPARATION_FERRAILLE ferraille (prise dans
+## l'inventaire de la base) ; le héros ne bouge pas tant qu'il le tient. Après le niveau, elles sont entières.
 ## Fin : victoire quand toutes les vagues sont battues, défaite si le héros n'a plus de cœurs.
 
 const ZOMBIE := preload("res://scenes/zombie.tscn")
@@ -38,6 +42,9 @@ var _faits := -1             # zombies battus (ou guéris), pour l'objectif du H
 var _emportes := []          # numéros des tentes (0 = la première) dont le rescapé a été emporté
 var _avec_fleche := []       # zombies hors de l'écran (une flèche chacun)
 var _fleches := Node2D.new() # flèches autour du héros : sans ombre, par-dessus le décor
+var _a_reparer: Node2D = null  # barricade abîmée à portée du bouton Réparer
+var _reparation := 0.0       # temps depuis le dernier point réparé, bouton tenu
+var _joystick := Vector2.ZERO  # direction du joystick (dans le monde), gardée pendant la réparation
 
 
 func _en_defense() -> bool:
@@ -67,6 +74,7 @@ func _physics_process(delta: float) -> void:
 	for tourelle in _tourelles:
 		tourelle.viser(zombies, delta)
 	_attaquer_rescapes(zombies)
+	_reparer(delta)
 	_actualiser_fleches(zombies)
 	_afficher_objectif()
 	if not _fini:
@@ -128,6 +136,7 @@ func faire_entrer(type: int, entree := Vector2.INF) -> Node2D:
 	visuels["vue"].scale = Vector2(1.0, 0.1)
 	create_tween().tween_property(visuels["vue"], "scale", Vector2.ONE, DUREE_ENTREE).set_trans(Tween.TRANS_BACK)
 	zombie.touche_heros.connect(_heros.recevoir_degats)
+	zombie.frappe_barricade.connect(func(barricade: Node2D) -> void: barricade.abimer())
 	_entres += 1
 	return zombie
 
@@ -179,6 +188,47 @@ func _attaquer_rescapes(zombies: Array) -> void:
 				presents[k].emporter()
 				_emportes.append(k)
 				$HUD.annoncer("Un rescapé est emporté !", 1.2)
+
+
+## Barricades du camp (dans l'ordre de pose).
+func barricades() -> Array:
+	return _batiments.values().filter(func(b: Node2D) -> bool: return b.id.begins_with("barricade"))
+
+
+## Réparer : visible près d'une barricade abîmée (la plus proche) quand il reste de la ferraille ; tenu, un point
+## toutes les REPARATION_DELAI s (le premier aussi après ce délai), le héros arrêté. Relâché : il repart.
+func _reparer(delta: float) -> void:
+	_a_reparer = null
+	if not _fini and not _heros_mort and Partie.inventaire.get("ferraille", 0) >= Reglages.REPARATION_FERRAILLE:
+		var meilleure := Reglages.REPARATION_PORTEE
+		for barricade in barricades():
+			var r: Rect2 = barricade.emprise()
+			var d: float = _heros.global_position.distance_to(_heros.global_position.clamp(r.position, r.end))
+			if barricade.abimee() and d <= meilleure:
+				meilleure = d
+				_a_reparer = barricade
+	$HUD.etat_reparation(_a_reparer != null)
+	var tenu: bool = _a_reparer != null and $HUD.reparation_tenue()
+	_heros.definir_direction(Vector2.ZERO if tenu or _fini else _joystick)
+	if not tenu:
+		_reparation = 0.0
+		return
+	_reparation += delta
+	if _reparation >= Reglages.REPARATION_DELAI:
+		_reparation -= Reglages.REPARATION_DELAI
+		Partie.inventaire["ferraille"] -= Reglages.REPARATION_FERRAILLE
+		_a_reparer.reparer()
+
+
+## Barricade que le bouton Réparer réparerait (null : bouton caché).
+func barricade_a_reparer() -> Node2D:
+	return _a_reparer
+
+
+## Le joystick : retenu ici, le héros reste arrêté tant qu'il répare.
+func _sur_deplacement(direction: Vector2) -> void:
+	_joystick = Iso.direction_monde(direction) if direction != Vector2.ZERO else Vector2.ZERO
+	super(direction)
 
 
 ## Rescapés emportés jusqu'ici (numéros des tentes).

@@ -121,6 +121,11 @@ const CLEF := {"rouge": Color("fe4240"), "bleue": Color("3f86ff"), "verte": Colo
 const BALLES_BOITE := Color("5b6b45")      # boîte de balles de tourelle (kaki)
 const BALLES_ETIQUETTE := Color("d9c27a")  # bande claire sur la boîte
 const BALLES_CUIVRE := Color("e0a93f")     # cartouches dorées (boîte, tourelle)
+const FERRAILLE := Color("8c93a6")         # ferraille (tôles et boulons) : métal gris-bleu
+const FERRAILLE_ROUILLE := Color("a3613f") # taches de rouille
+const REPARER := Color("6fa8dc")           # disque du bouton Réparer (clé à molette)
+## Barre de solidité d'une barricade : pleine, à moitié, presque cassée
+const SOLIDITE := [Color("7ed38f"), Color("f5c84a"), Color("e0566b")]
 
 # Base (abri en planches et feu de camp)
 const BOIS := Color("6b4e45")              # planches de l'abri

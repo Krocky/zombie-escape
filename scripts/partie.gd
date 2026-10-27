@@ -32,10 +32,11 @@ const NOMS := {
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
 	"balles": "Boîte de balles",
+	"ferraille": "Ferraille",
 }
 ## Objets qu'on ne gagne jamais en bonus de mission ni par les rescapés (la fiole se mérite, les balles
-## se trouvent dans les lieux) ; ils n'entrent pas non plus dans les coûts des constructions (Reglages).
-const HORS_GAINS := ["fiole", "balles"]
+## et la ferraille se trouvent dans les lieux) ; ils n'entrent pas non plus dans les coûts des constructions (Reglages).
+const HORS_GAINS := ["fiole", "balles", "ferraille"]
 ## Pseudo-objet des objectifs « guérir N zombies » (après le remède) : une guérison faite compte comme un « guerison »
 ## parmi les objets donnés à avancee_objectif.
 const GUERISON := "guerison"

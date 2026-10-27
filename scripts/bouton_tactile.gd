@@ -14,7 +14,7 @@ signal appuye
 @export var couleur := Color.WHITE
 ## Taille du texte des boutons en pilule (les ronds gardent leur taille).
 @export var taille_texte := 40
-## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause", "soigner", "guerir" ou rien.
+## Icône au-dessus du texte : "batte", "cacher", "sortir", "jouer", "heros", "reglages", "pause", "soigner", "guerir", "reparer" ou rien.
 @export var icone := "":
 	set(valeur):
 		if icone != valeur:
@@ -64,6 +64,11 @@ func _input(event: InputEvent) -> void:
 	elif not event.pressed and event.index == _doigt:
 		_doigt = -1
 		queue_redraw()
+
+
+## Vrai tant qu'un doigt le tient appuyé (bouton visible et actif) : Réparer agit tant qu'il est tenu.
+func tenu() -> bool:
+	return _doigt != -1 and actif and is_visible_in_tree()
 
 
 ## Oublie le doigt posé (le jeu se fige : son lever n'arrivera jamais jusqu'ici).
@@ -219,6 +224,16 @@ func _icone(c: Vector2, r: float, encre: Color) -> void:
 			draw_set_transform(Vector2.ZERO)
 			for k in 3:
 				draw_circle(c + Vector2(r * (0.55 + 0.2 * k), -r * (0.5 + 0.3 * k)), r * (0.16 - 0.03 * k), Palette.GUERISON if actif else encre)
+		"reparer":
+			# Clé à molette en diagonale : manche, tête ronde ouverte (mâchoire), trou au bout du manche
+			var metal := Palette.FERRAILLE.lightened(0.25) if actif else encre
+			draw_set_transform(c, -PI / 4.0, Vector2.ONE)
+			draw_line(Vector2(-r * 0.95, 0), Vector2(r * 0.3, 0), Palette.CONTOUR, r * 0.5, true)
+			draw_line(Vector2(-r * 0.95, 0), Vector2(r * 0.3, 0), metal, r * 0.3, true)
+			Dessin.cercle(self, Vector2(r * 0.5, 0), r * 0.48, metal)
+			draw_rect(Rect2(r * 0.42, -r * 0.17, r * 0.7, r * 0.34), couleur if actif else Palette.UI_FOND)
+			draw_circle(Vector2(-r * 0.78, 0), r * 0.09, Palette.CONTOUR)
+			draw_set_transform(Vector2.ZERO)
 		"jouer":
 			Dessin.polygone(self, PackedVector2Array([c + Vector2(-r * 0.6, -r * 0.8), c + Vector2(r * 0.8, 0),
 				c + Vector2(-r * 0.6, r * 0.8)]), encre)

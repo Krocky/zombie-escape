@@ -65,7 +65,7 @@ var ATTAQUE_DELAI := 0.5            # secondes entre deux coups
 
 # --- Constructions de la base (chacune une seule fois, sauf la barricade et la tourelle : jusqu'à leur MAX) ---
 # Coût : { objet: nombre }. Objets : "conserve", "eau", "bandage", "piles" (pas "fiole" : elle sert au remède,
-# ni "balles" : elles chargent les tourelles).
+# ni "balles" : elles chargent les tourelles, ni "ferraille" : elle répare les barricades).
 var BARRICADE_COUT := {"conserve": 2, "eau": 1}
 var BARRICADE_COEURS := 1             # cœurs en plus pour le héros (seulement la première barricade)
 var BARRICADE_MAX := 20               # barricades au plus dans la base (les suivantes bloqueront les zombies au niveau 4)
@@ -99,6 +99,13 @@ var DEFENSE_PAUSE_VAGUES := 8.0       # secondes de pause entre deux vagues (« 
 var DEFENSE_DEBUT := 3.0              # secondes avant le premier zombie
 var DEFENSE_ALLURE := 1.5             # en marchant vers les rescapés, un zombie va 1,5 fois plus vite qu'en patrouille
 var DEFENSE_BONUS := 2                # objets en plus, au hasard, quand toutes les vagues sont battues
+# Barricades pendant la défense : les zombies bloqués contre elles les cassent ; la ferraille les répare
+# (après le niveau, elles sont remises en état gratuitement dans la base)
+var BARRICADE_PV := 6                 # points de solidité d'une barricade (à 0, elle s'effondre et ne bloque plus)
+var ZOMBIE_DELAI_CASSE := 1.0         # secondes entre deux coups d'un zombie bloqué contre une barricade (-1 point)
+var REPARATION_DELAI := 0.5           # bouton Réparer tenu : +1 point toutes les 0,5 s
+var REPARATION_FERRAILLE := 1         # ferraille dépensée pour chaque point réparé
+var REPARATION_PORTEE := 110.0        # distance de la barricade pour voir le bouton Réparer
 
 # --- Fruit du potager (le jardin construit fait pousser un fruit, cueilli à la base, mangé au lieu suivant) ---
 var FRUIT_DELAI := 10800.0            # secondes entre deux fruits (3 h, en vrai temps, même jeu fermé)

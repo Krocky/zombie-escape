@@ -28,6 +28,7 @@ var _temps_fruit := 0.0
 var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
 var _soin: Control = BOUTON.instantiate()    # bouton Soigner, à gauche de Frapper
 var _guerir: Control = BOUTON.instantiate()  # bouton Guérir (après le remède), à gauche de Cacher
+var _reparer: Control = BOUTON.instantiate() # défense : bouton Réparer (tenu), à la place de Cacher
 var _annonce := Label.new()       # défense de la base : « Vague 2 / 3 » en grand au centre
 var _anim_annonce: Tween          # apparition puis effacement de l'annonce en cours
 var _defense := false
@@ -103,6 +104,11 @@ func _ready() -> void:
 	_guerir.appuye.connect(guerir.emit)
 	add_child(_guerir)
 	_guerir.size = TAILLE_GUERIR
+	_reparer.texte = "Réparer"
+	_reparer.icone = "reparer"
+	_reparer.couleur = Palette.REPARER
+	_reparer.visible = false
+	add_child(_reparer)
 	_annonce.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_annonce.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_annonce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -287,6 +293,9 @@ func _placer_objectif() -> void:
 	_soin.position = Vector2(ecran.x + $BoutonAttaquer.offset_left - 24.0 - TAILLE_SOIN.x, ecran.y + $BoutonAttaquer.offset_bottom - TAILLE_SOIN.y)
 	# Guérir : au-dessus de Soigner, à gauche de Cacher (bas alignés)
 	_guerir.position = Vector2(ecran.x + $BoutonCacher.offset_left - 24.0 - TAILLE_GUERIR.x, ecran.y + $BoutonCacher.offset_bottom - TAILLE_GUERIR.y)
+	# Réparer (défense) : à la place de Cacher
+	_reparer.position = Vector2(ecran.x + $BoutonCacher.offset_left, ecran.y + $BoutonCacher.offset_top)
+	_reparer.size = $BoutonCacher.size
 
 
 ## Base (pas de zombie) : seul le joystick reste ; ni boutons d'action ni pause, ni cœurs, objets, objectif.
@@ -302,6 +311,16 @@ func mode_defense() -> void:
 	_defense = true
 	for noeud in [$BoutonCacher, _icones, _rescape, _clef]:
 		noeud.visible = false
+
+
+## Défense : Réparer visible près d'une barricade abîmée, avec de la ferraille.
+func etat_reparation(visible: bool) -> void:
+	_reparer.visible = visible
+
+
+## Défense : le bouton Réparer est tenu (le héros répare et ne bouge pas).
+func reparation_tenue() -> bool:
+	return _reparer.tenu()
 
 
 ## Défense : « Vague 2 / 3 » dans le cadre en haut à droite.
@@ -334,7 +353,7 @@ func annonce() -> String:
 ## Le jeu se fige : on oublie les doigts posés (joystick, boutons), leur lever n'arrivera pas.
 func relacher() -> void:
 	$Joystick.relacher()
-	for bouton in [$BoutonAttaquer, $BoutonCacher, _pause, _soin, _guerir]:
+	for bouton in [$BoutonAttaquer, $BoutonCacher, _pause, _soin, _guerir, _reparer]:
 		bouton.relacher()
 
 

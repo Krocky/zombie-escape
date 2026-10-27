@@ -126,6 +126,18 @@ static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: f
 			rect(ci, Rect2(-17, -9, 34, 25), Palette.BALLES_BOITE * couleur)
 			ci.draw_rect(Rect2(-13, -2, 26, 8), Palette.BALLES_ETIQUETTE * couleur)
 			ci.draw_rect(Rect2(-17, 10, 34, 3), Palette.CONTOUR)
+		"ferraille":
+			# Ferraille : deux tôles tordues en tas, une tache de rouille, un gros boulon devant
+			polygone(ci, PackedVector2Array([Vector2(-18, 14), Vector2(-14, -8), Vector2(4, -16), Vector2(10, 14)]),
+				Palette.FERRAILLE.darkened(0.25) * couleur)
+			polygone(ci, PackedVector2Array([Vector2(-6, 16), Vector2(2, -4), Vector2(18, -10), Vector2(16, 16)]), Palette.FERRAILLE * couleur)
+			ci.draw_circle(Vector2(10, 2), 4.0, Palette.FERRAILLE_ROUILLE * couleur)
+			ci.draw_line(Vector2(-12, -2), Vector2(0, -8), Palette.FERRAILLE.lightened(0.35) * couleur, 3.0)
+			var boulon := PackedVector2Array()
+			for k in 6:
+				boulon.append(Vector2(-10, 10) + Vector2.from_angle(k * TAU / 6.0) * 7.0)
+			polygone(ci, boulon, Palette.FERRAILLE.lightened(0.2) * couleur)
+			ci.draw_circle(Vector2(-10, 10), 2.5, Palette.CONTOUR)
 		"clef":
 			# Anneau, tige à deux dents, étiquette colorée
 			ci.draw_line(Vector2(-6, 6), Vector2(20, 6), Palette.CONTOUR, 8.0)

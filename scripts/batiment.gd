@@ -183,8 +183,8 @@ func _dessiner_effets() -> void:
 
 
 ## Nuage de poussière à l'impact : des bouffées qui s'écartent au ras du sol, grossissent et s'effacent.
-func _poussiere(ci: CanvasItem, pieds_ecran: Vector2, e: float, t: float) -> void:
-	var alpha := 0.45 * (1.0 - t)
+func _poussiere(ci: CanvasItem, pieds_ecran: Vector2, e: float, t: float, opacite := 0.45) -> void:
+	var alpha := opacite * (1.0 - t)
 	for k in 10:
 		var a := k * TAU / 10.0 + 0.4
 		var d := Vector2(cos(a) * 150.0, sin(a) * 42.0) * e * (0.4 + 0.8 * sqrt(t))

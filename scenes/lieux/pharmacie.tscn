@@ -228,6 +228,11 @@ position = Vector2(720, 850)
 type = "balles"
 places = PackedVector2Array(1420, 1150, 520, 550)
 
+[node name="ObjetFerraille" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(1120, 850)
+type = "ferraille"
+places = PackedVector2Array(420, 250, 1720, 1050)
+
 [node name="ZombieLent" parent="Monde" instance=ExtResource("5_zombie")]
 position = Vector2(500, 940)
 patrouille = Vector2(700, 0)

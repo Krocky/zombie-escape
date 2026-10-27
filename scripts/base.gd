@@ -23,6 +23,7 @@ const BATIMENT := preload("res://scenes/batiment.tscn")
 const RESCAPE := preload("res://scenes/rescape_base.tscn")
 const FRUIT := preload("res://scenes/fruit.tscn")
 const TOURELLE := preload("res://scenes/tourelle.tscn")
+const BARRICADE := preload("res://scenes/barricade.tscn")
 const BOUTON := preload("res://scenes/bouton_tactile.tscn")
 
 const TAILLE_ICONE := 54.0
@@ -422,7 +423,8 @@ func _camp() -> Dictionary:
 
 ## Bâtiment posé sur son emprise (centre, taille avant d'en prendre les proportions de l'image), dans le monde.
 func _creer_batiment(id: String, image: String, centre: Vector2, taille_batiment: Vector2) -> StaticBody2D:
-	var batiment := (TOURELLE if id.begins_with("tourelle") else BATIMENT).instantiate()
+	var scene := TOURELLE if id.begins_with("tourelle") else (BARRICADE if id.begins_with("barricade") else BATIMENT)
+	var batiment := scene.instantiate()
 	batiment.id = id
 	batiment.image = image
 	batiment.taille = taille_batiment

@@ -83,6 +83,9 @@ const PAGES := [
 		["DEFENSE_PAUSE_VAGUES", "Pause entre deux vagues (s)", 1.0, 0.0, 60.0],
 		["DEFENSE_DEBUT", "Avant le premier zombie (s)", 0.5, 0.0, 30.0],
 		["DEFENSE_ALLURE", "Allure vers les rescapés (x)", 0.1, 0.5, 4.0],
+		["BARRICADE_PV", "Solidité d'une barricade", 1, 1, 30],
+		["ZOMBIE_DELAI_CASSE", "Coups d'un zombie sur une barricade (s)", 0.1, 0.2, 5.0],
+		["REPARATION_DELAI", "Réparer : un point toutes les (s)", 0.1, 0.1, 3.0],
 	]],
 ]
 

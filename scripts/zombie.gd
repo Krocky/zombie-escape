@@ -14,10 +14,14 @@ extends CharacterBody2D
 ## Défense de la base (niveau 4) : au lieu de patrouiller, il marche vers un point donné par le niveau à chaque pas
 ## (marcher_vers : le rescapé le plus proche), plus vite qu'en patrouille (Reglages.DEFENSE_ALLURE) ; il poursuit
 ## le héros s'il le voit, puis revient vers les rescapés (pas de retour à sa place). Coincé contre le décor, il fait
-## un petit détour sur le côté (pas de recherche de chemin).
+## un petit détour sur le côté (pas de recherche de chemin). Bloqué contre une barricade (elle est devant lui), il
+## s'arrête et la frappe toutes les Reglages.ZOMBIE_DELAI_CASSE secondes avec le même geste (bras levés) : il émet
+## frappe_barricade, le niveau l'abîme ; effondrée, elle ne le bloque plus et il passe.
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
+## Défense : il frappe la barricade qui le bloque (le niveau lui enlève un point).
+signal frappe_barricade(barricade: Node2D)
 
 enum Type { LENT, RAPIDE, COUREUR }
 enum Etat { PATROUILLE, POURSUITE, CHERCHE, RETOUR, ESSOUFFLE }
@@ -93,6 +97,12 @@ var _detour := Vector2.ZERO  # point sur le côté quand il est coincé en allan
 var _temps_detour := 0.0
 const DETOUR := 220.0        # distance du détour sur le côté (monde)
 const DUREE_DETOUR := 1.2    # secondes de détour avant de revenir vers sa cible
+var _barricade: Node2D = null   # défense : barricade qu'il est en train de casser
+var _contre := 0.0             # temps passé bloqué contre une barricade
+var _delai_casse := 0.0        # temps avant son prochain coup sur la barricade
+var _coup_barricade := false   # le geste en cours vise la barricade (pas le héros)
+const ATTENTE_CASSE := 0.3     # bloqué contre une barricade depuis ce temps (s) : il se met à la frapper
+const PORTEE_CASSE := 45.0     # il la frappe tant qu'il en est à moins de cette distance (monde)
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
 @onready var _yeux: Node2D = $Yeux   # enfant de _vue
@@ -271,6 +281,7 @@ func _physics_process(delta: float) -> void:
 	_etourdi = maxf(_etourdi - delta, 0.0)
 	_delai_coup = maxf(_delai_coup - delta, 0.0)
 	_delai_cri = maxf(_delai_cri - delta, 0.0)
+	_delai_casse = maxf(_delai_casse - delta, 0.0)
 
 	var voit := _voit_heros()
 	if voit:
@@ -320,26 +331,42 @@ func _physics_process(delta: float) -> void:
 			if global_position.distance_to(_depart) < 10.0:
 				_changer_etat(Etat.PATROUILLE)
 
+	var casse := _casse_barricade(cible)
 	if _preparation > 0.0:
 		# Bras levés : le coup part à la fin du geste
 		_preparation = maxf(_preparation - delta, 0.0)
 		if _etat == Etat.ESSOUFFLE:
 			_preparation = 0.0   # coureur à bout de souffle pendant le geste : pas de coup
 		elif _preparation == 0.0:
-			_frapper()
+			if _coup_barricade:
+				_frapper_barricade()
+			else:
+				_frapper()
 	elif voit and global_position.distance_to(_position_heros) < Reglages.ZOMBIE_PORTEE_CONTACT \
 			and _delai_coup == 0.0 and _etourdi == 0.0 and _etat != Etat.ESSOUFFLE:
+		_coup_barricade = false
 		if Reglages.ZOMBIE_PREPARATION > 0.0:
 			_preparation = Reglages.ZOMBIE_PREPARATION
 		else:
 			_frapper()
+	elif casse and _delai_casse == 0.0 and _etourdi == 0.0:
+		# Même geste contre la barricade qui le bloque
+		_coup_barricade = true
+		_delai_casse = Reglages.ZOMBIE_DELAI_CASSE
+		if Reglages.ZOMBIE_PREPARATION > 0.0:
+			_preparation = Reglages.ZOMBIE_PREPARATION
+		else:
+			_frapper_barricade()
 
 	var direction := global_position.direction_to(cible) if global_position.distance_to(cible) > 4.0 else Vector2.ZERO
-	if _etourdi > 0.0 or _preparation > 0.0:
-		direction = Vector2.ZERO   # sonné, ou il lève les bras (il ne bouge plus)
+	if _etourdi > 0.0 or _preparation > 0.0 or casse:
+		direction = Vector2.ZERO   # sonné, il lève les bras ou il casse une barricade (il ne bouge plus)
+	if casse:
+		_regard = _regard.slerp(global_position.direction_to(_point_barricade()), minf(8.0 * delta, 1.0)).normalized()
 	velocity = direction * _vitesse() + _recul
 	_recul = _recul.move_toward(Vector2.ZERO, 2000.0 * delta)
 	move_and_slide()
+	_chercher_barricade(direction, delta)
 	_verifier_blocage(direction, delta)
 	if direction != Vector2.ZERO:
 		_regard = _regard.slerp(direction, minf(8.0 * delta, 1.0)).normalized()
@@ -356,6 +383,60 @@ func _frapper() -> void:
 		touche_heros.emit(_degats(), global_position)
 	if type == Type.COUREUR:
 		_changer_etat(Etat.ESSOUFFLE)   # sa charge s'arrête sur toi
+
+
+## Défense : bloqué depuis ATTENTE_CASSE contre une barricade debout qui est devant lui (il va vers elle et
+## n'avance presque plus), il se met à la casser.
+func _chercher_barricade(direction: Vector2, delta: float) -> void:
+	if _assaut == Vector2.INF or _barricade != null or direction == Vector2.ZERO or _etat == Etat.ESSOUFFLE:
+		_contre = 0.0
+		return
+	var contre: Node2D = null
+	if get_real_velocity().length() < 0.4 * _vitesse():
+		for i in get_slide_collision_count():
+			var collision := get_slide_collision(i)
+			var obstacle := collision.get_collider()
+			if obstacle is Node2D and obstacle.is_in_group("barricades") and obstacle.solide() \
+					and direction.dot(-collision.get_normal()) > 0.3:
+				contre = obstacle
+	_contre = _contre + delta if contre != null else 0.0
+	if _contre >= ATTENTE_CASSE:
+		_barricade = contre
+		_contre = 0.0
+
+
+## Il casse toujours sa barricade ? Non quand elle est effondrée, qu'il s'en est écarté (repoussé), que sa cible
+## n'est plus derrière elle, ou qu'il est essoufflé.
+func _casse_barricade(cible: Vector2) -> bool:
+	if _barricade == null:
+		return false
+	if not is_instance_valid(_barricade) or not _barricade.solide() or _etat == Etat.ESSOUFFLE \
+			or global_position.distance_to(_point_barricade()) > PORTEE_CASSE \
+			or global_position.direction_to(cible).dot(global_position.direction_to(_point_barricade())) < 0.3:
+		_barricade = null
+		if _coup_barricade:
+			_preparation = 0.0   # plus rien à frapper
+	return _barricade != null
+
+
+## Point de sa barricade le plus proche de lui (monde).
+func _point_barricade() -> Vector2:
+	var e: Rect2 = _barricade.emprise()
+	return global_position.clamp(e.position, e.end)
+
+
+## Fin du geste contre la barricade : le niveau lui enlève un point.
+func _frapper_barricade() -> void:
+	if _barricade == null or not is_instance_valid(_barricade) or not _barricade.solide():
+		return
+	$Coup.stream = SONS_COUP.pick_random()
+	$Coup.play()
+	frappe_barricade.emit(_barricade)
+
+
+## Vrai pendant qu'il casse une barricade.
+func casse_barricade() -> bool:
+	return _barricade != null
 
 
 ## Sans recherche de chemin, il peut rester coincé contre une étagère en patrouille ou en rentrant : s'il n'avance
