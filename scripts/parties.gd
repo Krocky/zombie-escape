@@ -176,7 +176,7 @@ func _toucher(p: Vector2) -> void:
 ## Charge la partie touchée (celle en cours est sauvegardée), puis la base, ou le choix du héros s'il n'est pas fait.
 func _charger(id: String) -> void:
 	Partie.charger_partie(id)
-	get_tree().change_scene_to_file("res://scenes/base.tscn" if Partie.skin != "" else "res://scenes/choix_heros.tscn")
+	get_tree().change_scene_to_file.call_deferred("res://scenes/base.tscn" if Partie.skin != "" else "res://scenes/choix_heros.tscn")   # pas pendant la diffusion du toucher
 
 
 func _dessiner_liste() -> void:

@@ -151,10 +151,16 @@ func _exit_tree() -> void:
 	get_tree().paused = false
 
 
-## Geste « retour » d'Android : ouvre la pause (ou la referme).
+## Geste « retour » d'Android : ouvre la pause (ou la referme), sauf si la scène le traite elle-même (base).
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready():
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready() and _pause_au_retour():
 		mettre_en_pause(not get_tree().paused)
+
+
+## Vrai si le geste « retour » ouvre la pause. Une scène héritée qui a son propre _notification (la base) renvoie
+## faux : en GDScript, le _notification de chaque classe parente est aussi appelé.
+func _pause_au_retour() -> bool:
+	return true
 
 
 ## Pause : tout le lieu est figé (zombies, héros, sons, animations), seul le menu Pause tourne.

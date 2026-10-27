@@ -312,6 +312,11 @@ func _notification(what: int) -> void:
 			get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
 
 
+## Pas de pause dans la base : le geste « retour » est traité ci-dessus.
+func _pause_au_retour() -> bool:
+	return false
+
+
 func _changer_heros() -> void:
 	get_tree().change_scene_to_file("res://scenes/choix_heros.tscn")
 

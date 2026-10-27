@@ -114,8 +114,12 @@ var parties := []
 var en_cours := ""
 
 
-func _ready() -> void:
+## L'index est lu dès la création (les tests touchent au fichier de la partie en cours avant le _ready).
+func _init() -> void:
 	_preparer_parties()
+
+
+func _ready() -> void:
 	charger()
 
 
@@ -548,11 +552,11 @@ func sauvegarder() -> void:
 		_ecrire_index()
 
 
-## Lit la sauvegarde (version 1 à 9). Une version plus ancienne est aussitôt réécrite en version 9
+## Lit la sauvegarde de la partie en cours (version 1 à 9), par-dessus ce qui est en mémoire (vide au démarrage ;
+## charger_partie vide d'abord). Une version plus ancienne est aussitôt réécrite en version 9
 ## (les fioles déjà rangées remplissent la jauge du remède, les constructions restent à leur place d'origine).
 ## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
-	_vider()
 	var donnees = Fichier.lire_json(fichier())
 	if not donnees is Dictionary:
 		return
@@ -748,6 +752,7 @@ func charger_partie(id: String) -> void:
 		return
 	sauvegarder()
 	en_cours = id
+	_vider()
 	charger()
 	_ecrire_index()
 

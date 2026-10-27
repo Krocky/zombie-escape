@@ -10,7 +10,7 @@ var g := 0
 var phase := "migration"
 var partie
 var echecs := 0
-var ecran_parties = load("res://scripts/parties.gd")
+var ecran_parties
 ## Ancienne sauvegarde unique (version 7), telle qu'elle est sur la tablette avant le lot 4 d
 const ANCIENNE := {"version": 7, "inventaire": {"conserve": 3, "eau": 2}, "constructions": ["barricade"], "remede": 1,
 	"remede_annonce": false, "skin": "heroine", "prenom": "Eliott", "rescapes": 2, "lieux_sauves": ["maison"],
@@ -19,6 +19,7 @@ const ANCIENNE := {"version": 7, "inventaire": {"conserve": 3, "eau": 2}, "const
 
 func _initialize():
 	partie = root.get_node("Partie")
+	ecran_parties = load("res://scripts/parties.gd")
 
 
 func _touch(pos, pressed):
@@ -59,6 +60,7 @@ func _physics_process(_d):
 				var texte := JSON.stringify(ANCIENNE)
 				_ecrire(partie.ANCIEN_FICHIER, texte)
 				partie._preparer_parties()
+				partie._vider()
 				partie.charger()
 				_verifier("fichier de secours = ancienne sauvegarde", FileAccess.file_exists(partie.SECOURS)
 					and FileAccess.get_file_as_string(partie.SECOURS) == texte)
@@ -75,6 +77,7 @@ func _physics_process(_d):
 				# Second lancement : l'ancienne sauvegarde a changé (elle n'est plus lue), le secours n'est pas écrasé
 				_ecrire(partie.ANCIEN_FICHIER, JSON.stringify({"version": 7, "inventaire": {"piles": 50}}))
 				partie._preparer_parties()
+				partie._vider()
 				partie.charger()
 				_verifier("2e lancement : secours jamais écrasé", FileAccess.get_file_as_string(partie.SECOURS) == texte)
 				_verifier("2e lancement : toujours une partie, pas de nouvelle migration (%s)" % partie.inventaire,
@@ -101,7 +104,7 @@ func _physics_process(_d):
 				_snap("menu")
 			if g == 200:
 				_verifier("message effacé après 1,5 s", not _s().get_node("Interface/MenuPartie").message_visible())
-				root.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
+				root.propagate_notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 			if g == 210:
 				_verifier("retour Android : menu fermé, toujours la base", current_scene.name == "Base" and not _s().menu_ouvert()
 					and _s().get_node("Interface/Tiroir").visible)
@@ -145,7 +148,7 @@ func _physics_process(_d):
 			if g == 80:
 				_verifier("toucher p1 : chargée, base (scène %s)" % current_scene.name, current_scene.name == "Base" and partie.en_cours == "p1")
 				_verifier("pas de mélange : p1 %s" % [partie.inventaire], partie.inventaire.get("conserve") == 3
-					and partie.inventaire.get("piles") == 7 and not partie.inventaire.has("eau") and partie.prenom == "Eliott")
+					and partie.inventaire.get("piles") == 7 and partie.inventaire.get("eau") == 2 and partie.prenom == "Eliott")
 				_verifier("pas de mélange : p2 %s" % [_lire("p2")["inventaire"]], _lire("p2")["inventaire"] == {"eau": 9.0}
 					and _lire("p2")["prenom"] == "Lou")
 				ecran_parties.ouvrir(self, "liste", true)
@@ -189,12 +192,12 @@ func _physics_process(_d):
 				_verifier("glisser fait défiler (%.0f px) sans charger de partie" % _s()._defilement,
 					_s()._defilement > 100 and current_scene.name == "Parties" and partie.en_cours == "p1")
 				_snap("defile")
-				root.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
+				root.propagate_notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 			if g == 365:
 				_verifier("retour Android depuis la base : base, partie inchangée", current_scene.name == "Base" and partie.en_cours == "p1")
 				ecran_parties.ouvrir(self, "liste", false)
 			if g == 395:
-				root.propagate_notification(NOTIFICATION_WM_GO_BACK_REQUEST)
+				root.propagate_notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
 			if g == 415:
 				_verifier("retour Android depuis le titre : titre", current_scene.name == "Titre")
 				_aller("fin")
