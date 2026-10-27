@@ -3,12 +3,13 @@ extends CharacterBody2D
 ## (libre, et en ligne droite sans obstacle : pas de recherche de chemin), s'arrête quelques secondes, repart.
 ## Quand le héros passe tout près, il s'arrête, se tourne vers lui et le remercie dans une bulle (au plus une fois
 ## toutes les RESCAPE_BASE_DELAI_MERCI s). aller_devant_tente() l'envoie devant sa tente et l'y garde (pour
-## l'attaque de la base, étape h) ; liberer() le laisse repartir.
+## l'attaque de la base, étape h) ; liberer() le laisse repartir. Pendant la défense de la base, un zombie qui le
+## touche l'emporte (emporter) : il disparaît dans un nuage (pas de gore).
 ## La base lui donne la position du héros (connaitre_heros) et le cache tant que sa tente n'est pas posée (actif).
 ## Origine = aux pieds (coordonnées monde). Affichage isométrique dans le calque Vue, bulle sur l'enfant « Bulle »
 ## (sans ombre, par-dessus le décor). Il ne bloque personne (aucune couche physique), seul le décor l'arrête.
 
-enum Etat { PAUSE, MARCHE, MERCI, TENTE }
+enum Etat { PAUSE, MARCHE, MERCI, TENTE, EMPORTE }
 
 const MASQUE_DECOR := 1
 const ECHELLE := 0.5            # images V3 à 2x, comme le héros
@@ -20,6 +21,7 @@ const ARRIVEE := 6.0
 const POP_BULLE := 0.15         # la bulle grossit en apparaissant (s)
 const TAILLE_TEXTE := 26
 const PHRASES := ["Merci de m'avoir sauvé !", "Sans toi, j'étais fichu !"]
+const DUREE_EMPORTE := 0.8      # emporté : il rapetisse et s'efface dans un nuage (s)
 
 ## Images V3 / V4 du rescapé (elles regardent à droite), voir Partie.persos_base.
 @export var perso := "survivor"
@@ -85,6 +87,20 @@ func liberer() -> void:
 		_pause()
 
 
+## Défense de la base : un zombie l'a touché, il est emporté (nuage, puis il disparaît pour le reste du niveau).
+func emporter() -> void:
+	if _etat == Etat.EMPORTE:
+		return
+	_etat = Etat.EMPORTE
+	_attente = DUREE_EMPORTE
+	velocity = Vector2.ZERO
+
+
+## Vrai dès qu'un zombie l'a emporté (même pendant le nuage).
+func emporte() -> bool:
+	return _etat == Etat.EMPORTE
+
+
 ## Arrivé et gardé devant sa tente.
 func devant_tente() -> bool:
 	return _etat == Etat.TENTE and global_position.distance_to(tente) <= ARRIVEE
@@ -143,8 +159,12 @@ func _chemin_libre(p: Vector2) -> bool:
 
 func _physics_process(delta: float) -> void:
 	_depuis_merci += delta
-	_vue.visible = actif
+	_vue.visible = actif and not (_etat == Etat.EMPORTE and _attente <= 0.0)
 	if not actif:
+		return
+	if _etat == Etat.EMPORTE:
+		_attente = maxf(_attente - delta, 0.0)
+		_suivre()
 		return
 	var cible := global_position
 	var vitesse := 0.0
@@ -229,6 +249,11 @@ func _pose() -> Dictionary:
 
 func _dessiner() -> void:
 	var v := _vue
+	if _etat == Etat.EMPORTE:
+		# Il rapetisse et s'efface au milieu du nuage
+		var k := 1.0 - _attente / DUREE_EMPORTE
+		v.self_modulate.a = 1.0 - k   # la bulle (nuage), enfant de la vue, garde son opacité
+		v.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * (1.0 - 0.6 * k))
 	Dessin.ombre(v, Rect2(-26, -9, 52, 18))
 	var anim := _pose()
 	var nom: String = anim["nom"]
@@ -247,6 +272,9 @@ func _dessiner() -> void:
 
 ## Bulle claire au contour épais avec une pointe vers sa tête ; elle grossit un instant en apparaissant.
 func _dessiner_bulle() -> void:
+	if _etat == Etat.EMPORTE:
+		_dessiner_nuage()
+		return
 	if _etat != Etat.MERCI:
 		return
 	var police := ThemeDB.fallback_font
@@ -268,3 +296,20 @@ func _dessiner_bulle() -> void:
 	var p := Vector2(cadre.position.x + 18, cadre.position.y + 12 + police.get_ascent(TAILLE_TEXTE))
 	_bulle.draw_string(police, p, _phrase, HORIZONTAL_ALIGNMENT_LEFT, -1, TAILLE_TEXTE, Palette.CONTOUR)
 	_bulle.draw_set_transform(Vector2.ZERO)
+
+
+## Nuage gris-violet qui gonfle puis s'efface autour de lui quand il est emporté (sur le calque de la bulle : sans
+## ombre, visible dans la nuit ; l'opacité de la bulle n'est pas celle du personnage).
+func _dessiner_nuage() -> void:
+	var k := 1.0 - _attente / DUREE_EMPORTE
+	var alpha := 1.0 - maxf(k - 0.5, 0.0) * 2.0
+	_bulle.modulate.a = alpha
+	for i in 7:
+		var angle := TAU * i / 7.0 + k * 1.5
+		var centre := Vector2(0, -50) + Vector2(cos(angle) * 34.0, sin(angle) * 30.0) * (0.4 + 0.8 * k)
+		var rayon := 18.0 + 16.0 * k
+		_bulle.draw_circle(centre, rayon + 3.0, Palette.CONTOUR)
+	for i in 7:
+		var angle := TAU * i / 7.0 + k * 1.5
+		var centre := Vector2(0, -50) + Vector2(cos(angle) * 34.0, sin(angle) * 30.0) * (0.4 + 0.8 * k)
+		_bulle.draw_circle(centre, 18.0 + 16.0 * k, Palette.BRUME_CLAIRE.lightened(0.15 * (i % 2)))

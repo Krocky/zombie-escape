@@ -118,7 +118,7 @@ var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 
 
 func _ready() -> void:
-	var remede := Partie.annoncer_remede()
+	var remede := not _en_defense() and Partie.annoncer_remede()
 	if remede:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/remede.tscn")
 	_arrivee = _heros.position
@@ -134,6 +134,9 @@ func _ready() -> void:
 	var camp := _camp()
 	for id in camp:
 		_ajouter_batiment(id, camp[id])
+	if _en_defense():
+		super()   # défense : un lieu comme les autres (nuit, lampe, HUD), la scène héritée fait le reste
+		return
 	$Monde.add_child(_fruit)
 	super()
 	$Nuit.color = Palette.BASE_LUMIERE * Color(Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, Reglages.BASE_CLARTE, 1.0)
@@ -204,6 +207,9 @@ func _preparer_interface() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _en_defense():
+		super(delta)   # logique des lieux (Niveau) ; la défense ajoute ses vagues
+		return
 	if not _pret:
 		return
 	# Un grand bâtiment devant le héros devient transparent : on le voit toujours
@@ -330,6 +336,12 @@ func menu_ouvert() -> bool:
 	return _menu.visible
 
 
+## Vrai dans le niveau 4 (défense de la base : scène héritée, script defense.gd) : la base y est un lieu comme les
+## autres (nuit, lampe torche, HUD complet, pause), sans son interface, ses chutes du ciel ni son fruit.
+func _en_defense() -> bool:
+	return false
+
+
 ## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
 func rescapes_aux_tentes(oui: bool) -> void:
 	for rescape in _rescapes.values():
@@ -339,14 +351,16 @@ func rescapes_aux_tentes(oui: bool) -> void:
 			rescape.liberer()
 
 
-## Pas de zombie à prévenir ni d'ondes de bruit dans la base.
-func _sur_bruit(_origine: Vector2, _rayon: float) -> void:
-	pass
+## Pas de zombie à prévenir ni d'ondes de bruit dans la base (sauf pendant la défense).
+func _sur_bruit(origine: Vector2, rayon: float) -> void:
+	if _en_defense():
+		super(origine, rayon)
 
 
-## Le fruit cueilli se garde pour le prochain lieu (il n'est pas mangé dans la base).
+## Le fruit cueilli se garde pour le prochain lieu (il n'est pas mangé dans la base ; il l'est à la défense).
 func _manger_fruit() -> void:
-	pass
+	if _en_defense():
+		super()
 
 
 ## Pas d'objectif dans la base.
@@ -356,7 +370,7 @@ func _afficher_objectif() -> void:
 
 ## Geste « retour » d'Android : ferme le menu Partie ou annule le placement en cours, sinon écran précédent (le titre).
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not _en_defense():
 		if menu_ouvert():
 			ouvrir_menu.call_deferred(false)
 		elif _placement != "":
@@ -365,9 +379,9 @@ func _notification(what: int) -> void:
 			get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
 
 
-## Pas de pause dans la base : le geste « retour » est traité ci-dessus.
+## Pas de pause dans la base : le geste « retour » est traité ci-dessus (pause pendant la défense).
 func _pause_au_retour() -> bool:
-	return false
+	return _en_defense()
 
 
 func _changer_heros() -> void:
@@ -731,7 +745,12 @@ func _obstacles() -> Array:
 	return liste
 
 
-## Places gardées libres même vides : abri (grand abri compris), feu, toutes les tentes, arrivée du héros.
+## Entrées des zombies de la défense (Reglages.DEFENSE_ENTREES) : carré gardé libre autour de chacune (monde).
+const ENTREE := Vector2(160, 160)
+
+
+## Places gardées libres même vides : abri (grand abri compris), feu, toutes les tentes, arrivée du héros, entrées
+## des zombies de la défense.
 func _reservees() -> Array:
 	var liste := []
 	for place in PLACES.values():
@@ -739,6 +758,8 @@ func _reservees() -> Array:
 	for tente in TENTES:
 		liste.append(Rect2(tente - TAILLE_TENTE / 2.0, TAILLE_TENTE))
 	liste.append(Rect2(_arrivee - ARRIVEE / 2.0, ARRIVEE))
+	for entree: Vector2 in Reglages.DEFENSE_ENTREES:
+		liste.append(Rect2(entree - ENTREE / 2.0, ENTREE))
 	return liste
 
 

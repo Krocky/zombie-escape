@@ -16,15 +16,17 @@ const ETOILE_CARTE := 28.0      # étoiles (meilleur score) au pied de la vignet
 const ETOILE_FICHE := 40.0      # étoiles sur la ligne du nom, dans la fiche
 const SEUIL_GLISSE := 20.0      # au-delà (pixels parcourus), le doigt fait défiler la carte au lieu de toucher
 const VITESSE_POINTILLES := 30.0   # pixels par seconde, de la base vers le lieu
-## Vignette de chaque lieu (et de la base)
-const VIGNETTES := {"base": "map_base", "supermarche": "map_market", "maison": "map_house", "pharmacie": "map_pharmacy"}
+## Vignette de chaque lieu (et de la base ; la défense de la base reprend celle de la base, teintée de rouge)
+const VIGNETTES := {"base": "map_base", "supermarche": "map_market", "maison": "map_house", "pharmacie": "map_pharmacy",
+	"defense": "map_base"}
+const TEINTE_DEFENSE := Color(1.0, 0.62, 0.58)
 ## Emplacements de la base et des lieux, en fraction de la carte ; « vue » = point de la carte au centre de l'écran
 ## à l'arrivée. En paysage puis en portrait. À l'arrivée, tous sont à l'écran et hors de la fiche.
 const PLACES := {
 	true: {"vue": Vector2(0.5, 0.5), "base": Vector2(0.179, 0.65), "supermarche": Vector2(0.336, 0.35),
-		"maison": Vector2(0.486, 0.675), "pharmacie": Vector2(0.534, 0.31)},
+		"maison": Vector2(0.486, 0.675), "pharmacie": Vector2(0.534, 0.31), "defense": Vector2(0.17, 0.33)},
 	false: {"vue": Vector2(0.4, 0.5), "base": Vector2(0.294, 0.37), "supermarche": Vector2(0.469, 0.195),
-		"maison": Vector2(0.452, 0.37), "pharmacie": Vector2(0.311, 0.2)},
+		"maison": Vector2(0.452, 0.37), "pharmacie": Vector2(0.311, 0.2), "defense": Vector2(0.373, 0.37)},
 }
 ## Fiche : à droite en paysage, en bas (au-dessus de Retour) en portrait ; même mise en page pour tous les lieux
 const TAILLE_FICHE := {true: Vector2(456, 530), false: Vector2(680, 530)}
@@ -331,6 +333,8 @@ func _marque_base(c: Vector2, e: float) -> void:
 func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 	var dispo := Partie.lieu_disponible(id)
 	var teinte := Color.WHITE if dispo else Color(0.5, 0.5, 0.6)
+	if id == Partie.DEFENSE:
+		teinte *= TEINTE_DEFENSE
 	if id == _choisi:
 		var pulse := 0.5 + 0.5 * sin(_temps * 5.0)
 		draw_arc(c, (84.0 + 6.0 * pulse) * e, 0.0, TAU, 40, Palette.CONTOUR, 10.0 * e, true)
@@ -359,6 +363,8 @@ func _marque_lieu(id: String, c: Vector2, e: float) -> void:
 			var taille := t * CADENAS * e / t.y
 			draw_texture_rect(Images.v3_texture("map_lock"), Rect2(c + Vector2(0, -8) * e - taille / 2.0, taille), false)
 		_etiquette(c + Vector2(0, 116) * e, "Bientôt", Palette.UI_TEXTE, 18)
+		if id == Partie.DEFENSE:
+			_etiquette(c + Vector2(0, 150) * e, "Sauve d'abord un rescapé", Palette.UI_TEXTE, 18)
 
 
 ## Trois étoiles icon_star côte à côte centrées sur c : les « gagnees » premières en couleur, les autres grises
@@ -442,14 +448,21 @@ func _dessiner_fiche() -> void:
 	_etoiles(fiche, Vector2(fiche.size.x - x - ETOILE_FICHE * 1.6, 44), ETOILE_FICHE, Partie.meilleures_etoiles(_choisi))
 	# Objectif sur deux lignes : « Objectif : » en jaune, puis le texte
 	var objectif := Partie.texte_objectif(_choisi) if Partie.total_objectif(_choisi) > 0 else "explorer le lieu"
+	if _choisi == Partie.DEFENSE:
+		objectif = "tuer tous les zombies"
 	fiche.draw_string(police, Vector2(x, 102), "Objectif :", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Palette.LAMPE)
 	fiche.draw_string(police, Vector2(x, 134), objectif, HORIZONTAL_ALIGNMENT_LEFT, largeur, 26, Palette.UI_TEXTE)
 	fiche.draw_line(Vector2(x, 154), Vector2(fiche.size.x - x, 154), Color(Palette.UI_BORD, 0.3), 2.0)
 	var infos := Partie.infos_lieu(_choisi)
 	var zombies: Array = infos["zombies"]
 	var objets: Array = infos["objets"]
+	var defense := _choisi == Partie.DEFENSE
+	if defense:
+		zombies = [0, 1, 2]   # les trois types peuvent attaquer
 	# Danger
 	var danger := "Danger : %d zombie%s" % [zombies.size(), "s" if zombies.size() > 1 else ""]
+	if defense:
+		danger = "Danger : %d vague%s" % [Reglages.DEFENSE_VAGUES.size(), "s" if Reglages.DEFENSE_VAGUES.size() > 1 else ""]
 	fiche.draw_string(police, Vector2(x, 192), danger, HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.COEUR)
 	for i in zombies.size():
 		var pieds := Vector2(x + 40 + i * 76, 290)
@@ -465,6 +478,9 @@ func _dessiner_fiche() -> void:
 				Images.dessiner_calque(fiche, image, image + "_yeux", pieds, echelle)
 		else:
 			Dessin.cercle(fiche, pieds - Vector2(0, 30), 24.0, Palette.ZOMBIE_PEAU)
+	if defense:
+		_fiche_defense(fiche, x, largeur)
+		return
 	# Rescapé : à droite des zombies (sous la ligne Danger), caché (à sauver), content (déjà sauvé) ou aucun
 	var sauve := Partie.rescape_sauve(_choisi)
 	var ligne := "Rescapé sauvé" if sauve else "Rescapé : %d" % infos["rescapes"] if infos["rescapes"] > 0 else "Pas de rescapé"
@@ -482,3 +498,26 @@ func _dessiner_fiche() -> void:
 	var pas := minf(82.0, largeur / maxf(objets.size(), 1.0))
 	for i in objets.size():
 		Dessin.icone_objet(fiche, objets[i], Vector2(x + 26 + i * pas, 394), TAILLE_ICONE)
+
+
+## Bas de la fiche de la défense de la base : rescapés à protéger (à droite des zombies), zombies de chaque vague.
+func _fiche_defense(fiche: Control, x: float, largeur: float) -> void:
+	var police := ThemeDB.fallback_font
+	var nombre := mini(Partie.rescapes, 10)   # une tente (et un rescapé) par rescapé, au plus 10
+	var ligne := "À protéger : %d" % nombre
+	fiche.draw_string_outline(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, 6, Palette.CONTOUR)
+	fiche.draw_string(police, Vector2(x, 226), ligne, HORIZONTAL_ALIGNMENT_RIGHT, largeur, 22, Palette.LAMPE)
+	var persos := Partie.persos_base()
+	for i in mini(persos.size(), 3):
+		var image := Images.v3_pose(persos[i], "happy")
+		if image == "":
+			continue
+		var pieds := Vector2(fiche.size.x - x - 30 - i * 44, 294)
+		Dessin.ombre(fiche, Rect2(pieds - Vector2(22, 6), Vector2(44, 12)))
+		Images.v3_dessiner(fiche, image, pieds, 58.0 / Images.v3_taille(image).y)
+	var vagues := []
+	for n in Reglages.DEFENSE_VAGUES:
+		vagues.append(str(n))
+	fiche.draw_string(police, Vector2(x, 336), "Zombies par vague :", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Palette.UI_TEXTE)
+	fiche.draw_string_outline(police, Vector2(x, 384), ", ".join(vagues), HORIZONTAL_ALIGNMENT_LEFT, largeur, 34, 7, Palette.CONTOUR)
+	fiche.draw_string(police, Vector2(x, 384), ", ".join(vagues), HORIZONTAL_ALIGNMENT_LEFT, largeur, 34, Palette.COEUR)

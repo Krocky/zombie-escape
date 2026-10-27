@@ -13,6 +13,9 @@ const PAS_ICONE := 86.0        # entre deux icônes d'objets (une image peut fai
 const TAILLE_STOCK := 42.0     # icônes de l'inventaire de la base
 const TITRES := {"mission": "Mission réussie !", "victoire": "Victoire !", "defaite": "Retour à la base"}
 const RAISONS := ["Sorti", "Objectif", "Rescapé ou\nsans blessure"]
+## Défense de la base : titre de la victoire, raisons des étoiles
+const TITRE_DEFENSE := "Base défendue !"
+const RAISONS_DEFENSE := ["Victoire", "Défense\nparfaite !", "Sans blessure"]
 const DEBUT_ETOILES := 0.5      # s : première étoile
 const ECART_ETOILES := 0.45     # s entre deux étoiles
 const DUREE_REBOND := 0.5
@@ -38,19 +41,29 @@ func _ready() -> void:
 	_victoire = resultat["victoire"]
 	var nom := ("bg_victory_" if _victoire else "bg_defeat_") + Partie.perso()
 	_illustration = nom if Images.v3_existe(nom) else ""
+	var defense: bool = resultat.get("defense", false)
 	$Titre.text = TITRES["mission" if resultat["mission"] else "victoire" if _victoire else "defaite"]
+	if defense and _victoire:
+		$Titre.text = TITRE_DEFENSE
 	$Titre.add_theme_color_override("font_color", Palette.SORTIE if _victoire else Palette.LAMPE)
 	$Titre.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 
 	var lignes := []
 	var bravo := ("Bravo %s ! " % Partie.prenom) if Partie.prenom != "" else ""
-	if _victoire:
+	if _victoire and defense:
+		lignes.append(bravo + "Tu as repoussé toutes les vagues de zombies !")
+		if resultat.get("emportes", 0) == 0:
+			lignes.append("Défense parfaite : aucun rescapé emporté !")
+	elif _victoire:
 		lignes.append(bravo + "Tu es %s %s !" % [Partie.accord("sorti", "sortie"), Partie.LIEUX[Partie.lieu]["du"]])
 	else:
 		lignes.append("Tu as été %s... tes amis t'ont %s à la base." % [Partie.accord("rattrapé", "rattrapée"), Partie.accord("ramené", "ramenée")])
 		lignes.append("Pas grave%s : la prochaine fois sera la bonne !" % ((", " + Partie.prenom) if Partie.prenom != "" else ""))
 	if resultat.get("rescape", false):
 		lignes.append("Tu as sauvé un rescapé !")
+	if resultat.get("emportes", 0) > 0:
+		lignes.append("%d rescapé%s emporté%s : va les rechercher !" % [resultat["emportes"],
+			"s" if resultat["emportes"] > 1 else "", "s" if resultat["emportes"] > 1 else ""])
 	if resultat.get("gueris", 0) > 0:
 		lignes.append("Tu as guéri %s : %s la base !" % ["un zombie" if resultat["gueris"] == 1 else "%d zombies" % resultat["gueris"],
 			"il rejoint" if resultat["gueris"] == 1 else "ils rejoignent"])
@@ -269,6 +282,7 @@ func _dessiner_etoiles() -> void:
 	var e := _e()
 	var gagnees := Partie.etoiles()
 	var police := ThemeDB.fallback_font
+	var raisons: Array = RAISONS_DEFENSE if Partie.resultat.get("defense", false) else RAISONS
 	for i in 3:
 		var c := _etoiles + Vector2((i - 1) * 110.0, -12.0 if i == 1 else 0.0) * e
 		var taille := (96.0 if i == 1 else 80.0) * e
@@ -278,8 +292,8 @@ func _dessiner_etoiles() -> void:
 			var k := clampf(t / DUREE_REBOND, 0.0, 1.0)
 			var echelle := (1.0 - pow(1.0 - k, 3.0)) * (1.0 + 0.4 * sin(k * PI))
 			_etoile(c - Vector2(0, sin(k * PI) * 30.0 * e), taille * echelle, Color.WHITE, false)
-		for j in RAISONS[i].split("\n").size():
-			var ligne: String = RAISONS[i].split("\n")[j]
+		for j in raisons[i].split("\n").size():
+			var ligne: String = raisons[i].split("\n")[j]
 			var p := c + Vector2(-60 * e, taille * 0.5 + (22 + j * 20) * e)
 			draw_string_outline(police, p, ligne, HORIZONTAL_ALIGNMENT_CENTER, 120 * e, int(17 * e), 5, Palette.CONTOUR)
 			draw_string(police, p, ligne, HORIZONTAL_ALIGNMENT_CENTER, 120 * e, int(17 * e),

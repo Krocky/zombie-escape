@@ -100,6 +100,9 @@ const ZOMBIE_VUE_BORD := Color(1.0, 0.94, 0.62, 0.45)      # contour du cône, j
 const ZOMBIE_VUE_BORD_ALERTE := Color(1.0, 0.28, 0.25, 0.8) # contour du cône, rouge (poursuite)
 const ZOMBIE_PREPARATION := Color("ff4a3d")                # « ! » rouge : il lève les bras, il va frapper
 const ONDE_BRUIT := Color("e4ecff")                        # onde de bruit (pas, batte) au sol
+## Défense de la base : flèches autour du héros vers les zombies hors de l'écran, une couleur par type
+## (gros, maigre, coureur à la combinaison orange)
+const FLECHES_ZOMBIES := [Color("7fd36a"), Color("d8e86a"), Color("ff9a3c")]
 
 # Interface
 const UI_FOND := Color(0.08, 0.07, 0.13, 0.55)

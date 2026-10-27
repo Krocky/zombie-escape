@@ -88,6 +88,18 @@ var TOURELLE_CADENCE := 0.6           # secondes entre deux tirs (une balle à c
 var TOURELLE_DEGATS := 1              # cœurs enlevés au zombie à chaque balle
 var TOURELLE_PORTEE_RECHARGE := 110.0 # distance de la tourelle pour voir le bouton Recharger
 
+# --- Défense de la base (niveau 4 : des vagues de zombies attaquent le parking, la nuit) ---
+var DEFENSE_RESCAPES := 1             # rescapés à la base qu'il faut avoir pour débloquer le niveau sur la carte
+var DEFENSE_VAGUES := [4, 6, 8]       # zombies de chaque vague, dans l'ordre (gros, maigre ou coureur au hasard)
+# Entrées des zombies au bord du parking (monde ; le parking fait 2400 x 1600, les tentes sont à droite ;
+# on ne peut rien construire dessus)
+var DEFENSE_ENTREES := [Vector2(700, 110), Vector2(110, 380), Vector2(110, 1250), Vector2(1250, 1520)]
+var DEFENSE_DELAI_ZOMBIE := 1.5       # secondes entre deux zombies d'une même vague
+var DEFENSE_PAUSE_VAGUES := 8.0       # secondes de pause entre deux vagues (« Vague 2 / 3 » au centre)
+var DEFENSE_DEBUT := 3.0              # secondes avant le premier zombie
+var DEFENSE_ALLURE := 2.0             # en marchant vers les rescapés, un zombie va 2 fois plus vite qu'en patrouille
+var DEFENSE_BONUS := 2                # objets en plus, au hasard, quand toutes les vagues sont battues
+
 # --- Fruit du potager (le jardin construit fait pousser un fruit, cueilli à la base, mangé au lieu suivant) ---
 var FRUIT_DELAI := 10800.0            # secondes entre deux fruits (3 h, en vrai temps, même jeu fermé)
 var FRUIT_VITESSE := 1.5              # le héros court 1,5 fois plus vite...

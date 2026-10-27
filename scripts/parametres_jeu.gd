@@ -78,6 +78,12 @@ const PAGES := [
 		["TOURELLE_CAPACITE", "Balles au plus par tourelle", 5, 5, 200],
 		["BALLES_PAR_BOITE", "Balles dans une boîte", 1, 1, 100],
 	]],
+	["Défense", [
+		["DEFENSE_DELAI_ZOMBIE", "Temps entre deux zombies (s)", 0.25, 0.25, 10.0],
+		["DEFENSE_PAUSE_VAGUES", "Pause entre deux vagues (s)", 1.0, 0.0, 60.0],
+		["DEFENSE_DEBUT", "Avant le premier zombie (s)", 0.5, 0.0, 30.0],
+		["DEFENSE_ALLURE", "Allure vers les rescapés (x)", 0.1, 0.5, 4.0],
+	]],
 ]
 
 var _origine := {}   # nom -> valeur de data/reglages.gd

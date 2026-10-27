@@ -71,7 +71,11 @@ const LIEUX := {
 	"supermarche": {"nom": "Supermarché", "du": "du supermarché", "scene": "res://scenes/lieux/supermarche.tscn"},
 	"maison": {"nom": "Maison", "du": "de la maison", "scene": "res://scenes/lieux/maison.tscn"},
 	"pharmacie": {"nom": "Pharmacie", "du": "de la pharmacie", "scene": "res://scenes/lieux/pharmacie.tscn"},
+	"defense": {"nom": "Défense de la base", "du": "de la base", "scene": "res://scenes/lieux/defense.tscn"},
 }
+## Niveau 4 : la défense de la base (vagues de zombies sur le parking). Disponible avec Reglages.DEFENSE_RESCAPES
+## rescapés à la base ; pas d'objet à trouver, l'objectif est de battre toutes les vagues.
+const DEFENSE := "defense"
 
 ## Lieu choisi sur la carte (clé de LIEUX)
 var lieu := "supermarche"
@@ -109,9 +113,10 @@ var fruit := false
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
 ## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array),
-## trouvailles (objets rapportés par les rescapés de la base, Array), gueris (zombies guéris avec une fiole, int)
+## trouvailles (objets rapportés par les rescapés de la base, Array), gueris (zombies guéris avec une fiole, int),
+## defense (c'était la défense de la base, bool), emportes (rescapés emportés par les zombies pendant la défense, int)
 var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
-	"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}
+	"intact": false, "jardin": [], "trouvailles": [], "gueris": 0, "defense": false, "emportes": 0}
 
 
 ## Parties sauvegardées, dans l'ordre de création : [{"id": "p1", "nom": .., "date": secondes unix}, ...]
@@ -138,8 +143,11 @@ func _notification(what: int) -> void:
 
 ## Appelé par le niveau à la fin. En cas de défaite, on perd la moitié des objets (au hasard, arrondi en dessous).
 ## rescape : le rescapé du lieu suivait le héros à la sortie ; intact : le héros n'a perdu aucun cœur ;
-## gueris : zombies guéris avec une fiole (chacun compte comme un rescapé sauvé, même en cas de défaite).
-func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false, gueris := 0) -> void:
+## gueris : zombies guéris avec une fiole (chacun compte comme un rescapé sauvé, même en cas de défaite) ;
+## emportes : défense de la base, numéros des tentes (0 = la première) dont le rescapé a été emporté (emporter_rescapes).
+## Défense : la victoire vaut une mission réussie (Reglages.DEFENSE_BONUS objets en bonus).
+func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false, gueris := 0, emportes := []) -> void:
+	var defense := lieu == DEFENSE
 	var rapportes := ramasses.duplicate()
 	var perdus := []
 	if not victoire:
@@ -147,11 +155,11 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 		for i in rapportes.size() / 2:
 			perdus.append(rapportes.pop_back())
 	# Objectif rempli en sortant vivant : bonus d'objets au hasard (jamais de fiole, elle se mérite)
-	var mission := victoire and objectif_rempli(lieu, rapportes + avec_guerisons([], gueris))
+	var mission := victoire and (defense or objectif_rempli(lieu, rapportes + avec_guerisons([], gueris)))
 	var types := NOMS.keys().filter(func(t: String) -> bool: return not t in HORS_GAINS)
 	var bonus := []
 	if mission:
-		for i in Reglages.MISSION_BONUS:
+		for i in (Reglages.DEFENSE_BONUS if defense else Reglages.MISSION_BONUS):
 			bonus.append(types.pick_random())
 	# Rescapés au travail : chacun de ceux qui étaient déjà à la base rapporte des objets (jamais de fiole), à chaque retour
 	var trouvailles := []
@@ -168,21 +176,40 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 	if sauve:
 		rescapes += 1
 		lieux_sauves.append(lieu)
+	emporter_rescapes(emportes)
 	rescapes += gueris
 	resultat = {"victoire": victoire, "rapportes": rapportes, "perdus": perdus, "mission": mission, "bonus": bonus,
 		"fioles": _remplir_remede(), "rescape": sauve, "intact": intact,
-		"jardin": jardin, "trouvailles": trouvailles, "gueris": gueris}
+		"jardin": jardin, "trouvailles": trouvailles, "gueris": gueris, "defense": defense, "emportes": emportes.size()}
 	# Meilleur nombre d'étoiles du lieu (gardé s'il n'est pas battu)
 	if etoiles() > meilleures_etoiles(lieu):
 		etoiles_lieux[lieu] = etoiles()
 	sauvegarder()
 
 
+## Rescapés emportés pendant la défense de la base : tentes[i] = numéro de la tente (0 = la première ; ordre de
+## persos_base : ceux des lieux sauvés, puis les zombies guéris). Il n'est plus à la base : son lieu redevient
+## « rescapé à sauver » ; un zombie guéri emporté est simplement perdu. Les tentes en trop retomberont du ciel
+## au prochain rescapé.
+func emporter_rescapes(tentes: Array) -> void:
+	var lieux := []
+	for k in tentes:
+		if k < lieux_sauves.size():
+			lieux.append(lieux_sauves[k])
+	for id in lieux:
+		lieux_sauves.erase(id)
+	for n in tentes.size():
+		batiments_vus.erase("tente_%d" % (rescapes - n))
+	rescapes = maxi(rescapes - tentes.size(), 0)
+
+
 ## Étoiles de l'écran de victoire (0 à 3) : 1 pour être sorti, +1 objectif rempli, +1 rescapé sauvé (ou zombie guéri)
-## ou aucun cœur perdu.
+## ou aucun cœur perdu. Défense de la base : 1 pour la victoire, +1 aucun rescapé emporté, +1 aucun cœur perdu.
 func etoiles() -> int:
 	if not resultat["victoire"]:
 		return 0
+	if resultat.get("defense", false):
+		return 1 + int(resultat.get("emportes", 0) == 0) + int(resultat.get("intact", false))
 	var sauve: bool = resultat.get("rescape", false) or resultat.get("gueris", 0) > 0
 	return 1 + int(resultat["mission"]) + int(sauve or resultat.get("intact", false))
 
@@ -253,7 +280,10 @@ func _perso_ou_garcon(perso: String) -> String:
 	return perso if Images.v3_pose(perso, "happy") != "" else "survivor"
 
 
+## Lieu jouable : il a une scène ; la défense de la base demande en plus des rescapés à défendre.
 func lieu_disponible(id: String) -> bool:
+	if id == DEFENSE and rescapes < Reglages.DEFENSE_RESCAPES:
+		return false
 	return LIEUX.has(id) and LIEUX[id]["scene"] != ""
 
 
@@ -671,7 +701,7 @@ func _vider() -> void:
 	fruit = false
 	derniers_tirages = {}
 	resultat = {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
-		"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}
+		"intact": false, "jardin": [], "trouvailles": [], "gueris": 0, "defense": false, "emportes": 0}
 
 
 # --- Plusieurs parties (lot 4 d) ---

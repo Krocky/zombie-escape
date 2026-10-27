@@ -11,6 +11,10 @@ extends CharacterBody2D
 ## et repoussé qu'un coup sur Reglages.ZOMBIE_LENT_GARDE.
 ## Après le remède, une fiole lancée (guerir) le guérit : nuage vert clair, il redevient un survivant
 ## (image survivor_happy) assis par terre, inoffensif et immobile pour le reste de la partie.
+## Défense de la base (niveau 4) : au lieu de patrouiller, il marche vers un point donné par le niveau à chaque pas
+## (marcher_vers : le rescapé le plus proche), plus vite qu'en patrouille (Reglages.DEFENSE_ALLURE) ; il poursuit
+## le héros s'il le voit, puis revient vers les rescapés (pas de retour à sa place). Coincé contre le décor, il fait
+## un petit détour sur le côté (pas de recherche de chemin).
 
 ## Le zombie touche le héros : le niveau transmet les dégâts.
 signal touche_heros(degats: int, depuis: Vector2)
@@ -84,6 +88,11 @@ const DUREE_NUAGE := 1.0      # nuage vert ; il change d'apparence au milieu
 const ECHELLE_GUERI := 0.45   # survivant (images V3 à 2x), comme le rescapé
 var _perso_gueri := "survivor"   # survivant qu'il devient (Partie.perso_gueri)
 const MONTEE_BRAS := 0.12   # secondes pour lever les bras (ils restent levés jusqu'au coup)
+var _assaut := Vector2.INF   # défense de la base : là où il va au lieu de patrouiller (INF : patrouille habituelle)
+var _detour := Vector2.ZERO  # point sur le côté quand il est coincé en allant vers les rescapés
+var _temps_detour := 0.0
+const DETOUR := 220.0        # distance du détour sur le côté (monde)
+const DUREE_DETOUR := 1.2    # secondes de détour avant de revenir vers sa cible
 
 @onready var _cone: Node2D = $Cone   # placé par le niveau dans le calque du sol
 @onready var _yeux: Node2D = $Yeux   # enfant de _vue
@@ -93,6 +102,11 @@ const MONTEE_BRAS := 0.12   # secondes pour lever les bras (ils restent levés j
 func connaitre_heros(position_heros: Vector2, detectable: bool) -> void:
 	_position_heros = position_heros
 	_heros_detectable = detectable
+
+
+## Défense de la base : il marche vers ce point (monde) au lieu de patrouiller ; Vector2.INF : patrouille habituelle.
+func marcher_vers(point: Vector2) -> void:
+	_assaut = point
 
 
 ## Un bruit a été fait en « origine » ; il porte jusqu'à « rayon ».
@@ -195,6 +209,12 @@ func _degats() -> int:
 
 
 func _vitesse() -> float:
+	if _etat == Etat.PATROUILLE and _assaut != Vector2.INF:
+		return _vitesse_etat() * Reglages.DEFENSE_ALLURE   # il marche vers les rescapés
+	return _vitesse_etat()
+
+
+func _vitesse_etat() -> float:
 	var poursuite := _etat == Etat.POURSUITE or _etat == Etat.CHERCHE
 	if type == Type.COUREUR:
 		# Il ne fonce qu'en charge ; il cherche et rentre à petite vitesse
@@ -265,9 +285,13 @@ func _physics_process(delta: float) -> void:
 	var cible := global_position
 	match _etat:
 		Etat.PATROUILLE:
-			cible = _depart + patrouille if _vers_bout else _depart
-			if global_position.distance_to(cible) < 10.0:
-				_vers_bout = not _vers_bout
+			if _assaut != Vector2.INF:
+				_temps_detour = maxf(_temps_detour - delta, 0.0)
+				cible = _detour if _temps_detour > 0.0 else _assaut
+			else:
+				cible = _depart + patrouille if _vers_bout else _depart
+				if global_position.distance_to(cible) < 10.0:
+					_vers_bout = not _vers_bout
 		Etat.POURSUITE:
 			# Il fonce vers le héros, ou vers l'endroit où il l'a vu pour la dernière fois
 			cible = _point_recherche
@@ -346,6 +370,11 @@ func _verifier_blocage(direction: Vector2, delta: float) -> void:
 	if _bloque < Reglages.ZOMBIE_DELAI_BLOQUE:
 		return
 	_bloque = 0.0
+	if _etat == Etat.PATROUILLE and _assaut != Vector2.INF:
+		# Vers les rescapés : détour d'un côté au hasard, puis il reprend sa route
+		_detour = global_position + direction.orthogonal() * DETOUR * (1.0 if randf() < 0.5 else -1.0)
+		_temps_detour = DUREE_DETOUR
+		return
 	if _etat == Etat.PATROUILLE and _vers_bout:
 		_depart = global_position - patrouille
 	else:
@@ -356,6 +385,8 @@ func _verifier_blocage(direction: Vector2, delta: float) -> void:
 
 
 func _changer_etat(nouvel_etat: Etat) -> void:
+	if nouvel_etat == Etat.RETOUR and _assaut != Vector2.INF:
+		nouvel_etat = Etat.PATROUILLE   # défense : il repart vers les rescapés
 	if nouvel_etat == Etat.POURSUITE and _etat != Etat.POURSUITE:
 		_charge = 0.0
 	if nouvel_etat == Etat.ESSOUFFLE:

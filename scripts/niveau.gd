@@ -234,8 +234,8 @@ func _physics_process(delta: float) -> void:
 			$HUD.afficher_clefs(_clefs)
 		else:
 			porte.indiquer(devant)
-	# Sortie atteinte : victoire
-	if _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
+	# Sortie atteinte : victoire (la défense de la base n'a pas de sortie)
+	if has_node("Monde/Sortie") and _heros.global_position.distance_to($Monde/Sortie.global_position) <= Reglages.SORTIE_PORTEE:
 		_finir(true)
 
 
@@ -358,12 +358,17 @@ func _finir(victoire: bool, attente := -1.0) -> void:
 		return
 	_fini = true
 	_heros.definir_direction(Vector2.ZERO)
-	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact(), _gueris)
+	_terminer(victoire)
 	if attente < 0.0:
 		attente = 0.5 if victoire else 2.0
 	if attente > 0.0:
 		await get_tree().create_timer(attente, false).timeout
 	get_tree().change_scene_to_file("res://scenes/fin.tscn")
+
+
+## Résultat de la partie noté dans Partie (la défense de la base y ajoute les rescapés emportés).
+func _terminer(victoire: bool) -> void:
+	Partie.terminer(victoire, _ramasses, victoire and _rescape_suit(), _heros.intact(), _gueris)
 
 
 # Sol tiré une fois, par bloc : bloc (Vector2i) -> [[nom, rectangle à l'écran, retourné], ...]

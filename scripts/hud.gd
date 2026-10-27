@@ -28,6 +28,9 @@ var _temps_fruit := 0.0
 var _pause: Control = BOUTON.instantiate()   # bouton Pause, en haut au centre sous l'objectif
 var _soin: Control = BOUTON.instantiate()    # bouton Soigner, à gauche de Frapper
 var _guerir: Control = BOUTON.instantiate()  # bouton Guérir (après le remède), à gauche de Cacher
+var _annonce := Label.new()       # défense de la base : « Vague 2 / 3 » en grand au centre
+var _anim_annonce: Tween          # apparition puis effacement de l'annonce en cours
+var _defense := false
 
 
 func _ready() -> void:
@@ -100,6 +103,16 @@ func _ready() -> void:
 	_guerir.appuye.connect(guerir.emit)
 	add_child(_guerir)
 	_guerir.size = TAILLE_GUERIR
+	_annonce.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_annonce.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_annonce.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_annonce.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_annonce.add_theme_font_size_override("font_size", 96)
+	_annonce.add_theme_constant_override("outline_size", 22)
+	_annonce.add_theme_color_override("font_color", Palette.LAMPE)
+	_annonce.add_theme_color_override("font_outline_color", Palette.CONTOUR)
+	_annonce.visible = false
+	add_child(_annonce)
 	$Objectif.add_theme_color_override("font_outline_color", Palette.CONTOUR)
 	$Objectif.visible = false
 	get_viewport().size_changed.connect(_placer_objectif)
@@ -144,6 +157,8 @@ func afficher_pv(pv: int, pv_max: int) -> void:
 
 ## Le bouton Cacher n'est actif que près d'une cachette (ou pour en sortir).
 func etat_cachette(proche: bool, cache: bool) -> void:
+	if _defense:
+		return   # défense : pas de cachette, Frapper toujours actif
 	$BoutonCacher.actif = proche or cache
 	$BoutonCacher.texte = "Sortir" if cache else "Cacher"
 	$BoutonCacher.icone = "sortir" if cache else "cacher"
@@ -279,6 +294,41 @@ func mode_base() -> void:
 	for noeud in [$BoutonAttaquer, $BoutonCacher, _pause, _soin, _guerir, $JaugePV, $CompteurObjets, $Objectif,
 			_icones, _rescape, _clef, _fruit]:
 		noeud.visible = false
+
+
+## Défense de la base (niveau 4) : pas de cachette (ni Cacher), ni objets à ramasser ni rescapé à suivre ; le cadre
+## du compteur d'objets montre la vague (afficher_vague).
+func mode_defense() -> void:
+	_defense = true
+	for noeud in [$BoutonCacher, _icones, _rescape, _clef]:
+		noeud.visible = false
+
+
+## Défense : « Vague 2 / 3 » dans le cadre en haut à droite.
+func afficher_vague(numero: int, total: int) -> void:
+	$CompteurObjets.text = "Vague %d / %d" % [numero, total]
+
+
+## Grand texte au centre de l'écran (« Vague 2 / 3 », « Base défendue ! ») : il grossit en arrivant, reste
+## `duree` secondes puis s'efface.
+func annoncer(texte: String, duree := 2.5) -> void:
+	_annonce.text = texte
+	_annonce.visible = true
+	_annonce.pivot_offset = get_viewport().get_visible_rect().size / 2.0
+	_annonce.scale = Vector2(0.5, 0.5)
+	_annonce.modulate.a = 1.0
+	if _anim_annonce:
+		_anim_annonce.kill()   # l'annonce précédente ne doit pas effacer celle-ci
+	_anim_annonce = create_tween()
+	_anim_annonce.tween_property(_annonce, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_anim_annonce.tween_interval(duree)
+	_anim_annonce.tween_property(_annonce, "modulate:a", 0.0, 0.5)
+	_anim_annonce.tween_callback(func() -> void: _annonce.visible = false)
+
+
+## Texte de l'annonce en cours ("" : aucune).
+func annonce() -> String:
+	return _annonce.text if _annonce.visible else ""
 
 
 ## Le jeu se fige : on oublie les doigts posés (joystick, boutons), leur lever n'arrivera pas.
