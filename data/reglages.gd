@@ -97,7 +97,7 @@ var DEFENSE_ENTREES := [Vector2(700, 110), Vector2(110, 380), Vector2(110, 1000)
 var DEFENSE_DELAI_ZOMBIE := 1.5       # secondes entre deux zombies d'une même vague
 var DEFENSE_PAUSE_VAGUES := 8.0       # secondes de pause entre deux vagues (« Vague 2 / 3 » au centre)
 var DEFENSE_DEBUT := 3.0              # secondes avant le premier zombie
-var DEFENSE_ALLURE := 2.0             # en marchant vers les rescapés, un zombie va 2 fois plus vite qu'en patrouille
+var DEFENSE_ALLURE := 1.5             # en marchant vers les rescapés, un zombie va 1,5 fois plus vite qu'en patrouille
 var DEFENSE_BONUS := 2                # objets en plus, au hasard, quand toutes les vagues sont battues
 
 # --- Fruit du potager (le jardin construit fait pousser un fruit, cueilli à la base, mangé au lieu suivant) ---
