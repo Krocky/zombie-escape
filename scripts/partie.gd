@@ -1,7 +1,7 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 9 : {"version": 9, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 10 : {"version": 10, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
 ## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
 ## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus),
@@ -9,9 +9,11 @@ extends Node
 ## "etoiles": {id: meilleur nombre d'étoiles (1 à 3) gagné dans ce lieu},
 ## "poses": [{"nom": construction, "x": .., "y": ..}, ...] constructions posées dans la base (centre de l'emprise,
 ## dans l'ordre de pose ; une barricade ou une tourelle par entrée),
-## "tourelles": [balles, ...] balles de chaque tourelle, dans l'ordre de pose}.
+## "tourelles": [balles, ...] balles de chaque tourelle, dans l'ordre de pose,
+## "fruit_cueilli": heure système (secondes) de la dernière cueillette du fruit du potager (0 = jamais),
+## "fruit": un fruit cueilli attend le prochain lieu (bool)}.
 ## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge, ses constructions gardent
-## leur place de l'étape a du lot 4, PLACES_DEPART), puis réécrite en version 9.
+## leur place de l'étape a du lot 4, PLACES_DEPART, pas de cueillette : le fruit est prêt), puis réécrite en version 10.
 ## Plusieurs parties (lot 4 d) : une sauvegarde (format ci-dessus) par partie dans DOSSIER (« p1.json », « p2.json »...),
 ## et un index INDEX = {"version": 1, "en_cours": id, "parties": [{"id": .., "nom": .., "date": secondes unix}, ...]}.
 ## L'ancienne sauvegarde unique (ANCIEN_FICHIER) est copiée une fois dans SECOURS (jamais écrasée), puis devient la
@@ -22,7 +24,7 @@ const SECOURS := "user://sauvegarde_avant_lot4d.json"
 const DOSSIER := "user://parties/"
 const INDEX := "user://parties/index.json"
 const NOM_PARTIE_MAX := 20
-const VERSION := 9
+const VERSION := 10
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
@@ -100,6 +102,10 @@ var lieux_sauves := []
 var batiments_vus := []
 ## Meilleur nombre d'étoiles gagné dans chaque lieu : { id: 1 à 3 } (lieu absent = pas encore d'étoile)
 var etoiles_lieux := {}
+## Fruit du potager : heure système (secondes) de la dernière cueillette (0 = jamais : le premier fruit est prêt dès
+## que le jardin est construit), et fruit cueilli gardé pour le prochain lieu (un seul)
+var fruit_cueilli := 0.0
+var fruit := false
 ## Dernière partie : victoire (bool), rapportes (Array), perdus (Array),
 ## mission (objectif rempli, bool), bonus (Array), fioles (versées dans la jauge, int), rescape (sauvé, bool),
 ## intact (aucun cœur perdu, bool), jardin (objets offerts par le jardin au retour, Array),
@@ -530,6 +536,48 @@ func portee_lampe() -> float:
 	return Reglages.LAMPE_PORTEE * (1.0 + Reglages.LAMPE_RENFORCEE_PORTEE / 100.0 if est_construit("lampe") else 1.0)
 
 
+# --- Fruit du potager ---
+
+## Heure système en secondes (les tests peuvent la remplacer en changeant fruit_cueilli).
+func maintenant() -> float:
+	return Time.get_unix_time_from_system()
+
+
+## Secondes avant que le prochain fruit soit prêt sur le potager (0 = prêt). Si l'heure de la tablette a reculé
+## (avant la dernière cueillette), la cueillette est remise à maintenant : pas de fruit bloqué pour des heures.
+func secondes_avant_fruit() -> float:
+	var t := maintenant()
+	if t < fruit_cueilli:
+		fruit_cueilli = t
+		sauvegarder()
+	return maxf(fruit_cueilli + Reglages.FRUIT_DELAI - t, 0.0)
+
+
+## Un fruit est sur le potager : jardin construit et délai écoulé depuis la dernière cueillette (pas de cumul).
+func fruit_pret() -> bool:
+	return est_construit("jardin") and secondes_avant_fruit() <= 0.0
+
+
+## Cueille le fruit du potager (il attend le prochain lieu) et sauvegarde. Faux s'il n'est pas prêt ou si un
+## fruit attend déjà (un seul en réserve).
+func cueillir_fruit() -> bool:
+	if fruit or not fruit_pret():
+		return false
+	fruit = true
+	fruit_cueilli = maintenant()
+	sauvegarder()
+	return true
+
+
+## À l'arrivée dans un lieu : le fruit en réserve est mangé (vrai), même si la mission est perdue ensuite.
+func manger_fruit() -> bool:
+	if not fruit:
+		return false
+	fruit = false
+	sauvegarder()
+	return true
+
+
 ## Vrai la première fois qu'un bâtiment de la base apparaît (il tombe du ciel) ; le retient et sauvegarde.
 func premiere_apparition(id: String) -> bool:
 	if id in batiments_vus:
@@ -545,15 +593,15 @@ func sauvegarder() -> void:
 		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
 		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux,
 		"poses": poses.map(func(p: Array) -> Dictionary: return {"nom": p[0], "x": p[1].x, "y": p[1].y}),
-		"tourelles": balles_tourelles})
+		"tourelles": balles_tourelles, "fruit_cueilli": fruit_cueilli, "fruit": fruit})
 	var entree := _entree(en_cours)
 	if not entree.is_empty():
 		entree["date"] = int(Time.get_unix_time_from_system())
 		_ecrire_index()
 
 
-## Lit la sauvegarde de la partie en cours (version 1 à 9), par-dessus ce qui est en mémoire (vide au démarrage ;
-## charger_partie vide d'abord). Une version plus ancienne est aussitôt réécrite en version 9
+## Lit la sauvegarde de la partie en cours (version 1 à 10), par-dessus ce qui est en mémoire (vide au démarrage ;
+## charger_partie vide d'abord). Une version plus ancienne est aussitôt réécrite en version 10
 ## (les fioles déjà rangées remplissent la jauge du remède, les constructions restent à leur place d'origine).
 ## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
@@ -597,6 +645,8 @@ func charger() -> void:
 		if pose[0] == "tourelle":
 			var k := balles_tourelles.size()
 			balles_tourelles.append(clampi(int(balles[k]) if k < balles.size() else 0, 0, Reglages.TOURELLE_CAPACITE))
+	fruit_cueilli = float(donnees.get("fruit_cueilli", 0.0))
+	fruit = bool(donnees.get("fruit", false))
 	if int(donnees.get("version", 1)) < VERSION:
 		poses = poses_camp()
 		_remplir_remede()
@@ -617,6 +667,8 @@ func _vider() -> void:
 	lieux_sauves = []
 	batiments_vus = []
 	etoiles_lieux = {}
+	fruit_cueilli = 0.0
+	fruit = false
 	derniers_tirages = {}
 	resultat = {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
 		"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}

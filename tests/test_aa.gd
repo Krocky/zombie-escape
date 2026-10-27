@@ -95,7 +95,7 @@ func _physics_process(_d):
 				var poses = []
 				for nom in ["barricade", "atelier", "lampe", "jardin"]:
 					poses.append({"nom": nom, "x": partie.PLACES_DEPART[nom].x, "y": partie.PLACES_DEPART[nom].y})
-				_verifier("sauvegarde reprise en version 8, rien de perdu, poses d'origine %s" % [lu.get("poses")],
+				_verifier("sauvegarde reprise en version 9, rien de perdu, poses d'origine %s" % [lu.get("poses")],
 					pareil and _pareil(lu.get("poses"), JSON.parse_string(JSON.stringify(poses))))
 				_verifier("aucun zombie", get_nodes_in_group("zombies").is_empty())
 				var hud = b.get_node("HUD")

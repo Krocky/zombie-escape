@@ -88,6 +88,11 @@ var TOURELLE_CADENCE := 0.6           # secondes entre deux tirs (une balle à c
 var TOURELLE_DEGATS := 1              # cœurs enlevés au zombie à chaque balle
 var TOURELLE_PORTEE_RECHARGE := 110.0 # distance de la tourelle pour voir le bouton Recharger
 
+# --- Fruit du potager (le jardin construit fait pousser un fruit, cueilli à la base, mangé au lieu suivant) ---
+var FRUIT_DELAI := 10800.0            # secondes entre deux fruits (3 h, en vrai temps, même jeu fermé)
+var FRUIT_VITESSE := 1.5              # le héros court 1,5 fois plus vite...
+var FRUIT_DUREE := 10.0               # ... pendant 10 secondes, à l'arrivée dans le lieu suivant
+
 # --- Soin pendant la mission (bouton Soigner : un bandage ramassé ou de l'infirmerie -> des cœurs) ---
 var SOIN_COEURS := 1                  # cœurs rendus par un bandage
 var SOIN_PAR_MISSION := 1             # soins au plus par mission

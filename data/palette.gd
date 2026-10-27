@@ -136,6 +136,12 @@ const ASPHALTE_TACHE := Color("3e4150")
 const ASPHALTE_FISSURE := Color("33354a")
 const LIGNE_PARKING := Color("8a8799")
 const BETON := Color("6a6c80")
+# Fruit du potager (lot 4 f) : pomme rouge brillante, dessinée en code
+const POMME := Color("e2363a")
+const POMME_OMBRE := Color("9e1f2e")
+const POMME_REFLET := Color(1.0, 0.95, 0.9, 0.85)
+const POMME_FEUILLE := Color("5fbf4a")
+const POMME_QUEUE := Color("5a3d2e")
 const BETON_FACE := Color("54566a")
 const BETON_COTE := Color("43455a")
 # Voitures (dessinées en code) : carrosseries, vitres, phares ; la voiture de survie est verte et chargée
