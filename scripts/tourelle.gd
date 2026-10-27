@@ -4,8 +4,9 @@ extends "res://scripts/batiment.gd"
 ## Reglages.TOURELLE_PORTEE, tourne vers lui et tire toutes les Reglages.TOURELLE_CADENCE secondes (une balle) ;
 ## elle émet `tir`, le niveau fait les dégâts. Petit éclair au bout du canon et trace jaune jusqu'à la cible.
 ## Nombre de balles au-dessus d'elle (gris à 0), sans ombre et par-dessus le décor.
-## Sans image : trépied, boîtier et canon dessinés en code. Avec l'image base_turret (trépied + boîtier, SANS
-## canon), le canon reste dessiné en code par-dessus pour pouvoir tourner.
+## Images V5 base_turret_<direction> (POSES : même pied de sacs de sable, seule la tête change ; retournées pour la
+## gauche) : l'image suit la direction du canon. Sinon, avec l'image base_turret (trépied + boîtier, SANS canon), le
+## canon est dessiné en code par-dessus pour pouvoir tourner ; sans image : trépied, boîtier et canon en code.
 
 ## Elle tire sur `cible` (une balle de moins).
 signal tir(cible: Node2D)
@@ -22,6 +23,12 @@ const DUREE_TIR := 0.15
 ## Hauteur visée sur la cible (pixels d'écran au-dessus de ses pieds), du nombre de balles au-dessus des pieds
 const HAUT_CIBLE := 55.0
 const HAUT_BALLES := 125.0
+## Images V5 par direction du canon à l'écran (degrés, 0 = droite, 90 = bas ; la gauche = la droite retournée) et
+## bouche du canon dans chacune (pixels de l'image)
+const POSES := {-90.0: "base_turret_up", -45.0: "base_turret_up_right", 0.0: "base_turret_right",
+	45.0: "base_turret_down_right", 90.0: "base_turret_down"}
+const BOUCHES := {"base_turret_up": Vector2(104, 9), "base_turret_up_right": Vector2(226, 12),
+	"base_turret_right": Vector2(256, 65), "base_turret_down_right": Vector2(211, 117), "base_turret_down": Vector2(164, 112)}
 
 ## Balles dans la tourelle (Partie.balles_tourelles), donné par la base ; le nombre saute quand il augmente.
 var balles := 0:
@@ -38,10 +45,25 @@ var _tir := 0.0                 # temps restant de l'éclair et de la trace
 var _cible_ecran := Vector2.ZERO
 var _saut := 0.0                # 1 -> 0 : le nombre de balles saute après une recharge
 var _infos := Node2D.new()      # nombre de balles, éclair, trace : sans ombre, par-dessus tout
+var _poses := false             # images V5 par direction (POSES)
+var _gauche := false            # canon vers la gauche de l'écran : image retournée
+var _haut_balles := HAUT_BALLES
+
+
+## Avec les images V5, l'image de la direction de départ remplace base_turret avant que Mur s'en serve (emprise
+## carrée inchangée, pas d'ombre en code : l'image a la sienne).
+func _ready() -> void:
+	_poses = POSES.values().all(func(nom: String) -> bool: return Images.existe(nom))
+	if _poses:
+		image = _pose_visee()[0]
+		_gauche = _pose_visee()[1]
+	super()
 
 
 func _construire() -> void:
 	super()
+	if _poses:
+		_haut_balles = _pieds.y - _image_ecran.position.y + 12.0
 	var sans_ombre := CanvasItemMaterial.new()
 	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	_infos.material = sans_ombre
@@ -81,6 +103,7 @@ func viser(zombies: Array, delta: float) -> void:
 		return
 	var vise := centre().direction_to(cible.global_position).angle()
 	_angle = rotate_toward(_angle, vise, VITESSE_ROTATION * delta)
+	_actualiser_pose()
 	if _attente > 0.0 or absf(angle_difference(_angle, vise)) > ANGLE_TIR:
 		return
 	balles -= 1
@@ -90,9 +113,48 @@ func viser(zombies: Array, delta: float) -> void:
 	tir.emit(cible)
 
 
-## Bout du canon à l'écran, depuis le pivot (raccourci par la perspective quand il vise vers le fond).
+## Bout du canon à l'écran, depuis le pivot (raccourci par la perspective quand il vise vers le fond) ; avec les
+## images V5, la bouche du canon de l'image (depuis les pieds).
 func _bout_canon() -> Vector2:
+	if _poses and not _bandes.is_empty():
+		return Iso.point_image(image, emprise(), BOUCHES[image], _miroir()) - _pieds
 	return PIVOT + Iso.ecran(Vector2.from_angle(_angle)) / Iso.K * LONGUEUR_CANON
+
+
+## Image V5 de la direction du canon (la plus proche à l'écran) et si elle est retournée : [nom, gauche].
+func _pose_visee() -> Array:
+	var a := rad_to_deg(Iso.ecran(Vector2.from_angle(_angle)).angle())
+	var gauche := absf(a) > 90.0
+	if gauche:
+		a = (180.0 if a > 0.0 else -180.0) - a
+	var meilleure := 0.0
+	for d: float in POSES:
+		if absf(d - a) < absf(meilleure - a):
+			meilleure = d
+	return [POSES[meilleure], gauche]
+
+
+## Le canon a tourné vers une autre direction : l'image est remplacée (même pied, autre tête).
+func _actualiser_pose() -> void:
+	if not _poses or _bandes.is_empty():
+		return
+	var pose := _pose_visee()
+	if pose[0] == image and pose[1] == _gauche:
+		return
+	for b in _bandes:
+		b[0].queue_free()
+	_bandes.clear()
+	image = pose[0]
+	_gauche = pose[1]
+	_image_ecran = Iso.habiller(image, emprise(), _vue, _miroir())
+	for bande in _vue.get_children():
+		if bande is Sprite2D and not bande.is_queued_for_deletion():
+			_bandes.append([bande, bande.offset, bande.scale])
+	_appliquer_chute()
+
+
+func _miroir() -> bool:
+	return super() != _gauche
 
 
 ## Dessin de secours (sans image), pieds en (0, 0) : trépied, boîtier kaki, bande de balles et canon.
@@ -129,7 +191,7 @@ func _dessiner_secours() -> void:
 ## Avec l'image : seul le canon est dessiné en code, par-dessus.
 func _dessiner_effets() -> void:
 	super()
-	if not _bandes.is_empty() and pose():
+	if not _poses and not _bandes.is_empty() and pose():
 		_effets.draw_set_transform(_pieds - _effets.position)
 		_canon(_effets, Vector2.ZERO)
 		_effets.draw_set_transform(Vector2.ZERO)
@@ -165,7 +227,7 @@ func _dessiner_infos() -> void:
 	var taille := int(30 * (1.0 + 0.4 * _saut))
 	var texte := str(balles)
 	var largeur := police.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x
-	var p := Vector2(-largeur / 2.0 + 10.0, -HAUT_BALLES)
+	var p := Vector2(-largeur / 2.0 + 10.0, -_haut_balles)
 	var couleur := Palette.LAMPE if balles > 0 else Palette.UI_BORD
 	# Petite cartouche devant le nombre
 	Dessin.rect(_infos, Rect2(p.x - 22, p.y - 22, 10, 18), Palette.BALLES_CUIVRE if balles > 0 else Palette.UI_BORD)

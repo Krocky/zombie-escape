@@ -1,6 +1,6 @@
 extends StaticBody2D
-## Voiture garée sur le parking de la base, dessinée en code (aucune image de voiture) : carrosserie, habitacle
-## vitré, roues, phares. `survie` : la voiture de survie (galerie de toit chargée, phares allumés) ; quand le
+## Voiture garée sur le parking de la base : image V5 (IMAGES, selon la couleur), sinon dessinée en code : carrosserie,
+## habitacle vitré, roues, phares. `survie` : la voiture de survie (galerie de toit chargée, phares allumés) ; quand le
 ## héros est près d'elle, le bouton Start ouvre la carte. Sinon une épave (rouille sur le capot, phares éteints).
 ## position = milieu du bord bas de l'emprise au sol (comme Mur). Affichage isométrique découpé en bandes triées
 ## (Iso.bandes_dessin) : le héros passe devant ou derrière.
@@ -13,6 +13,9 @@ const CAISSE := Vector2(10, 38)       # bas et haut de la carrosserie (pixels à
 const HABITACLE := 66.0               # haut du toit
 const GALERIE := 82.0                 # haut des bagages sur le toit (voiture de survie)
 const ROUE := Vector2(24, 15)         # rayon des roues : le long de la voiture (monde), en hauteur (écran)
+## Image V5 de chaque couleur (dessin en code si elle manque)
+const IMAGES := {"survie": "base_survival_car", "rouille": "prop_wreck_rust", "rouge": "prop_wreck_red",
+	"jaune": "prop_wreck_yellow"}
 
 var _vue := Node2D.new()   # dans le calque Vue (trié en profondeur)
 var _sol := Node2D.new()   # dans le calque du sol (ombre)
@@ -26,6 +29,9 @@ func _ready() -> void:
 	collision.position = Vector2(0, -taille.y / 2.0)
 	add_child(collision)
 	_vue.y_sort_enabled = true
+	if _image() != "":
+		Iso.habiller(_image(), emprise(), _vue, Iso.miroir_pour(_image(), taille.x >= taille.y))
+		return   # l'image a déjà son ombre
 	_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise(), 0.9))
 	_construire()
 
@@ -37,6 +43,12 @@ func visuels() -> Dictionary:
 
 func emprise() -> Rect2:
 	return Rect2(global_position + Vector2(-taille.x / 2.0, -taille.y), taille)
+
+
+## Image V5 de la voiture, "" si elle manque.
+func _image() -> String:
+	var nom: String = IMAGES.get(couleur, "")
+	return nom if nom != "" and Images.existe(nom) else ""
 
 
 ## Distance d'un point du monde au bord de la voiture (0 dessus).

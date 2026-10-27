@@ -85,6 +85,13 @@ COTE_NOM = {"map_lock": 192}             # exceptions : plus grand côté
 MUR_LARGEUR = 349
 # Mât très haut et fin : mis à l'échelle sur la hauteur (x base_shelter_1), pas sur la largeur
 HAUTEUR_RELATIVE = {"base_floodlight": ("base_shelter_1", 1.4)}
+# Poses d'un même objet découpées dans une planche (V5) : même échelle pour toutes (leur largeur varie avec le
+# canon), début du nom -> échelle depuis la planche source
+ECHELLE_PLANCHE = {"base_turret_": 0.5}
+# Sols V5 dont Gemini a cerné le carré d'un trait noir : bord rogné (fraction du côté) avant la mise en losange
+BORD_SOL = {"floor_asphalt": 0.012}
+# base_ dont l'ombre est dessinée détachée sous le tapis de terre (îlot qui flotte) : ombre effacée
+SANS_OMBRE_DESSOUS = {"base_infirmary"}
 
 # Fond accepté : rouge et bleu au-dessus du vert d'au moins FOND_ECART (magenta pur, délavé, mauve)
 FOND_ECART = 100
@@ -402,6 +409,16 @@ def sans_ombre_pieds(image, res):
     return image
 
 
+def sans_ombre_dessous(image):
+    """Ombre noire semi-transparente sous l'objet (pixels sombres, pas opaques) effacée dans le tiers bas ; le
+    contour noir, opaque, reste."""
+    a = np.asarray(image).astype(float)
+    ombre = (a[..., :3].max(-1) < 60) & (a[..., 3] < 235)
+    ombre[: image.height * 2 // 3] = False
+    a[ombre, 3] = 0
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
 def pieds_milieu(image):
     """Pieds d'un personnage qui marche : milieu entre ses deux pieds (pixels les plus à gauche et à droite du
     bas de la silhouette), et non le pied le plus bas, qui change d'une pose de marche à l'autre (l'image sauterait)."""
@@ -549,6 +566,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         ref, facteur = HAUTEUR_RELATIVE[res["nom"]]
         e = facteur * hauteurs[ref] / image.height
         res["hauteur_relative"] = [ref, facteur]
+    elif any(res["nom"].startswith(debut) for debut in ECHELLE_PLANCHE):
+        e = next(v for debut, v in ECHELLE_PLANCHE.items() if res["nom"].startswith(debut))
     elif cat == "prop":
         largeur, cases = taille_prop(res["nom"])
         res["emprise_cases"] = cases
@@ -558,6 +577,9 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
     else:
         e = 1.0
     if cat == "floor":
+        if res["nom"] in BORD_SOL:
+            k = round(BORD_SOL[res["nom"]] * min(image.size))
+            image = image.crop((k, k, image.width - k, image.height - k))
         image = losange(image)
         res["echelle"] = None
     else:
@@ -568,6 +590,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         res["coins_sol"] = {"haut": [DALLE_LARGEUR // 2, 0], "gauche": [0, DALLE_HAUTEUR // 2],
                             "avant": [DALLE_LARGEUR // 2, DALLE_HAUTEUR], "droit": [DALLE_LARGEUR, DALLE_HAUTEUR // 2]}
     elif cat in ("perso", "prop", "wall", "map"):
+        if res["nom"] in SANS_OMBRE_DESSOUS:
+            image = sans_ombre_dessous(image)
         if cat == "perso":
             image = sans_ombre_pieds(image, res)
         a = ancres(image)
@@ -653,7 +677,11 @@ def main():
 
     # Échelle commune par personnage : hauteur médiane de ses poses = HAUTEURS[préfixe].
     # Un personnage déjà connu garde son échelle (ses nouvelles poses restent à la même taille).
-    echelles = {} if args.tout else dict(manifest.get("echelles_perso", {}))
+    # --tout : seuls les personnages de ce dossier sont recalculés (les autres gardent leur échelle)
+    echelles = dict(manifest.get("echelles_perso", {}))
+    if args.tout:
+        lot = {res["personnage"] for res, _ in resultats if res["categorie"] == "perso"}
+        echelles = {k: v for k, v in echelles.items() if k.split("|")[0] not in lot}
     # Planches V4 : les poses de dos sont souvent dessinées à une autre taille que celles de profil, d'où une
     # échelle à part pour elles (clé « <perso>|back »). Le coup (bras levés) ne compte pas dans la médiane.
     hauteurs = {}

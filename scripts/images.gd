@@ -148,6 +148,18 @@ const EMPRISES_V3 := {
 	# Base (lot 4 a) : les abris n'ont pas de socle, leurs coins du manifest suivent l'ombre
 	"base_shelter_1": [20.0, Vector2(211, 473), 456.0],
 	"base_shelter_2": [7.0, Vector2(249, 466), 445.0],
+	# V5 (base du lot 4) : voitures et bloc sans socle ; tourelle = cercle de sacs de sable (même pied pour les
+	# 5 directions, images alignées en bas à gauche : seul le haut change)
+	"base_survival_car": [8.0, Vector2(155, 352), 470.0],
+	"prop_wreck_rust": [3.0, Vector2(162, 330), 472.0],
+	"prop_wreck_red": [3.0, Vector2(162, 330), 472.0],
+	"prop_wreck_yellow": [3.0, Vector2(162, 330), 472.0],
+	"prop_concrete_block": [48.0, Vector2(260, 440), 472.0],
+	"base_turret_down": [4.0, Vector2(118, 258), 232.0],
+	"base_turret_down_right": [4.0, Vector2(118, 260), 232.0],
+	"base_turret_right": [4.0, Vector2(118, 260), 232.0],
+	"base_turret_up_right": [4.0, Vector2(118, 280), 232.0],
+	"base_turret_up": [4.0, Vector2(118, 300), 232.0],
 }
 ## Fenêtre peinte sur les pans de mur V3 (« <mur>_fenetre », voir v3_fenetre) : le long du pan (0 à 1)
 ## et en hauteur au-dessus du bas du pan (pixels de l'image).
