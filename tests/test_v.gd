@@ -137,9 +137,9 @@ func _physics_process(_d):
 					partie.avancee_objectif("maison", niveau._ramasses), hud.get_node("CompteurObjets").text],
 					niveau._ramasses.is_empty() and partie.avancee_objectif("maison", niveau._ramasses) == 0
 					and hud.get_node("CompteurObjets").text.begins_with("Objets : 0"))
-				_verifier("plein : Soigner inactif", not _soin().actif)
 				h.global_position = niveau.get_node("Monde/ObjetPiles").global_position
 			if g == 24:
+				_verifier("plein : Soigner inactif", not _soin().actif)   # quelques pas après le soin (mis à jour par le niveau)
 				partie.inventaire = {}
 				niveau._finir(true, 0.0)
 			if g == 30:
@@ -151,7 +151,7 @@ func _physics_process(_d):
 				_verifier("écran de fin : ligne du jardin", current_scene.name == "Fin" and "jardin" in current_scene.get_node("Resume").text)
 				_snap("fin")
 				# Ne pas laisser de constructions aux autres tests
-				Fichier.effacer(partie.FICHIER)
+				Fichier.effacer(partie.fichier())
 				partie.constructions = []; partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 				partie.batiments_vus = []
 				print("test_v : %d échec(s)" % echecs)

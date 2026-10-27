@@ -36,7 +36,7 @@ func _physics_process(_d):
 			if g == 2:
 				# Reprise d'une version 6 : tout est relu, pas d'étoiles, réécrite aussitôt dans la version courante (8 depuis le lot 4 b)
 				_vider()
-				Fichier.ecrire_json(partie.FICHIER, {"version": 6, "inventaire": {"eau": 2}, "constructions": ["atelier"],
+				Fichier.ecrire_json(partie.fichier(), {"version": 6, "inventaire": {"eau": 2}, "constructions": ["atelier"],
 					"remede": 1, "remede_annonce": false, "skin": "heroine", "prenom": "Eliott", "rescapes": 1,
 					"lieux_sauves": ["maison"], "batiments_vus": ["feu"]})
 				partie.skin = ""
@@ -46,7 +46,7 @@ func _physics_process(_d):
 					and partie.skin == "heroine" and partie.lieux_sauves == ["maison"])
 				_verifier("v6 relue : aucune étoile (%s)" % str(partie.etoiles_lieux),
 					partie.etoiles_lieux.is_empty() and partie.meilleures_etoiles("supermarche") == 0)
-				var fichier = Fichier.lire_json(partie.FICHIER)
+				var fichier = Fichier.lire_json(partie.fichier())
 				_verifier("réécrite en version %s avec « etoiles »" % str(fichier.get("version")),
 					int(fichier.get("version", 0)) == partie.VERSION and fichier.get("etoiles") is Dictionary)
 
@@ -130,7 +130,7 @@ func _physics_process(_d):
 				_verifier("résumé de %d lignes dans sa zone (police %d)" % [resume.get_line_count(), resume.get_theme_font_size("font_size")],
 					resume.get_line_count() * resume.get_line_height() <= resume.size.y)
 				_snap("fin")
-				Fichier.effacer(partie.FICHIER)
+				Fichier.effacer(partie.fichier())
 				_vider()
 				partie.skin = ""
 				print("test_x : %d échec(s)" % echecs)

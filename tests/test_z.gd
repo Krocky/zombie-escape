@@ -132,7 +132,7 @@ func _physics_process(_d):
 				_verifier("base : une tente", "tente_1" in current_scene._batiments_visibles())
 			if g == 160:
 				_snap("base")
-				Fichier.effacer(partie.FICHIER)
+				Fichier.effacer(partie.fichier())
 				partie.constructions = []; partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 				partie.rescapes = 0; partie.lieux_sauves = []; partie.batiments_vus = []
 				print("test_z : %d échec(s)" % echecs)
