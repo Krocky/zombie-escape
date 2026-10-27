@@ -66,7 +66,7 @@ func _physics_process(_d):
 					dedans = dedans and ecran.encloses(c.get_global_rect())
 					var b = c.get_node("Bouton")
 					boutons = boutons and b.size.x >= 100 and b.size.y >= 100
-				_verifier("tiroir : %d cartes, toutes dans l'écran, boutons >= 100 px" % cartes.size(), cartes.size() == 5 and dedans and boutons)
+				_verifier("tiroir : %d cartes, toutes dans l'écran, boutons >= 100 px" % cartes.size(), cartes.size() == 6 and dedans and boutons)
 				var noms := []
 				for c in cartes: noms.append(c.construction)
 				_verifier("cartes infirmerie et jardin présentes", "infirmerie" in noms and "jardin" in noms)
