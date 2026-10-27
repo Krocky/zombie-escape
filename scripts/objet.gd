@@ -2,7 +2,7 @@ extends Node2D
 ## Un objet à ramasser. Le niveau le ramasse quand le héros marche dessus.
 ## Origine = au sol (coordonnées monde). Affichage isométrique dans le calque Vue.
 
-@export_enum("conserve", "eau", "bandage", "piles", "fiole", "clef") var type := "conserve"
+@export_enum("conserve", "eau", "bandage", "piles", "fiole", "clef", "balles") var type := "conserve"
 ## Teinte de l'étiquette d'une clef (clé de Palette.CLEF), pour de futures portes verrouillées.
 @export_enum("rouge", "bleue", "verte") var teinte := "rouge"
 ## Autres places possibles (monde, hors des obstacles) : le niveau en tire une au hasard à chaque partie.

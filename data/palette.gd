@@ -115,6 +115,9 @@ const DEGATS := Color(0.85, 0.08, 0.12, 0.75)   # bords rouges quand le héros e
 const SORTIE := Color("7ed38f")            # panneau et lumière de la sortie
 ## Étiquette de la clef (item_key, rouge dans l'image) : teinte -> couleur, pour de futures portes verrouillées
 const CLEF := {"rouge": Color("fe4240"), "bleue": Color("3f86ff"), "verte": Color("45cf5a")}
+const BALLES_BOITE := Color("5b6b45")      # boîte de balles de tourelle (kaki)
+const BALLES_ETIQUETTE := Color("d9c27a")  # bande claire sur la boîte
+const BALLES_CUIVRE := Color("e0a93f")     # cartouches dorées (boîte, tourelle)
 
 # Base (abri en planches et feu de camp)
 const BOIS := Color("6b4e45")              # planches de l'abri

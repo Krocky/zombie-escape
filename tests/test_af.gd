@@ -4,7 +4,7 @@ extends SceneTree
 ## avant le délai (« Prochain fruit dans 3 h 00 ») ; délai raccourci : le fruit revient (mais il n'est pas cueilli
 ## tant qu'un fruit attend) ; heure qui recule : la cueillette est remise à maintenant ; au lieu suivant, le héros
 ## court x FRUIT_VITESSE (fruit mangé à l'arrivée, icône dans le HUD), puis vitesse normale après FRUIT_DUREE ;
-## une sauvegarde version 8 est reprise (fruit prêt, rien en réserve). Captures : fruit prêt, cueilli, prochain,
+## une sauvegarde version 9 est reprise (fruit prêt, rien en réserve). Captures : fruit prêt, cueilli, prochain,
 ## HUD du lieu. Affiche « ECHEC » à chaque vérification ratée. Efface la sauvegarde à la fin.
 var g := 0
 var phase := "jardin"
@@ -35,7 +35,7 @@ func _effacer():
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(FICHIER))
 	partie.inventaire = {}; partie.constructions = []; partie.poses = []; partie.remede = 0; partie.remede_annonce = false
 	partie.rescapes = 0; partie.lieux_sauves = []; partie.batiments_vus = []; partie.etoiles_lieux = {}
-	partie.skin = ""; partie.prenom = ""; partie.fruit = false; partie.fruit_cueilli = 0.0
+	partie.skin = ""; partie.prenom = ""; partie.fruit = false; partie.fruit_cueilli = 0.0; partie.balles_tourelles = []
 func _heros(): return current_scene.get_node("Monde/Heros")
 func _lu() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string(FICHIER))
@@ -86,7 +86,7 @@ func _physics_process(_d):
 				_verifier("texte « %s »" % b._fruit.texte, b._fruit.texte == "Fruit cueilli : plus rapide au prochain niveau !")
 				var lu := _lu()
 				_verifier("sauvegardé : version %s, fruit %s" % [lu.get("version"), lu.get("fruit")],
-					int(lu.get("version", 0)) == 9 and lu.get("fruit") == true and absf(float(lu.get("fruit_cueilli", 0)) - cueilli_a) < 1.0)
+					int(lu.get("version", 0)) == partie.VERSION and lu.get("fruit") == true and absf(float(lu.get("fruit_cueilli", 0)) - cueilli_a) < 1.0)
 			if g == 50: _snap("cueilli")
 			if g == 240:
 				var b = current_scene
@@ -139,19 +139,19 @@ func _physics_process(_d):
 			if g == 1:
 				change_scene_to_file("res://scenes/titre.tscn")
 			if g == 10:
-				# Sauvegarde version 8 (avant le fruit), jardin construit : reprise, fruit prêt, rien en réserve
+				# Sauvegarde version 9 (tourelles, avant le fruit), jardin construit : reprise, fruit prêt, rien en réserve
 				_effacer()
-				var v8 := {"version": 8, "inventaire": {"conserve": 2}, "constructions": ["jardin"], "remede": 1,
+				var v9 := {"version": 9, "inventaire": {"conserve": 2}, "constructions": ["jardin"], "remede": 1,
 					"remede_annonce": false, "skin": "heroine", "prenom": "Eliott", "rescapes": 1, "lieux_sauves": ["maison"],
-					"batiments_vus": ["jardin"], "etoiles": {"maison": 2}, "poses": [{"nom": "jardin", "x": 1250, "y": 420}]}
+					"batiments_vus": ["jardin"], "etoiles": {"maison": 2}, "poses": [{"nom": "jardin", "x": 1250, "y": 420}], "tourelles": []}
 				var f := FileAccess.open(FICHIER, FileAccess.WRITE)
-				f.store_string(JSON.stringify(v8)); f.close()
+				f.store_string(JSON.stringify(v9)); f.close()
 				partie.charger()
 				var lu := _lu()
-				_verifier("v8 reprise : version %s, rien de perdu" % lu.get("version"), int(lu.get("version", 0)) == 9
+				_verifier("v9 reprise : version %s, rien de perdu" % lu.get("version"), int(lu.get("version", 0)) == partie.VERSION
 					and lu["constructions"] == ["jardin"] and int(lu["inventaire"]["conserve"]) == 2 and lu["prenom"] == "Eliott"
 					and int(lu["rescapes"]) == 1 and lu["poses"].size() == 1 and int(lu["etoiles"]["maison"]) == 2)
-				_verifier("v8 reprise : pas de fruit en réserve, fruit prêt sur le potager",
+				_verifier("v9 reprise : pas de fruit en réserve, fruit prêt sur le potager",
 					not partie.fruit and partie.fruit_cueilli == 0.0 and partie.fruit_pret() and lu.get("fruit") == false)
 			if g == 20:
 				for nom in origine: reg.set(nom, origine[nom])

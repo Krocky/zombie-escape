@@ -71,6 +71,13 @@ const PAGES := [
 		["FRUIT_VITESSE", "Vitesse avec le fruit (x)", 0.1, 1.0, 3.0],
 		["FRUIT_DUREE", "Durée du fruit (s)", 1.0, 1.0, 60.0],
 	]],
+	["Tourelles", [
+		["TOURELLE_PORTEE", "Portée de tir", 25.0, 100.0, 1000.0],
+		["TOURELLE_CADENCE", "Temps entre deux tirs (s)", 0.1, 0.1, 3.0],
+		["TOURELLE_DEGATS", "Dégâts d'une balle", 1, 1, 10],
+		["TOURELLE_CAPACITE", "Balles au plus par tourelle", 5, 5, 200],
+		["BALLES_PAR_BOITE", "Balles dans une boîte", 1, 1, 100],
+	]],
 ]
 
 var _origine := {}   # nom -> valeur de data/reglages.gd

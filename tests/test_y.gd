@@ -45,7 +45,7 @@ func _physics_process(_d):
 		print("pharmacie: disponible=", partie.lieu_disponible("pharmacie"), " infos=", infos)
 		_verifier("pharmacie disponible sur la carte", partie.lieu_disponible("pharmacie"))
 		_verifier("3 zombies (gros, maigre, coureur)", infos["zombies"] == [0, 1, 2])
-		_verifier("5 objets a trouver, sans la clef", infos["objets"].size() == 5 and not "clef" in infos["objets"])
+		_verifier("6 objets a trouver (boite de balles comprise), sans la clef", infos["objets"].size() == 6 and not "clef" in infos["objets"])
 		_verifier("objectif 2 piles", partie.texte_objectif("pharmacie") == "rapporter 2 piles")
 		_touch(current_scene._place("pharmacie"), true)
 	if f == 26: _touch(Vector2.ZERO, false)
@@ -64,7 +64,7 @@ func _physics_process(_d):
 		print("zombies: ", get_nodes_in_group("zombies").size(), " cachettes: ", cachettes, " rescapes: ", get_nodes_in_group("rescapes").size(),
 			" compteur: '", niveau.get_node("HUD/CompteurObjets").text, "'")
 		_verifier("3 cachettes, 1 rescape", cachettes == 3 and get_nodes_in_group("rescapes").size() == 1)
-		_verifier("compteur 0 / 5 (clef hors compteur)", niveau.get_node("HUD/CompteurObjets").text == "Objets : 0 / 5")
+		_verifier("compteur 0 / 6 (clef hors compteur)", niveau.get_node("HUD/CompteurObjets").text == "Objets : 0 / 6")
 		# Zombies figés : le test ne parle que de la porte
 		for z in get_nodes_in_group("zombies"):
 			z.set_physics_process(false)
@@ -83,7 +83,7 @@ func _physics_process(_d):
 	if f == 240:
 		print("clef: clefs=", niveau._clefs, " ramasses=", niveau._ramasses, " compteur: '", niveau.get_node("HUD/CompteurObjets").text, "'")
 		_verifier("clef ramassee, a part", niveau._clefs == ["rouge"] and niveau._ramasses.is_empty())
-		_verifier("clef hors compteur", niveau.get_node("HUD/CompteurObjets").text == "Objets : 0 / 5")
+		_verifier("clef hors compteur", niveau.get_node("HUD/CompteurObjets").text == "Objets : 0 / 6")
 		_verifier("clef affichee dans le HUD", niveau.get_node("HUD")._clef.visible)
 		_verifier("clef hors objectif", partie.avancee_objectif("pharmacie", niveau._ramasses) == 0)
 	if f == 270:
@@ -103,7 +103,7 @@ func _physics_process(_d):
 		# Les piles de la réserve
 		_placer(niveau.get_node("Monde/ObjetPiles").position)
 	if f == 400:
-		_verifier("piles de la reserve ramassees (1 / 5)", niveau.get_node("HUD/CompteurObjets").text == "Objets : 1 / 5")
+		_verifier("piles de la reserve ramassees (1 / 6)", niveau.get_node("HUD/CompteurObjets").text == "Objets : 1 / 6")
 		_placer(niveau.get_node("Monde/Sortie").position + Vector2(0, 30))
 	if f == 460:
 		print("fin: scene=", current_scene.name, " resultat=", partie.resultat["rapportes"], " inventaire=", partie.inventaire)

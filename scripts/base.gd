@@ -12,6 +12,8 @@ extends "res://scripts/niveau.gd"
 ## il apparaît quand sa tente est posée.
 ## Potager (jardin construit) : un fruit (Fruit) y pousse toutes les Reglages.FRUIT_DELAI secondes, en vrai temps ;
 ## le héros le cueille en arrivant au bord du potager, il sera mangé à l'arrivée dans le prochain lieu.
+## Tourelles (Tourelle) : posées comme les autres constructions ; près d'une tourelle, le bouton Recharger y verse
+## les boîtes de balles de l'inventaire. Elles tirent sur les zombies (aucun dans la base : niveau 4).
 ## Interface (calque Interface) : titre, inventaire, jauge du remède, tiroir des constructions, boutons Héros et
 ## Réglages, et Start quand le héros est près de la voiture de survie : il ouvre la carte. Le héros arrive toujours
 ## à côté de la voiture. Quand la jauge vient d'être remplie, on passe d'abord par l'écran « Remède trouvé ! ».
@@ -20,6 +22,8 @@ const CARTE := preload("res://scenes/carte_construction.tscn")
 const BATIMENT := preload("res://scenes/batiment.tscn")
 const RESCAPE := preload("res://scenes/rescape_base.tscn")
 const FRUIT := preload("res://scenes/fruit.tscn")
+const TOURELLE := preload("res://scenes/tourelle.tscn")
+const BOUTON := preload("res://scenes/bouton_tactile.tscn")
 
 const TAILLE_ICONE := 54.0
 ## Places fixes du camp (monde) : centre de l'emprise et taille (l'emprise prend ensuite les proportions de l'image).
@@ -29,7 +33,7 @@ const PLACES := {
 }
 ## Taille des constructions posées par le joueur (place d'origine : Partie.PLACES_DEPART)
 const TAILLES := {"barricade": Vector2(200, 200), "atelier": Vector2(200, 200), "lampe": Vector2(68, 68),
-	"jardin": Vector2(200, 200)}
+	"jardin": Vector2(200, 200), "tourelle": Vector2(90, 90)}
 ## Tentes des rescapés, groupées dans le coin de droite (centre de l'emprise), une par rescapé sauvé : 2 colonnes
 ## de 5, de l'arrière vers l'avant (au-delà de 10 rescapés, pas de tente ni de personnage de plus).
 const TENTES := [Vector2(1900, 240), Vector2(2170, 240), Vector2(1900, 490), Vector2(2170, 490), Vector2(1900, 740),
@@ -38,7 +42,7 @@ const TAILLE_TENTE := Vector2(200, 200)
 ## Image V3 de chaque bâtiment (dessin de secours dans Batiment si elle manque).
 const IMAGES := {"abri_1": "base_shelter_1", "abri_2": "base_shelter_2", "feu": "base_campfire",
 	"barricade": "base_barricade", "atelier": "base_workshop", "lampe": "base_floodlight", "jardin": "base_garden",
-	"tente": "base_tent"}
+	"tente": "base_tent", "tourelle": "base_turret"}
 ## Lignes blanches des places de parking (monde) : [début, fin, pas, de, à, le long de x ?]. Une ligne tous les
 ## « pas » entre début et fin ; elle va de « de » à « à » dans l'autre sens.
 const LIGNES := [[160.0, 1600.0, 160.0, 40.0, 280.0, false], [1000.0, 2200.0, 160.0, 1320.0, 1560.0, false],
@@ -47,13 +51,14 @@ const LARGEUR_LIGNE := 8.0
 ## Chute du ciel : attente avant la première, écart entre deux bâtiments (s)
 const ATTENTE_CHUTES := 0.3
 const ECART_CHUTES := 0.35
-## Taille des cartes de construction : grille de COLONNES_CARTES (paysage), en colonne (portrait, coût sur la ligne du nom)
-const TAILLE_CARTE := {true: Vector2(400, 130), false: Vector2(680, 112)}
+## Taille des cartes de construction : grille de COLONNES_CARTES (paysage), en colonne (portrait, coût sur la ligne du
+## nom ; 6 cartes serrées pour finir au-dessus des boutons Héros et Réglages)
+const TAILLE_CARTE := {true: Vector2(400, 130), false: Vector2(680, 102)}
 ## Bouton du tiroir des constructions : en haut à gauche (paysage), à droite de la jauge (portrait)
 const TAILLE_TIROIR := Vector2(260, 100)
 ## Haut du tiroir : sous l'inventaire (paysage), sous la jauge et le bouton (portrait)
 const HAUT_TIROIR := {true: 240.0, false: 352.0}
-## Cartes par ligne dans le tiroir : 5 cartes en 3 + 2 (paysage), une colonne (portrait)
+## Cartes par ligne dans le tiroir : 6 cartes en 3 + 3 (paysage), une colonne (portrait)
 const COLONNES_CARTES := {true: 3, false: 1}
 const DUREE_TIROIR := 0.2
 ## Jauge du remède : en bas à droite (paysage), en haut à gauche du bouton Construire (portrait, largeur calculée)
@@ -97,6 +102,10 @@ var _glisse := 0.0                      # chemin parcouru par ce doigt (pixels)
 var _rescapes := {}                     # id de la tente -> RescapeBase
 var _fruit: Node2D = FRUIT.instantiate()   # fruit du potager (caché sans jardin)
 var _message_fruit := 0.0               # temps restant du texte « Fruit cueilli »
+var _tourelles := []                    # Tourelle, dans l'ordre de pose (Partie.balles_tourelles)
+var _tourelle_proche: Node2D = null     # tourelle à portée du bouton Recharger
+var _tirs := false                      # des balles ont été tirées depuis la dernière sauvegarde
+var _recharger: Control = BOUTON.instantiate()   # bouton Recharger, près d'une tourelle
 var _glissement: Tween                  # ouverture ou fermeture du tiroir en cours
 var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 	set(valeur):
@@ -114,7 +123,7 @@ func _ready() -> void:
 	# Les débris du sol évitent toutes les places du camp (même celles pas encore construites ; places d'origine
 	# des constructions : le sol reste le même qu'à l'étape a)
 	var places_fixes: Array = PLACES.values() + TENTES.map(func(p: Vector2) -> Array: return [p, TAILLE_TENTE])
-	for nom in TAILLES:
+	for nom in Partie.PLACES_DEPART:
 		places_fixes.append([Partie.PLACES_DEPART[nom], TAILLES[nom]])
 	for place in places_fixes:
 		var r := Rect2(place[0] - place[1] / 2.0, place[1])
@@ -164,6 +173,11 @@ func _preparer_interface() -> void:
 	poser.appuye.connect(poser_construction)
 	_ui.get_node("Annuler").couleur = Palette.UI_BOUTON
 	_ui.get_node("Annuler").appuye.connect(annuler_placement)
+	_recharger.texte = "Recharger"
+	_recharger.couleur = Palette.BALLES_CUIVRE
+	_recharger.visible = false
+	_recharger.appuye.connect(recharger)
+	_ui.add_child(_recharger)
 	var consigne: Label = _ui.get_node("Consigne")
 	consigne.add_theme_color_override("font_color", Palette.LAMPE)
 	consigne.add_theme_color_override("font_outline_color", Palette.CONTOUR)
@@ -194,6 +208,21 @@ func _physics_process(delta: float) -> void:
 	for id in _rescapes:
 		_rescapes[id].actif = _batiments[id].pose()
 		_rescapes[id].connaitre_heros(_heros.global_position)
+	# Tourelles : elles tirent sur les zombies à portée ; Recharger près de l'une d'elles, avec des boîtes de balles
+	var zombies := get_tree().get_nodes_in_group("zombies")
+	_tourelle_proche = null
+	var meilleure := Reglages.TOURELLE_PORTEE_RECHARGE
+	for tourelle in _tourelles:
+		tourelle.viser(zombies, delta)
+		var r: Rect2 = tourelle.emprise()
+		var d: float = _heros.global_position.distance_to(_heros.global_position.clamp(r.position, r.end))
+		if d <= meilleure and tourelle.pose():
+			meilleure = d
+			_tourelle_proche = tourelle
+	_recharger.visible = _placement == "" and not tiroir_ouvert() and _tourelle_proche != null \
+		and Partie.inventaire.get("balles", 0) > 0
+	if _recharger.visible:
+		_recharger.actif = Partie.peut_recharger(_tourelles.find(_tourelle_proche))
 	_actualiser_fruit(delta)
 
 
@@ -231,6 +260,28 @@ static func texte_duree(secondes: float) -> String:
 	if minutes < 60:
 		return "%d min" % maxi(minutes, 1)
 	return "%d h %02d" % [minutes / 60, minutes % 60]
+
+
+## Bouton Recharger : les boîtes de balles de l'inventaire vont dans la tourelle proche (jusqu'à sa capacité).
+func recharger() -> void:
+	var k := _tourelles.find(_tourelle_proche)
+	if k == -1 or Partie.recharger_tourelle(k) == 0:
+		return
+	_tourelle_proche.balles = Partie.balles_tourelles[k]
+	_ui.get_node("Haut/Inventaire").queue_redraw()
+
+
+## Une tourelle tire : le zombie prend les dégâts ; les balles restantes seront sauvegardées en quittant la base.
+func _sur_tir(cible: Node2D, tourelle: Node2D) -> void:
+	cible.recevoir_coup(Reglages.TOURELLE_DEGATS, tourelle.centre())
+	Partie.balles_tourelles[_tourelles.find(tourelle)] = tourelle.balles
+	_tirs = true
+
+
+func _exit_tree() -> void:
+	super()
+	if _tirs:
+		Partie.sauvegarder()
 
 
 ## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
@@ -304,7 +355,7 @@ func _camp() -> Dictionary:
 
 ## Bâtiment posé sur son emprise (centre, taille avant d'en prendre les proportions de l'image), dans le monde.
 func _creer_batiment(id: String, image: String, centre: Vector2, taille_batiment: Vector2) -> StaticBody2D:
-	var batiment := BATIMENT.instantiate()
+	var batiment := (TOURELLE if id.begins_with("tourelle") else BATIMENT).instantiate()
 	batiment.id = id
 	batiment.image = image
 	batiment.taille = taille_batiment
@@ -318,6 +369,10 @@ func _ajouter_batiment(id: String, infos: Array) -> void:
 	var batiment := _creer_batiment(id, infos[0], infos[1], infos[2])
 	$Monde.add_child(batiment)
 	_batiments[id] = batiment
+	if id.begins_with("tourelle"):
+		batiment.balles = Partie.balles_tourelles[_tourelles.size()]   # ids dans l'ordre de pose
+		batiment.tir.connect(_sur_tir.bind(batiment))
+		_tourelles.append(batiment)
 	if _pret:
 		var visuels: Dictionary = batiment.visuels()
 		$SolEffets.add_child(visuels["sol"])
@@ -390,6 +445,9 @@ func _placer_interface() -> void:
 		bouton.custom_minimum_size = TAILLE_POSER
 		bouton.size = TAILLE_POSER
 		bouton.position = Vector2(ecran.x / 2.0 + (15.0 if nom == "Poser" else -15.0 - TAILLE_POSER.x), ecran.y - TAILLE_POSER.y - 40)
+	# Recharger : au-dessus de Start (paysage), au-dessus de Héros et Réglages (portrait)
+	_recharger.custom_minimum_size = TAILLE_START   # la scène impose 140 x 140
+	_recharger.size = TAILLE_START
 	var consigne: Label = _ui.get_node("Consigne")
 	consigne.size = Vector2(ecran.x - 48, 60)
 	consigne.position = Vector2(24, ecran.y - TAILLE_POSER.y - 120)
@@ -407,10 +465,12 @@ func _placer_interface() -> void:
 	_ui.get_node("Heros").position = Vector2(ecran.x - 2.0 * TAILLE_ROND.x - 44, 24 if paysage else bas)
 	_ui.get_node("Start").position = Vector2((ecran.x - TAILLE_START.x) / 2.0, ecran.y - TAILLE_START.y - 40) if paysage \
 		else Vector2(ecran.x - TAILLE_START.x - 24, ecran.y - TAILLE_START.y - 40)
+	_recharger.position = _ui.get_node("Start").position - Vector2(0, TAILLE_START.y + 20) if paysage \
+		else Vector2(ecran.x - TAILLE_START.x - 24, bas - TAILLE_START.y - 20)
 	var cartes: GridContainer = _ui.get_node("Constructions")
 	cartes.columns = COLONNES_CARTES[paysage]
 	cartes.add_theme_constant_override("h_separation", 14)
-	cartes.add_theme_constant_override("v_separation", 14 if paysage else 10)
+	cartes.add_theme_constant_override("v_separation", 14 if paysage else 4)
 	for carte in cartes.get_children():
 		carte.custom_minimum_size = TAILLE_CARTE[paysage]
 	cartes.size = Vector2.ZERO
@@ -541,6 +601,8 @@ func placer_fantome(centre: Vector2) -> void:
 	_fantome = _creer_batiment(_placement, IMAGES[_placement], centre, TAILLES[_placement])
 	_fantome.collision_layer = 0   # un fantôme ne bloque personne
 	_fantome.collision_mask = 0
+	if "montrer_balles" in _fantome:
+		_fantome.montrer_balles = false
 	$Monde.add_child(_fantome)
 	var visuels: Dictionary = _fantome.visuels()
 	$Vue.add_child(visuels["vue"])
@@ -722,7 +784,8 @@ func _dessiner_fond_tiroir() -> void:
 	boite.draw_style_box(cadre, Rect2(Vector2.ZERO, boite.size).grow(16))
 
 
-## Cadre de l'inventaire : les 5 types d'objets, chacun avec son nombre (grisé s'il n'y en a pas).
+## Cadre de l'inventaire : tous les types d'objets (6 avec les balles), chacun avec son nombre (grisé s'il n'y en a
+## pas) ; les icônes rapetissent quand il y a plus de 5 types, pour tenir dans le cadre.
 func _dessiner_inventaire() -> void:
 	var zone: Control = _ui.get_node("Haut/Inventaire")
 	var cadre := StyleBoxFlat.new()
@@ -733,9 +796,10 @@ func _dessiner_inventaire() -> void:
 	zone.draw_style_box(cadre, Rect2(Vector2.ZERO, zone.size))
 	var types := Partie.NOMS.keys()
 	var pas := zone.size.x / types.size()
+	var icone := minf(TAILLE_ICONE, pas * 0.45)
 	for i in types.size():
-		var pieds := Vector2(pas * (i + 0.5) - 18, zone.size.y / 2.0 + TAILLE_ICONE / 2.0)
-		Dessin.objet_compte(zone, types[i], pieds, TAILLE_ICONE, Partie.inventaire.get(types[i], 0))
+		var pieds := Vector2(pas * (i + 0.5) - icone / 3.0, zone.size.y / 2.0 + icone / 2.0)
+		Dessin.objet_compte(zone, types[i], pieds, icone, Partie.inventaire.get(types[i], 0))
 
 
 ## Jauge du remède : une fiole, « Remède N / 3 » et une barre en cases qui se remplit de vert.

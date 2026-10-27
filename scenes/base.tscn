@@ -104,7 +104,7 @@ text = "La base"
 horizontal_alignment = 1
 
 [node name="Inventaire" type="Control" parent="Interface/Haut"]
-custom_minimum_size = Vector2(640, 110)
+custom_minimum_size = Vector2(680, 110)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
