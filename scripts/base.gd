@@ -49,6 +49,8 @@ const IMAGES := {"abri_1": "base_shelter_1", "abri_2": "base_shelter_2", "feu": 
 const LIGNES := [[160.0, 1600.0, 160.0, 40.0, 280.0, false], [1000.0, 2200.0, 160.0, 1320.0, 1560.0, false],
 	[300.0, 940.0, 160.0, 40.0, 280.0, true]]
 const LARGEUR_LIGNE := 8.0
+## Image V5 du sol d'asphalte, une par case (sinon losange de couleur Palette.ASPHALTE)
+const ASPHALTE_IMAGE := "floor_asphalt"
 ## Chute du ciel : attente avant la première, écart entre deux bâtiments (s)
 const ATTENTE_CHUTES := 0.3
 const ECART_CHUTES := 0.35
@@ -923,7 +925,10 @@ func _tirer_sol() -> void:
 			var bloc := Vector2i(i, j) / BLOC
 			if not _dalles.has(bloc):
 				_dalles[bloc] = []
-			_dalles[bloc].append(["asphalte", Rect2(Vector2(i, j) * CASE, Vector2(CASE, CASE)), rng.randi()])
+			var case := Rect2(Vector2(i, j) * CASE, Vector2(CASE, CASE))
+			if Images.existe(ASPHALTE_IMAGE):
+				_dalles[bloc].append([ASPHALTE_IMAGE, case, case.position])   # image (Niveau), puis les taches par-dessus
+			_dalles[bloc].append(["asphalte", case, rng.randi()])
 	for rangee in LIGNES:
 		var k: float = rangee[0]
 		while k <= rangee[1]:
@@ -940,22 +945,31 @@ func _tirer_sol() -> void:
 
 func _dessiner_sol(noeud: Node2D, morceaux: Array) -> void:
 	var autres := []
+	var images := []
+	for morceau in morceaux:
+		if morceau[0] == ASPHALTE_IMAGE:
+			images.append(morceau)
+	if not images.is_empty():
+		super(noeud, images)   # image d'asphalte V5 d'abord, les taches et fissures tirées par-dessus
 	for morceau in morceaux:
 		match morceau[0]:
 			"asphalte":
-				_dessiner_asphalte(noeud, morceau[1], morceau[2])
+				_dessiner_asphalte(noeud, morceau[1], morceau[2], images.is_empty())
 			"ligne":
 				var c := Iso.coins(morceau[1])
 				noeud.draw_colored_polygon(PackedVector2Array([c[0], c[1], c[2], c[3]]), Palette.LIGNE_PARKING)
+			ASPHALTE_IMAGE:
+				pass
 			_:
 				autres.append(morceau)
 	super(noeud, autres)
 
 
-## Case d'asphalte : losange, quelques taches plus sombres et parfois une fissure.
-func _dessiner_asphalte(noeud: Node2D, case: Rect2, graine_case: int) -> void:
+## Case d'asphalte : losange (sans l'image V5), quelques taches plus sombres et parfois une fissure.
+func _dessiner_asphalte(noeud: Node2D, case: Rect2, graine_case: int, fond := true) -> void:
 	var c := Iso.coins(case)
-	noeud.draw_colored_polygon(PackedVector2Array([c[3], c[2], c[1], c[0]]), Palette.ASPHALTE)
+	if fond:
+		noeud.draw_colored_polygon(PackedVector2Array([c[3], c[2], c[1], c[0]]), Palette.ASPHALTE)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = graine_case
 	for k in rng.randi() % 3:

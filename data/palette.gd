@@ -60,6 +60,7 @@ const CLARTE_V3 := {
 	"prop_freezer": 0.75,
 	"prop_checkout_2c": 0.8,
 	"floor_pharmacy": 0.4,
+	"prop_concrete_block": 0.85,
 	"wall_pharmacy": 0.45,
 	"prop_pharmacy_counter_2c": 0.75,
 	"prop_pharmacy_shelf_2c": 0.75,
@@ -153,7 +154,8 @@ const POMME_QUEUE := Color("5a3d2e")
 const BETON_FACE := Color("54566a")
 const BETON_COTE := Color("43455a")
 # Voitures (dessinées en code) : carrosseries, vitres, phares ; la voiture de survie est verte et chargée
-const VOITURES := {"survie": Color("5f8a5a"), "rouille": Color("8a5a44"), "bleue": Color("4f6390"), "grise": Color("7a7a88")}
+const VOITURES := {"survie": Color("5f8a5a"), "rouille": Color("8a5a44"), "rouge": Color("8f4a48"), "jaune": Color("9a8448"),
+	"bleue": Color("4f6390"), "grise": Color("7a7a88")}
 const VITRE := Color("2c3a58")
 const VITRE_REFLET := Color("7f9cc8")
 const PHARE := Color("ffe9a0")

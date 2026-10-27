@@ -50,11 +50,11 @@ couleur = "rouille"
 
 [node name="Epave2" parent="Monde" instance=ExtResource("4_voiture")]
 position = Vector2(1200, 275)
-couleur = "bleue"
+couleur = "rouge"
 
 [node name="Epave3" parent="Monde" instance=ExtResource("4_voiture")]
 position = Vector2(1720, 1555)
-couleur = "grise"
+couleur = "jaune"
 
 [node name="Epave4" parent="Monde" instance=ExtResource("4_voiture")]
 position = Vector2(160, 595)

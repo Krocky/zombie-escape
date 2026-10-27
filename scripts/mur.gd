@@ -3,7 +3,7 @@ extends StaticBody2D
 ## position = milieu du bord bas de l'emprise au sol (coordonnées monde).
 ## Affichage isométrique (voir Iso) : le niveau place visuels() dans ses calques.
 
-enum Style { MUR, ETAGERE, CAISSE, BLOC }   # BLOC : bloc de béton (parking de la base), dessiné en code
+enum Style { MUR, ETAGERE, CAISSE, BLOC }   # BLOC : bloc de béton (parking de la base), image BLOC_IMAGE ou dessin en code
 
 @export var taille := Vector2(200, 60)   # emprise au sol (collision)
 @export var hauteur := 60.0              # hauteur du dessin de secours (pixels d'écran)
@@ -26,6 +26,7 @@ const LONGUEUR_PANNEAU := 200.0   # longueur d'un pan de mur (monde), voir Sorti
 const LONGUEUR_RAYON := 140.0     # longueur d'un rayon d'étagère (monde)
 const HAUTEUR_REBORD := 18.0
 const LONGUEUR_TRONCON := 40.0    # tronçons d'une cloison (voir `cloison`)
+const BLOC_IMAGE := "prop_concrete_block"   # image V5 du bloc de béton (posée sur l'emprise, sans en changer la taille)
 
 static var _texture_lune: GradientTexture2D
 
@@ -45,7 +46,7 @@ func _ready() -> void:
 	add_child(collision)
 	_vue.y_sort_enabled = true
 	# Ombre douce au sol (les images V3 ont déjà la leur)
-	if style != Style.MUR and not Images.v3_existe(image):
+	if style != Style.MUR and not Images.v3_existe(image) and not (style == Style.BLOC and Images.existe(BLOC_IMAGE)):
 		_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise(), 0.8))
 	_construire()
 
@@ -114,7 +115,10 @@ func _construire() -> void:
 			var nom := "caisse_grande" if h % 3 == 0 else "caisse"
 			_habiller(nom, emprise(), h % 2 == 0, Palette.CAISSE_BOIS, Palette.CAISSE_BOIS_FACE, Palette.CAISSE_BOIS_COTE)
 		Style.BLOC:
-			_secours(emprise(), hauteur, Palette.BETON, Palette.BETON_FACE, Palette.BETON_COTE)
+			if Images.existe(BLOC_IMAGE):
+				Iso.habiller(BLOC_IMAGE, emprise(), _vue, Iso.miroir_pour(BLOC_IMAGE, long_en_x))
+			else:
+				_secours(emprise(), hauteur, Palette.BETON, Palette.BETON_FACE, Palette.BETON_COTE)
 
 
 ## i-ème morceau (sur n) de l'emprise, découpée dans sa longueur.
