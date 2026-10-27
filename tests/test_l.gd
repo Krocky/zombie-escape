@@ -7,7 +7,7 @@ var f := 0
 var partie
 func _initialize():
 	partie = root.get_node("Partie")
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(root.get_node("Partie").fichier()))
 	partie.inventaire = {}; partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	change_scene_to_file("res://scenes/carte.tscn")
 func _touch(pos, pressed):
@@ -101,7 +101,7 @@ func _physics_process(_d):
 		_touch(_centre(current_scene.get_node("RetourBase")), true)
 	if f == 376: _touch(Vector2.ZERO, false)
 	if f == 390:
-		print("scene: ", current_scene.name, " (attendu Remede) sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+		print("scene: ", current_scene.name, " (attendu Remede) sauvegarde: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 		var c = current_scene.get_node("Centre/Colonne/Continuer")
 		print("bouton Continuer: ", c.size, " dans l'ecran: ", current_scene.get_viewport_rect().encloses(c.get_global_rect()))
 		_snap("remede")
@@ -116,15 +116,15 @@ func _physics_process(_d):
 		partie.terminer(true, ["fiole"])
 		print("fiole apres le remede: inventaire ", partie.inventaire.get("fiole", 0), " jauge ", partie.remede, " (attendu 1, 3)")
 		# Reprise d'une sauvegarde version 2 : ses fioles vont dans la jauge
-		var fichier := FileAccess.open("user://sauvegarde.json", FileAccess.WRITE)
+		var fichier := FileAccess.open(root.get_node("Partie").fichier(), FileAccess.WRITE)
 		fichier.store_string('{"version": 2, "inventaire": {"conserve": 1, "fiole": 2}, "constructions": []}')
 		fichier.close()
 		partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 		partie.charger()
 		print("reprise v2: inventaire ", partie.inventaire, " jauge ", partie.remede, " (attendu fiole 0, jauge 2)")
-		print("reecrite: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+		print("reecrite: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 		# Ne pas laisser de remède aux autres tests
-		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(root.get_node("Partie").fichier()))
 		partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 		quit()
 	return false

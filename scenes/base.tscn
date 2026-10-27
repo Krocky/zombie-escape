@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/niveau.tscn" id="1_niveau"]
 [ext_resource type="Script" path="res://scripts/base.gd" id="2_base"]
 [ext_resource type="PackedScene" path="res://scenes/mur.tscn" id="3_mur"]
 [ext_resource type="PackedScene" path="res://scenes/voiture.tscn" id="4_voiture"]
 [ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="5_bouton"]
+[ext_resource type="PackedScene" path="res://scenes/menu_partie.tscn" id="6_menu"]
 
 [node name="Base" instance=ExtResource("1_niveau")]
 script = ExtResource("2_base")
@@ -144,6 +145,11 @@ offset_right = 260.0
 offset_bottom = 100.0
 texte = "Construire"
 
+[node name="Partie" parent="Interface" instance=ExtResource("5_bouton")]
+offset_right = 260.0
+offset_bottom = 100.0
+texte = "Partie"
+
 [node name="Consigne" type="Label" parent="Interface"]
 visible = false
 offset_right = 1232.0
@@ -165,3 +171,5 @@ visible = false
 offset_right = 280.0
 offset_bottom = 110.0
 texte = "Poser"
+
+[node name="MenuPartie" parent="Interface" instance=ExtResource("6_menu")]

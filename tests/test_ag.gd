@@ -14,7 +14,9 @@ var iso
 var echecs := 0
 var zombie: Node2D = null
 var pv_apres := 0
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 const INVENTAIRE := {"conserve": 10, "eau": 2, "piles": 20}
 ## Places des 4 tourelles (centre de l'emprise, monde)
 const PLACES := [Vector2(950, 1050), Vector2(1450, 1200), Vector2(1450, 450), Vector2(1300, 1050)]

@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/menu_partie.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+
+[node name="MenuPartie" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Titre" type="Label" parent="."]
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 70.0
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 44
+text = "Partie"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Sauvegarder" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 420.0
+offset_bottom = 100.0
+texte = "Sauvegarder"
+
+[node name="Nouvelle" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 420.0
+offset_bottom = 100.0
+texte = "Nouvelle partie"
+
+[node name="MesParties" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 420.0
+offset_bottom = 100.0
+texte = "Mes parties"
+
+[node name="Fermer" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 420.0
+offset_bottom = 100.0
+texte = "Fermer"
+
+[node name="Message" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 60.0
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 36
+text = "Partie sauvegardée !"
+horizontal_alignment = 1
+vertical_alignment = 1

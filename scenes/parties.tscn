@@ -1,0 +1,95 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/parties.gd" id="1_parties"]
+[ext_resource type="PackedScene" path="res://scenes/bouton_tactile.tscn" id="2_bouton"]
+
+[node name="Parties" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_parties")
+
+[node name="Titre" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 16.0
+offset_bottom = 96.0
+grow_horizontal = 2
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 56
+text = "Mes parties"
+horizontal_alignment = 1
+
+[node name="Liste" type="Control" parent="."]
+clip_contents = true
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Etiquette" type="Label" parent="."]
+layout_mode = 0
+offset_right = 140.0
+offset_bottom = 90.0
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 34
+text = "Nom :"
+vertical_alignment = 1
+
+[node name="Nom" type="LineEdit" parent="."]
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 90.0
+theme_override_font_sizes/font_size = 40
+placeholder_text = "Écris-le ici"
+max_length = 20
+alignment = 1
+context_menu_enabled = false
+virtual_keyboard_type = 0
+
+[node name="Creer" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 360.0
+offset_bottom = 110.0
+texte = "Créer"
+
+[node name="Retour" parent="." instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 260.0
+offset_bottom = 104.0
+texte = "Retour"
+
+[node name="Confirmation" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Question" type="Label" parent="Confirmation"]
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 120.0
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 46
+text = "Êtes-vous sûr ?"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Oui" parent="Confirmation" instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 240.0
+offset_bottom = 110.0
+texte = "Oui"
+
+[node name="Non" parent="Confirmation" instance=ExtResource("2_bouton")]
+layout_mode = 0
+offset_right = 240.0
+offset_bottom = 110.0
+texte = "Non"

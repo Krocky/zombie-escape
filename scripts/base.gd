@@ -96,6 +96,7 @@ var _tourelles := []                    # Tourelle, dans l'ordre de pose (Partie
 var _tourelle_proche: Node2D = null     # tourelle à portée du bouton Recharger
 var _tirs := false                      # des balles ont été tirées depuis la dernière sauvegarde
 var _recharger: Control = BOUTON.instantiate()   # bouton Recharger, près d'une tourelle
+var _depuis_sauvegarde := 0.0          # secondes depuis la dernière sauvegarde automatique (Reglages.SAUVEGARDE_AUTO)
 var _glissement: Tween                  # ouverture ou fermeture du tiroir en cours
 var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 	set(valeur):
@@ -103,6 +104,7 @@ var _tiroir := 0.0:                     # 0 = tiroir fermé, 1 = ouvert
 		_placer_tiroir()
 
 @onready var _ui := $Interface
+@onready var _menu := $Interface/MenuPartie
 
 
 func _ready() -> void:
@@ -157,6 +159,12 @@ func _preparer_interface() -> void:
 	_ui.get_node("Reglages").icone = "reglages"
 	_ui.get_node("Reglages").appuye.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/parametres.tscn"))
 	_ui.get_node("Tiroir").appuye.connect(func() -> void: ouvrir_tiroir(not tiroir_ouvert()))
+	_ui.get_node("Partie").couleur = Palette.UI_BOUTON
+	_ui.get_node("Partie").appuye.connect(ouvrir_menu.bind(true))
+	_menu.sauvegarder.connect(sauvegarder_partie)
+	_menu.nouvelle.connect(func() -> void: EcranParties.ouvrir(get_tree(), "nouvelle", true))
+	_menu.mes_parties.connect(func() -> void: EcranParties.ouvrir(get_tree(), "liste", true))
+	_menu.ferme.connect(ouvrir_menu.bind(false))
 	var poser: Control = _ui.get_node("Poser")
 	poser.couleur = Palette.SORTIE
 	poser.appuye.connect(poser_construction)
@@ -192,7 +200,13 @@ func _physics_process(delta: float) -> void:
 	for meuble in _meubles:
 		if is_instance_valid(meuble):
 			meuble.voir_a_travers(pieds, delta)
-	_ui.get_node("Start").visible = _placement == "" and $Monde/Voiture.distance_a(_heros.global_position) <= Reglages.VOITURE_PORTEE
+	# Sauvegarde automatique, en plus de celles faites à chaque événement
+	_depuis_sauvegarde += delta
+	if _depuis_sauvegarde >= Reglages.SAUVEGARDE_AUTO:
+		sauvegarder_partie()
+	var libre := _placement == "" and not menu_ouvert()   # ni placement ni menu Partie
+	_ui.get_node("Partie").visible = libre and not tiroir_ouvert()
+	_ui.get_node("Start").visible = libre and $Monde/Voiture.distance_a(_heros.global_position) <= Reglages.VOITURE_PORTEE
 	# Les rescapés : chacun apparaît une fois sa tente posée
 	for id in _rescapes:
 		_rescapes[id].actif = _batiments[id].pose()
@@ -208,7 +222,7 @@ func _physics_process(delta: float) -> void:
 		if d <= meilleure and tourelle.pose():
 			meilleure = d
 			_tourelle_proche = tourelle
-	_recharger.visible = _placement == "" and not tiroir_ouvert() and _tourelle_proche != null \
+	_recharger.visible = libre and not tiroir_ouvert() and _tourelle_proche != null \
 		and Partie.inventaire.get("balles", 0) > 0
 	if _recharger.visible:
 		_recharger.actif = Partie.peut_recharger(_tourelles.find(_tourelle_proche))
@@ -236,6 +250,38 @@ func _exit_tree() -> void:
 		Partie.sauvegarder()
 
 
+## Sauvegarde la partie en cours (balles des tourelles comprises, déjà recopiées dans Partie à chaque tir).
+func sauvegarder_partie() -> void:
+	Partie.sauvegarder()
+	_tirs = false
+	_depuis_sauvegarde = 0.0
+	if menu_ouvert():
+		_menu.afficher_message("Partie sauvegardée !")
+
+
+## Menu du bouton « Partie » (Sauvegarder, Nouvelle partie, Mes parties, Fermer) : pendant qu'il est ouvert, le
+## héros s'arrête et les autres boutons et le joystick sont cachés (les boutons tactiles captent les doigts partout).
+func ouvrir_menu(ouvert: bool) -> void:
+	if ouvert and _placement != "":
+		return
+	if ouvert:
+		ouvrir_tiroir(false)
+		$HUD.relacher()
+		_heros.definir_direction(Vector2.ZERO)
+	_menu.ouvrir(ouvert)
+	for nom in ["Tiroir", "Remede", "Heros", "Reglages", "Partie"]:
+		_ui.get_node(nom).visible = not ouvert
+	if ouvert:
+		_ui.get_node("Start").visible = false
+		_recharger.visible = false
+	$HUD.get_node("Joystick").visible = not ouvert
+	$HUD.get_node("Joystick").set_process_input(not ouvert)
+
+
+func menu_ouvert() -> bool:
+	return _menu.visible
+
+
 ## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
 func rescapes_aux_tentes(oui: bool) -> void:
 	for rescape in _rescapes.values():
@@ -255,10 +301,12 @@ func _afficher_objectif() -> void:
 	$HUD.afficher_objectif("", 0, 0)
 
 
-## Geste « retour » d'Android : annule le placement en cours, sinon écran précédent (le titre), comme avant.
+## Geste « retour » d'Android : ferme le menu Partie ou annule le placement en cours, sinon écran précédent (le titre).
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
-		if _placement != "":
+		if menu_ouvert():
+			ouvrir_menu.call_deferred(false)
+		elif _placement != "":
 			annuler_placement.call_deferred()
 		else:
 			get_tree().change_scene_to_file.call_deferred("res://scenes/titre.tscn")   # pas pendant la diffusion de la notification
@@ -375,8 +423,7 @@ func _titre() -> String:
 	var prenom := Partie.prenom
 	if prenom == "":
 		return "La base"
-	var voyelle := prenom.left(1).to_lower() in ["a", "e", "i", "o", "u", "y", "h", "é", "è", "ê", "à", "â", "î", "ô", "û"]
-	return "La base " + ("d'" if voyelle else "de ") + prenom
+	return "La base " + Partie.de(prenom)
 
 
 ## Paysage : Construire en haut à gauche, Héros et Réglages en haut à droite, jauge en bas à droite, Start en bas
@@ -401,6 +448,11 @@ func _placer_interface() -> void:
 	tiroir.custom_minimum_size = TAILLE_TIROIR
 	tiroir.size = TAILLE_TIROIR
 	tiroir.position = Vector2(24, 24) if paysage else Vector2(ecran.x - TAILLE_TIROIR.x - 24, 236)
+	# Partie : sous le bouton du tiroir (caché quand le tiroir est ouvert)
+	var bouton_partie: Control = _ui.get_node("Partie")
+	bouton_partie.custom_minimum_size = TAILLE_TIROIR   # la scène impose 140 x 140
+	bouton_partie.size = TAILLE_TIROIR
+	bouton_partie.position = tiroir.position + Vector2(0, TAILLE_TIROIR.y + 16)
 	remede.size = TAILLE_JAUGE[true] if paysage else Vector2(ecran.x - TAILLE_TIROIR.x - 64, TAILLE_JAUGE[false].y)
 	remede.position = Vector2(ecran.x - remede.size.x - 24, ecran.y - remede.size.y - 34) if paysage else Vector2(24, 236)
 	for nom in ["Heros", "Reglages", "Start"]:

@@ -91,7 +91,7 @@ func _physics_process(_d):
 		print("base, 3 constructions: ", _etat())
 		_snap("base_complete")
 		# Ne pas laisser de constructions aux autres tests
-		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(root.get_node("Partie").fichier()))
 		partie.constructions = []; partie.inventaire = {}; partie.remede = 0; partie.remede_annonce = false
 		quit()
 	return false

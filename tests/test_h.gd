@@ -6,13 +6,13 @@ var partie
 func _initialize():
 	partie = root.get_node("Partie")
 	# Ancienne sauvegarde (lot 1, version 1)
-	var fichier := FileAccess.open("user://sauvegarde.json", FileAccess.WRITE)
+	var fichier := FileAccess.open(root.get_node("Partie").fichier(), FileAccess.WRITE)
 	fichier.store_string('{"version": 1, "inventaire": {"conserve": 3, "piles": 2, "fiole": 1}}')
 	fichier.close()
 	partie.inventaire = {}; partie.constructions = []; partie.remede = 0; partie.remede_annonce = false
 	partie.charger()
 	print("reprise v1: ", partie.inventaire, " constructions: ", partie.constructions)
-	print("reecrite: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+	print("reecrite: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 	partie.skin = "heros"   # héros déjà choisi : Jouer mène à la base (écran de choix : test_m)
 	partie.sauvegarder()
 	change_scene_to_file("res://scenes/titre.tscn")
@@ -57,7 +57,7 @@ func _physics_process(_d):
 	if f == 150: _touch(Vector2.ZERO, false)
 	if f == 164:
 		print("scene: ", current_scene.name, " (attendu Base) inventaire: ", partie.inventaire)
-		print("sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+		print("sauvegarde: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 		_snap("base_retour")
 		quit()
 	return false

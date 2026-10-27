@@ -11,7 +11,9 @@ var partie
 var reg
 var echecs := 0
 var depart := Vector2.ZERO
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 ## Les pieds d'une image (ancre « pieds » = bas de l'ombre peinte sous le socle) sont dans l'emprise à ce nombre
 ## d'unités du monde près (une dizaine de pixels à l'écran)
 const PRES := 16.0

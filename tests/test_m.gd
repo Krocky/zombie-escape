@@ -57,7 +57,7 @@ func _physics_process(_d):
 			if g == 110:
 				print("scene: ", current_scene.name, " (attendu Base) titre: '", current_scene.get_node("Interface/Haut/Titre").text,
 					"' skin: ", partie.skin, " prenom: ", partie.prenom)
-				print("sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+				print("sauvegarde: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 				var b = current_scene.get_node("Interface/Heros")
 				print("bouton Heros: ", b.size, " dans l'ecran: ", current_scene.get_viewport_rect().encloses(b.get_global_rect()))
 				_snap("base")
@@ -164,7 +164,7 @@ func _physics_process(_d):
 			if g == 40:
 				print("fin: '", current_scene.get_node("Resume").text.split("\n")[0], "'")
 				_snap("victoire")
-				DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
+				DirAccess.remove_absolute(ProjectSettings.globalize_path(root.get_node("Partie").fichier()))
 				partie.skin = ""; partie.prenom = ""
 				quit()
 	return false

@@ -16,7 +16,7 @@ var zombie
 var avant := {}
 var echecs := 0
 
-const SAUVEGARDE := "user://sauvegarde.json"
+const SAUVEGARDE := root.get_node("Partie").fichier()
 const REGLAGES := "user://reglages.json"
 
 

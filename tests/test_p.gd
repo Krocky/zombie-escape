@@ -9,7 +9,9 @@ var rg
 var r   # rescapé
 var depart := Vector2.ZERO
 var avant := Vector2.ZERO
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 
 
 func _initialize():

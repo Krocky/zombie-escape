@@ -12,8 +12,16 @@ extends Node
 ## "tourelles": [balles, ...] balles de chaque tourelle, dans l'ordre de pose}.
 ## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge, ses constructions gardent
 ## leur place de l'étape a du lot 4, PLACES_DEPART), puis réécrite en version 9.
+## Plusieurs parties (lot 4 d) : une sauvegarde (format ci-dessus) par partie dans DOSSIER (« p1.json », « p2.json »...),
+## et un index INDEX = {"version": 1, "en_cours": id, "parties": [{"id": .., "nom": .., "date": secondes unix}, ...]}.
+## L'ancienne sauvegarde unique (ANCIEN_FICHIER) est copiée une fois dans SECOURS (jamais écrasée), puis devient la
+## première partie ; elle reste sur place, mais n'est plus lue. Les réglages (ParametresJeu) restent communs.
 
-const FICHIER := "user://sauvegarde.json"
+const ANCIEN_FICHIER := "user://sauvegarde.json"
+const SECOURS := "user://sauvegarde_avant_lot4d.json"
+const DOSSIER := "user://parties/"
+const INDEX := "user://parties/index.json"
+const NOM_PARTIE_MAX := 20
 const VERSION := 9
 const NOMS := {
 	"conserve": "Conserve",
@@ -100,8 +108,22 @@ var resultat := {"victoire": false, "rapportes": [], "perdus": [], "mission": fa
 	"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}
 
 
+## Parties sauvegardées, dans l'ordre de création : [{"id": "p1", "nom": .., "date": secondes unix}, ...]
+var parties := []
+## Id de la partie en cours (celle que le jeu lit et sauvegarde)
+var en_cours := ""
+
+
 func _ready() -> void:
+	_preparer_parties()
 	charger()
+
+
+## Sauvegarde aussi quand l'application passe en arrière-plan ou se ferme.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if en_cours != "":
+			sauvegarder()
 
 
 ## Appelé par le niveau à la fin. En cas de défaite, on perd la moitié des objets (au hasard, arrondi en dessous).
@@ -515,18 +537,23 @@ func premiere_apparition(id: String) -> bool:
 
 ## Écriture sûre (Fichier : .tmp puis renommage), l'ancienne sauvegarde reste entière si l'appli est tuée pendant l'écriture.
 func sauvegarder() -> void:
-	Fichier.ecrire_json(FICHIER, {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
+	Fichier.ecrire_json(fichier(), {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
 		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
 		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux,
 		"poses": poses.map(func(p: Array) -> Dictionary: return {"nom": p[0], "x": p[1].x, "y": p[1].y}),
 		"tourelles": balles_tourelles})
+	var entree := _entree(en_cours)
+	if not entree.is_empty():
+		entree["date"] = int(Time.get_unix_time_from_system())
+		_ecrire_index()
 
 
 ## Lit la sauvegarde (version 1 à 9). Une version plus ancienne est aussitôt réécrite en version 9
 ## (les fioles déjà rangées remplissent la jauge du remède, les constructions restent à leur place d'origine).
 ## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
-	var donnees = Fichier.lire_json(FICHIER)
+	_vider()
+	var donnees = Fichier.lire_json(fichier())
 	if not donnees is Dictionary:
 		return
 	if donnees.get("inventaire") is Dictionary:
@@ -570,3 +597,166 @@ func charger() -> void:
 		poses = poses_camp()
 		_remplir_remede()
 		sauvegarder()
+
+
+## Remet une partie vide en mémoire (avant de lire une sauvegarde, ou pour une nouvelle partie).
+func _vider() -> void:
+	inventaire = {}
+	constructions = []
+	poses = []
+	balles_tourelles = []
+	remede = 0
+	remede_annonce = false
+	skin = ""
+	prenom = ""
+	rescapes = 0
+	lieux_sauves = []
+	batiments_vus = []
+	etoiles_lieux = {}
+	derniers_tirages = {}
+	resultat = {"victoire": false, "rapportes": [], "perdus": [], "mission": false, "bonus": [], "fioles": 0, "rescape": false,
+		"intact": false, "jardin": [], "trouvailles": [], "gueris": 0}
+
+
+# --- Plusieurs parties (lot 4 d) ---
+
+## Fichier de la partie en cours.
+func fichier() -> String:
+	return _fichier_partie(en_cours)
+
+
+func _fichier_partie(id: String) -> String:
+	return DOSSIER + id + ".json"
+
+
+## Au démarrage : copie de secours de l'ancienne sauvegarde (une seule fois), puis lecture de l'index des parties.
+## Sans index lisible : on le refait avec les fichiers de parties déjà là ; s'il n'y en a aucun, l'ancienne
+## sauvegarde devient la première partie (« Partie d'Eliott »), sinon une partie vide.
+func _preparer_parties() -> void:
+	var ancien := ""
+	for nom_fichier in [ANCIEN_FICHIER, ANCIEN_FICHIER + Fichier.SUFFIXE]:
+		if ancien == "" and FileAccess.file_exists(nom_fichier):
+			ancien = FileAccess.get_file_as_string(nom_fichier)
+	if ancien != "" and not FileAccess.file_exists(SECOURS):
+		var copie := FileAccess.open(SECOURS, FileAccess.WRITE)
+		if copie:
+			copie.store_string(ancien)
+			copie.close()
+	DirAccess.make_dir_recursive_absolute(DOSSIER)
+	parties = []
+	en_cours = ""
+	var index = Fichier.lire_json(INDEX)
+	if index is Dictionary and index.get("parties") is Array:
+		for entree in index["parties"]:
+			if entree is Dictionary and str(entree.get("id", "")).is_valid_filename() and str(entree.get("id", "")) != "" \
+					and _entree(str(entree["id"])).is_empty():
+				parties.append({"id": str(entree["id"]), "nom": str(entree.get("nom", "Partie")).left(NOM_PARTIE_MAX),
+					"date": int(entree.get("date", 0))})
+		en_cours = str(index.get("en_cours", ""))
+	else:
+		var trouvees := []
+		for nom_fichier in DirAccess.get_files_at(DOSSIER):
+			if nom_fichier.begins_with("p") and nom_fichier.ends_with(".json") and nom_fichier.trim_prefix("p").trim_suffix(".json").is_valid_int():
+				trouvees.append(int(nom_fichier.trim_prefix("p").trim_suffix(".json")))
+		trouvees.sort()
+		for n in trouvees:
+			parties.append({"id": "p%d" % n, "nom": "Partie %d" % n, "date": int(Time.get_unix_time_from_system())})
+		if parties.is_empty():
+			var donnees = JSON.parse_string(ancien) if ancien != "" else null
+			var nom_partie := "Partie 1"
+			if donnees is Dictionary:
+				Fichier.ecrire_json(_fichier_partie("p1"), donnees)
+				var son_prenom := str(donnees.get("prenom", "")).strip_edges()
+				if son_prenom != "":
+					nom_partie = ("Partie " + de(son_prenom)).left(NOM_PARTIE_MAX)
+			parties.append({"id": "p1", "nom": nom_partie, "date": int(Time.get_unix_time_from_system())})
+	if _entree(en_cours).is_empty():
+		en_cours = "p1" if parties.is_empty() else parties[0]["id"]
+		if parties.is_empty():
+			parties.append({"id": "p1", "nom": "Partie 1", "date": int(Time.get_unix_time_from_system())})
+	_ecrire_index()
+
+
+func _ecrire_index() -> void:
+	Fichier.ecrire_json(INDEX, {"version": 1, "en_cours": en_cours, "parties": parties})
+
+
+func _entree(id: String) -> Dictionary:
+	for entree in parties:
+		if entree["id"] == id:
+			return entree
+	return {}
+
+
+## « d'Eliott », « de Paul » (titre de la base, nom de la partie reprise).
+func de(son_prenom: String) -> String:
+	var voyelle := son_prenom.left(1).to_lower() in ["a", "e", "i", "o", "u", "y", "h", "é", "è", "ê", "à", "â", "î", "ô", "û"]
+	return ("d'" if voyelle else "de ") + son_prenom
+
+
+func nom_partie(id: String) -> String:
+	return _entree(id).get("nom", "")
+
+
+## Nom proposé pour une nouvelle partie : « Partie N » (N = nombre de parties + 1, sans doublon).
+func nom_libre() -> String:
+	var n := parties.size() + 1
+	while parties.any(func(e: Dictionary) -> bool: return e["nom"] == "Partie %d" % n):
+		n += 1
+	return "Partie %d" % n
+
+
+## Ce que montre la liste « Mes parties » : nom, date, prénom et skin du héros, rescapés (lus dans son fichier).
+func infos_partie(id: String) -> Dictionary:
+	var entree := _entree(id)
+	var infos := {"nom": entree.get("nom", ""), "date": entree.get("date", 0), "prenom": prenom, "skin": skin, "rescapes": rescapes}
+	if id != en_cours:
+		var donnees = Fichier.lire_json(_fichier_partie(id))
+		donnees = donnees if donnees is Dictionary else {}
+		infos["prenom"] = str(donnees.get("prenom", ""))
+		infos["skin"] = str(donnees.get("skin", ""))
+		infos["rescapes"] = int(donnees.get("rescapes", 0))
+	return infos
+
+
+## Date d'une sauvegarde à l'heure du téléphone : « 27/10/2026 14:05 ».
+func texte_date(secondes: int) -> String:
+	if secondes <= 0:
+		return ""
+	var d := Time.get_datetime_dict_from_unix_time(secondes + Time.get_time_zone_from_system().get("bias", 0) * 60)
+	return "%02d/%02d/%d %02d:%02d" % [d["day"], d["month"], d["year"], d["hour"], d["minute"]]
+
+
+## Nouvelle partie : sauvegarde celle en cours, crée la nouvelle (vide) et en fait la partie en cours. Renvoie son id.
+func nouvelle_partie(nom_voulu: String) -> String:
+	sauvegarder()
+	var n := 1
+	while not _entree("p%d" % n).is_empty() or FileAccess.file_exists(_fichier_partie("p%d" % n)):
+		n += 1
+	var id := "p%d" % n
+	var nom_partie_ := nom_voulu.strip_edges().left(NOM_PARTIE_MAX)
+	parties.append({"id": id, "nom": nom_partie_ if nom_partie_ != "" else nom_libre(), "date": 0})
+	en_cours = id
+	_vider()
+	sauvegarder()
+	return id
+
+
+## Charge une autre partie (après avoir sauvegardé celle en cours).
+func charger_partie(id: String) -> void:
+	if id == en_cours or _entree(id).is_empty():
+		return
+	sauvegarder()
+	en_cours = id
+	charger()
+	_ecrire_index()
+
+
+## Efface une partie ; impossible pour la partie en cours (il faut d'abord en charger une autre).
+func effacer_partie(id: String) -> bool:
+	if id == en_cours or _entree(id).is_empty():
+		return false
+	parties.erase(_entree(id))
+	Fichier.effacer(_fichier_partie(id))
+	_ecrire_index()
+	return true

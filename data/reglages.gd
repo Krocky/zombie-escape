@@ -38,6 +38,7 @@ var OBJET_PORTEE := 45.0            # distance pour ramasser un objet en marchan
 var PORTE_PORTEE := 90.0            # distance de la porte à clef pour l'ouvrir (avec la clef)
 var SORTIE_PORTEE := 70.0           # distance de la porte pour sortir (victoire)
 var VOITURE_PORTEE := 110.0         # distance de la voiture de survie (base) pour voir le bouton Start
+var SAUVEGARDE_AUTO := 60.0         # base : sauvegarde automatique toutes les N secondes (valeur technique, pas dans l'écran Réglages)
 
 # --- Rescapé (un enfant caché dans chaque lieu : touche-le, il te suit jusqu'à la sortie) ---
 var RESCAPE_VITESSE := 230.0        # sa vitesse quand il te suit (un peu moins vite que le héros)

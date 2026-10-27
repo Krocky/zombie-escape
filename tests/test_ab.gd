@@ -15,7 +15,9 @@ var echecs := 0
 var centres := []      # centres des 3 barricades posées
 var emprises := []     # leurs emprises
 var taille_barricade := Vector2.ZERO
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 const INVENTAIRE := {"conserve": 20, "eau": 10, "piles": 4}
 ## Places libres du parking pour les barricades 2 et 3 (la 1re est touchée à l'écran près de P1)
 const P1 := Vector2(950, 1050)

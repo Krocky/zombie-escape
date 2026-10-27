@@ -43,3 +43,10 @@ custom_minimum_size = Vector2(360, 110)
 layout_mode = 2
 size_flags_horizontal = 4
 texte = "Jouer"
+
+[node name="MesParties" parent="Centre/Colonne" instance=ExtResource("2_bouton")]
+custom_minimum_size = Vector2(360, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+taille_texte = 36
+texte = "Mes parties"

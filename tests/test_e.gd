@@ -1,7 +1,7 @@
 extends SceneTree
 var f := 0
 func _initialize():
-	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://sauvegarde.json"))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(root.get_node("Partie").fichier()))
 	root.get_node("Partie").inventaire = {}
 	root.get_node("Partie").skin = "heros"   # héros déjà choisi : Jouer mène à la base
 	change_scene_to_file("res://scenes/titre.tscn")
@@ -59,7 +59,7 @@ func _physics_process(_d):
 		h._pv = 1; h.recevoir_degats(1, h.position + Vector2(10, 0))
 	if f == 370:
 		print("scene: ", current_scene.name, " resultat: ", root.get_node("Partie").resultat)
-		print("sauvegarde: ", FileAccess.get_file_as_string("user://sauvegarde.json"))
+		print("sauvegarde: ", FileAccess.get_file_as_string(root.get_node("Partie").fichier()))
 		_snap("defaite")
 		quit()
 	return false

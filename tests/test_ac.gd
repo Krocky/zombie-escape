@@ -14,7 +14,9 @@ var departs := {}
 var dans_obstacle := 0
 var proche = null        # rescapé que le héros va voir
 var delai_origine := 0.0
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 const TOUS := ["abri_1", "abri_2", "feu", "barricade", "atelier", "lampe", "jardin"]
 
 

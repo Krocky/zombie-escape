@@ -8,7 +8,9 @@ var partie
 var h
 var niveau
 var porte
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 
 
 func _initialize():

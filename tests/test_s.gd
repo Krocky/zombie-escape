@@ -4,7 +4,9 @@ extends SceneTree
 ## Captures garçon et fille. Efface la sauvegarde à la fin.
 var f := 0
 var partie
-const FICHIER := "user://sauvegarde.json"
+var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
+	get:
+		return root.get_node("Partie").fichier()
 
 
 func _initialize():

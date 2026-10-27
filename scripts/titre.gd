@@ -1,6 +1,6 @@
 extends Control
-## Écran titre : le nom du jeu et le bouton Jouer (vers la base ; avant la première partie,
-## vers l'écran « Choisis ton héros »). Le geste « retour » d'Android n'y fait rien (quit_on_go_back désactivé).
+## Écran titre : le nom du jeu, le bouton Jouer (reprend la partie en cours : vers la base ; avant son choix du
+## héros, vers l'écran « Choisis ton héros ») et « Mes parties » (lot 4 d). Le geste « retour » d'Android n'y fait rien (quit_on_go_back désactivé).
 
 var _temps := 0.0
 
@@ -12,6 +12,8 @@ func _ready() -> void:
 	$Centre/Colonne/Jouer.couleur = Palette.LAMPE
 	$Centre/Colonne/Jouer.icone = "jouer"
 	$Centre/Colonne/Jouer.appuye.connect(_jouer)
+	$Centre/Colonne/MesParties.couleur = Palette.UI_BOUTON
+	$Centre/Colonne/MesParties.appuye.connect(func() -> void: EcranParties.ouvrir(get_tree(), "liste", false))
 
 
 func _jouer() -> void:
