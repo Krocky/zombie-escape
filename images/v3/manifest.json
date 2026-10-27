@@ -4224,6 +4224,47 @@
    "teinte_violette_px": 1777,
    "traits_fins_px": 0
   },
+  "wall_market_exit": {
+   "ancre_pieds": [
+    64,
+    547
+   ],
+   "anomalies": [],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     63,
+     547
+    ],
+    "droit": [
+     348,
+     386
+    ],
+    "gauche": [
+     0,
+     511
+    ]
+   },
+   "defrange_px": 20092,
+   "echelle": 0.334,
+   "empreinte": "beed334d53ebcd7b61ca5e0318d41a30a129d4f1",
+   "fichier": "images/v3/wall_market_exit.png",
+   "fond": [
+    238,
+    15,
+    202
+   ],
+   "nom": "wall_market_exit",
+   "ombre_violette_px": 7574,
+   "poussieres_px": 2,
+   "source": "docs/raw/V5/wall_market_exit.png",
+   "taille": [
+    349,
+    548
+   ],
+   "teinte_violette_px": 1342,
+   "traits_fins_px": 8
+  },
   "wall_pharmacy": {
    "ancre_pieds": [
     46,

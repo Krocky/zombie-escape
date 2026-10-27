@@ -17,3 +17,5 @@ Lot 2 déposé et traité (8 images). base_barricade_broken reste haute : à ref
 Lot 3 déposé et traité (8 images : 7 icônes de boutons + map_defense). Planche du lot 4 : références/planche_lot_4.jpg,
 murs à retoucher : references/retouche_wall_*.jpg.
 Lot 4 déposé et traité (7 images gardées sur 8) : wall_market_exit écartée (cadrage raté), à refaire en retouche de references/retouche_wall_market.jpg.
+Sortie du supermarché refaite (2e retouche, flaque verte sous le mur effacée). Barricade effondrée à refaire :
+references/planche_barricade_effondree.jpg.
