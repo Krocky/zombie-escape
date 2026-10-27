@@ -244,9 +244,10 @@ func _physics_process(_d):
 				var lu = _lire()
 				_verifier("v7 reprise : version %s, constructions %s" % [lu["version"], lu["constructions"]],
 					lu["version"] == partie.VERSION and lu["constructions"] == v7["constructions"] and lu["inventaire"]["conserve"] == 3.0 and lu["prenom"] == "Eliott")
-				_verifier("v7 reprise : poses d'origine %s" % [lu["poses"]], lu["poses"].size() == 2
+				_verifier("v7 reprise : poses d'origine %s" % [lu["poses"]], lu["poses"].size() == 3
 					and lu["poses"][0]["nom"] == "barricade" and Vector2(lu["poses"][0]["x"], lu["poses"][0]["y"]) == partie.PLACES_DEPART["barricade"]
-					and lu["poses"][1]["nom"] == "atelier" and Vector2(lu["poses"][1]["x"], lu["poses"][1]["y"]) == partie.PLACES_DEPART["atelier"])
+					and lu["poses"][1]["nom"] == "atelier" and Vector2(lu["poses"][1]["x"], lu["poses"][1]["y"]) == partie.PLACES_DEPART["atelier"]
+					and lu["poses"][2]["nom"] == "infirmerie" and Vector2(lu["poses"][2]["x"], lu["poses"][2]["y"]) == partie.PLACES_DEPART["infirmerie"])
 				change_scene_to_file("res://scenes/base.tscn")
 			if g == 30:
 				var bat = _b()._batiments.get("barricade")

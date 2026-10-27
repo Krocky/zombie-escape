@@ -17,7 +17,7 @@ var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
 ## Les pieds d'une image (ancre « pieds » = bas de l'ombre peinte sous le socle) sont dans l'emprise à ce nombre
 ## d'unités du monde près (une dizaine de pixels à l'écran)
 const PRES := 16.0
-const TOUS := ["abri_1", "abri_2", "feu", "barricade", "atelier", "lampe", "jardin", "tente_1", "tente_2", "tente_3", "tente_4"]
+const TOUS := ["abri_1", "abri_2", "feu", "barricade", "atelier", "lampe", "infirmerie", "jardin", "tente_1", "tente_2", "tente_3", "tente_4"]
 ## Sauvegarde version 7 écrite à la main, comme celle de la tablette
 var v7 := {"version": 7, "inventaire": {"conserve": 4, "eau": 2, "bandage": 1, "piles": 3, "fiole": 0},
 	"constructions": ["barricade", "atelier", "lampe", "infirmerie", "jardin"], "remede": 2, "remede_annonce": false,
@@ -93,7 +93,7 @@ func _physics_process(_d):
 				for cle in attendu:
 					if cle != "version": pareil = pareil and _pareil(lu[cle], attendu[cle])
 				var poses = []
-				for nom in ["barricade", "atelier", "lampe", "jardin"]:
+				for nom in ["barricade", "atelier", "lampe", "infirmerie", "jardin"]:
 					poses.append({"nom": nom, "x": partie.PLACES_DEPART[nom].x, "y": partie.PLACES_DEPART[nom].y})
 				_verifier("sauvegarde reprise en version 9, rien de perdu, poses d'origine %s" % [lu.get("poses")],
 					pareil and _pareil(lu.get("poses"), JSON.parse_string(JSON.stringify(poses))))
