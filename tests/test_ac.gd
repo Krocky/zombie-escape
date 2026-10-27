@@ -12,6 +12,7 @@ var reg
 var echecs := 0
 var departs := {}
 var dans_obstacle := 0
+var ecarts := {}         # rescapé -> plus grande distance à son départ (promenade)
 var proche = null        # rescapé que le héros va voir
 var delai_origine := 0.0
 var FICHIER: String:   # sauvegarde de la partie en cours (lot 4 d)
@@ -85,13 +86,15 @@ func _physics_process(_d):
 			if g > 40 and g <= 640:
 				for r in _rescapes():
 					if _dans_obstacle(r): dans_obstacle += 1
+					# Plus grand écart atteint : une promenade peut le ramener près de son départ
+					ecarts[r] = maxf(ecarts.get(r, 0.0), r.global_position.distance_to(departs[r]))
 			if g == 300:
 				_heros().position = Vector2(1450, 800)
 			if g == 340: _snap("promenade")
 			if g == 640:
 				var bouges = 0
 				for r in _rescapes():
-					if r.global_position.distance_to(departs[r]) > 60: bouges += 1
+					if ecarts.get(r, 0.0) > 60: bouges += 1
 				_verifier("les 3 rescapes se sont deplaces (%d)" % bouges, bouges == 3)
 				_verifier("jamais dans un obstacle (%d pas fautifs)" % dans_obstacle, dans_obstacle == 0)
 				var dans_parking = true
@@ -101,10 +104,15 @@ func _physics_process(_d):
 				# Le héros approche d'un rescapé (à 80, sous la portée de 120)
 				proche = _rescapes()[0]
 				_heros().position = Vector2(400, 1100)
-				for r in _rescapes(): r._depuis_merci = INF
 				_aller("merci")
 		"merci":
+			if g == 1:
+				# Une bulle commencée pendant la promenade (héros en (1450, 800)) est finie tout de suite,
+				# sinon elle se termine pendant la phase et une nouvelle repart aussitôt (délai remis à INF)
+				for r in _rescapes():
+					if r.remercie() != "": r._attente = 0.0
 			if g == 2:
+				for r in _rescapes(): r._depuis_merci = INF
 				proche.liberer()
 				_heros().position = proche.global_position + Vector2(-80, 0)
 			if g == 6:
