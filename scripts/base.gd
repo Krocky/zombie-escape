@@ -343,6 +343,11 @@ func _en_defense() -> bool:
 	return false
 
 
+## Musique de la base ; la défense (niveau 4) garde celle des niveaux.
+func piste_musique() -> String:
+	return "niveaux" if _en_defense() else "base"
+
+
 ## Envoie tous les rescapés devant leur tente et les y garde (attaque de la base, étape h), ou les libère.
 func rescapes_aux_tentes(oui: bool) -> void:
 	for rescape in _rescapes.values():

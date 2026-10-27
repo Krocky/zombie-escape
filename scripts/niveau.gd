@@ -164,6 +164,11 @@ func _pause_au_retour() -> bool:
 	return true
 
 
+## Musique jouée dans ce lieu (autoload Musique, lot 4 e).
+func piste_musique() -> String:
+	return "niveaux"
+
+
 ## Pause : tout le lieu est figé (zombies, héros, sons, animations), seul le menu Pause tourne.
 func mettre_en_pause(pause: bool) -> void:
 	if _fini and pause:

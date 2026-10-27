@@ -171,3 +171,4 @@ var ZOMBIE_DELAI_CRI := 6.0             # secondes minimum entre deux cris du m�
 # --- Sons ---
 var SONS_VOLUME := -6.0                 # volume en décibels : -6 = moins fort, +6 = plus fort
 var MUSIQUE_VOLUME := -14.0             # volume de la musique de fond (plus bas que les bruitages)
+var MUSIQUE_FONDU := 1.0               # secondes du fondu enchaîné entre la musique de la base et celle des niveaux
