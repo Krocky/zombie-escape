@@ -392,11 +392,19 @@ func _dessiner_stock() -> void:
 	var police := ThemeDB.fallback_font
 	_stock.draw_string_outline(police, Vector2(0, 22), "À la base :", HORIZONTAL_ALIGNMENT_CENTER, _stock.size.x, 20, 6, Palette.CONTOUR)
 	_stock.draw_string(police, Vector2(0, 22), "À la base :", HORIZONTAL_ALIGNMENT_CENTER, _stock.size.x, 20, Palette.UI_BORD)
-	var pas := TAILLE_STOCK + 64
+	# Autant de lignes que la place le permet ; au-delà, les icônes rapetissent pour que tout tienne
+	var icone := TAILLE_STOCK
+	var pas := icone + 64
 	var par_ligne := maxi(1, int(_stock.size.x / pas))
+	var lignes := maxi(1, int((_stock.size.y - 34 - icone) / (icone + 14)) + 1)
+	while icone > 24 and ceili(types.size() / float(par_ligne)) > lignes:
+		icone -= 2
+		pas = icone + 52
+		par_ligne = maxi(1, int(_stock.size.x / pas))
+		lignes = maxi(1, int((_stock.size.y - 34 - icone) / (icone + 14)) + 1)
 	for i in types.size():
 		var ligne := i / par_ligne
 		var dans_ligne := mini(types.size() - ligne * par_ligne, par_ligne)
 		var x0 := _stock.size.x / 2.0 - (dans_ligne - 1) * pas / 2.0
-		Dessin.objet_compte(_stock, types[i], Vector2(x0 + (i % par_ligne) * pas - 14, 34 + TAILLE_STOCK + ligne * (TAILLE_STOCK + 14)),
-			TAILLE_STOCK, Partie.inventaire[types[i]])
+		Dessin.objet_compte(_stock, types[i], Vector2(x0 + (i % par_ligne) * pas - 14, 34 + icone + ligne * (icone + 14)),
+			icone, Partie.inventaire[types[i]])

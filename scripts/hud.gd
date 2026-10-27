@@ -253,6 +253,9 @@ func relacher() -> void:
 		bouton.relacher()
 
 
+## Icônes des objets ramassés, de droite à gauche ; elles se serrent pour rester dans la zone (7 objets
+## dans la maison avec la boîte de balles).
 func _dessiner_icones() -> void:
+	var pas := minf(54.0, (_icones.size.x - 52.0) / maxf(_ramasses.size() - 1, 1.0))
 	for i in _ramasses.size():
-		Dessin.icone_objet(_icones, _ramasses[i], Vector2(_icones.size.x - 26 - i * 54, 46), 40.0)
+		Dessin.icone_objet(_icones, _ramasses[i], Vector2(_icones.size.x - 26 - i * pas, 46), 40.0)

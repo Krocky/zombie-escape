@@ -46,7 +46,7 @@ func _cachette(nom, g):
 func _physics_process(_d):
 	f += 1
 	if f == 20:
-		print("maison disponible: ", partie.lieu_disponible("maison"), " infos: ", partie.infos_lieu("maison"), " (attendu 3 zombies [0, 0, 1], 6 objets dont 2 bandages)")
+		print("maison disponible: ", partie.lieu_disponible("maison"), " infos: ", partie.infos_lieu("maison"), " (attendu 3 zombies [0, 0, 1], 7 objets dont 2 bandages et la boite de balles)")
 		_touch(current_scene._place("maison"), true)
 	if f == 26: _touch(Vector2.ZERO, false)
 	if f == 32:

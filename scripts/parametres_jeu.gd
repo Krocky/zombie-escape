@@ -67,6 +67,13 @@ const PAGES := [
 		["RESCAPE_BASE_DUREE_MERCI", "Bulle « Merci » pendant (s)", 0.5, 0.5, 10.0],
 		["RESCAPE_BASE_DELAI_MERCI", "Merci au plus toutes les (s)", 1.0, 0.0, 120.0],
 	]],
+	["Tourelles", [
+		["TOURELLE_PORTEE", "Portée de tir", 25.0, 100.0, 1000.0],
+		["TOURELLE_CADENCE", "Temps entre deux tirs (s)", 0.1, 0.1, 3.0],
+		["TOURELLE_DEGATS", "Dégâts d'une balle", 1, 1, 10],
+		["TOURELLE_CAPACITE", "Balles au plus par tourelle", 5, 5, 200],
+		["BALLES_PAR_BOITE", "Balles dans une boîte", 1, 1, 100],
+	]],
 ]
 
 var _origine := {}   # nom -> valeur de data/reglages.gd

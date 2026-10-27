@@ -62,8 +62,9 @@ var ATTAQUE_DEGATS := 1             # cœurs enlevés au zombie à chaque coup
 var ATTAQUE_PORTEE := 90.0          # distance à laquelle la batte touche
 var ATTAQUE_DELAI := 0.5            # secondes entre deux coups
 
-# --- Constructions de la base (chacune une seule fois, sauf la barricade : jusqu'à BARRICADE_MAX) ---
-# Coût : { objet: nombre }. Objets : "conserve", "eau", "bandage", "piles" (pas "fiole" : elle sert au remède).
+# --- Constructions de la base (chacune une seule fois, sauf la barricade et la tourelle : jusqu'à leur MAX) ---
+# Coût : { objet: nombre }. Objets : "conserve", "eau", "bandage", "piles" (pas "fiole" : elle sert au remède,
+# ni "balles" : elles chargent les tourelles).
 var BARRICADE_COUT := {"conserve": 2, "eau": 1}
 var BARRICADE_COEURS := 1             # cœurs en plus pour le héros (seulement la première barricade)
 var BARRICADE_MAX := 20               # barricades au plus dans la base (les suivantes bloqueront les zombies au niveau 4)
@@ -75,6 +76,16 @@ var INFIRMERIE_COUT := {"bandage": 3}
 var INFIRMERIE_BANDAGES := 1          # bandages de soin donnés au début de chaque mission
 var JARDIN_COUT := {"eau": 2, "conserve": 1}
 var JARDIN_CONSERVES := 1             # conserves offertes à chaque retour de mission (gagnée ou perdue)
+var TOURELLE_COUT := {"piles": 3, "conserve": 1}
+var TOURELLE_MAX := 4                 # tourelles au plus dans la base
+
+# --- Tourelles (elles tirent toutes seules sur les zombies : niveau 4, défense de la base) ---
+var BALLES_PAR_BOITE := 10            # balles dans une boîte de balles (une boîte à trouver dans chaque lieu)
+var TOURELLE_CAPACITE := 30           # balles au plus dans une tourelle (bouton Recharger, près d'elle)
+var TOURELLE_PORTEE := 400.0          # elle vise le zombie le plus proche, jusqu'à cette distance
+var TOURELLE_CADENCE := 0.6           # secondes entre deux tirs (une balle à chaque tir)
+var TOURELLE_DEGATS := 1              # cœurs enlevés au zombie à chaque balle
+var TOURELLE_PORTEE_RECHARGE := 110.0 # distance de la tourelle pour voir le bouton Recharger
 
 # --- Soin pendant la mission (bouton Soigner : un bandage ramassé ou de l'infirmerie -> des cœurs) ---
 var SOIN_COEURS := 1                  # cœurs rendus par un bandage

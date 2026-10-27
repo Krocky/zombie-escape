@@ -87,7 +87,7 @@ func _physics_process(_d):
 				# Reprise : version 8, rien de perdu, constructions posées à leur place d'origine (lot 4 b)
 				var lu = _lire()
 				var attendu = JSON.parse_string(JSON.stringify(v7))
-				var pareil = lu["version"] == 8.0
+				var pareil = lu["version"] == partie.VERSION
 				for cle in attendu:
 					if cle != "version": pareil = pareil and _pareil(lu[cle], attendu[cle])
 				var poses = []

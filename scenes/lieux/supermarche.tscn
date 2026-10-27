@@ -187,6 +187,11 @@ position = Vector2(2250, 1250)
 type = "piles"
 places = PackedVector2Array(2000, 1500, 550, 1520)
 
+[node name="ObjetBalles" parent="Monde" instance=ExtResource("7_objet")]
+position = Vector2(920, 1150)
+type = "balles"
+places = PackedVector2Array(1920, 650, 220, 1050)
+
 [node name="ZombieLent" parent="Monde" instance=ExtResource("5_zombie")]
 position = Vector2(400, 760)
 patrouille = Vector2(800, 0)

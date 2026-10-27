@@ -1,26 +1,31 @@
 extends Node
 ## Résultat de la dernière partie, inventaire et constructions de la base, sauvegardés (user://).
 ## Retient aussi le lieu choisi sur la carte (pas sauvegardé).
-## Sauvegarde version 8 : {"version": 8, "inventaire": {type: nombre}, "constructions": [nom, ...],
+## Sauvegarde version 9 : {"version": 9, "inventaire": {type: nombre}, "constructions": [nom, ...],
 ## "remede": fioles dans la jauge, "remede_annonce": écran « Remède trouvé ! » déjà vu,
 ## "skin": héros choisi ("heros" ou "heroine", "" = pas encore choisi), "prenom": prénom du joueur,
 ## "rescapes": rescapés sauvés, "lieux_sauves": [id, ...] lieux dont le rescapé est sauvé (il n'y réapparaît plus),
 ## "batiments_vus": [id, ...] bâtiments de la base déjà tombés du ciel (leur chute n'est montrée qu'une fois),
 ## "etoiles": {id: meilleur nombre d'étoiles (1 à 3) gagné dans ce lieu},
 ## "poses": [{"nom": construction, "x": .., "y": ..}, ...] constructions posées dans la base (centre de l'emprise,
-## dans l'ordre de pose ; une barricade par entrée)}.
+## dans l'ordre de pose ; une barricade ou une tourelle par entrée),
+## "tourelles": [balles, ...] balles de chaque tourelle, dans l'ordre de pose}.
 ## Une sauvegarde plus ancienne est reprise telle quelle (ses fioles vont dans la jauge, ses constructions gardent
-## leur place de l'étape a du lot 4, PLACES_DEPART), puis réécrite en version 8.
+## leur place de l'étape a du lot 4, PLACES_DEPART), puis réécrite en version 9.
 
 const FICHIER := "user://sauvegarde.json"
-const VERSION := 8
+const VERSION := 9
 const NOMS := {
 	"conserve": "Conserve",
 	"eau": "Bouteille d'eau",
 	"bandage": "Bandage",
 	"piles": "Piles",
 	"fiole": "Fiole de remède",
+	"balles": "Boîte de balles",
 }
+## Objets qu'on ne gagne jamais en bonus de mission ni par les rescapés (la fiole se mérite, les balles
+## se trouvent dans les lieux) ; ils n'entrent pas non plus dans les coûts des constructions (Reglages).
+const HORS_GAINS := ["fiole", "balles"]
 ## Pseudo-objet des objectifs « guérir N zombies » (après le remède) : une guérison faite compte comme un « guerison »
 ## parmi les objets donnés à avancee_objectif.
 const GUERISON := "guerison"
@@ -34,9 +39,12 @@ const CONSTRUCTIONS := {
 	"lampe": "Lampe renforcée",
 	"infirmerie": "Infirmerie",
 	"jardin": "Jardin",
+	"tourelle": "Tourelle",
 }
-## Constructions qui ont un bâtiment dans la base, posé librement par le joueur (l'infirmerie n'en a pas) :
-## nom -> place d'origine (centre de l'emprise, monde), celle de l'étape a, gardée par les anciennes sauvegardes.
+## Constructions qui ont un bâtiment dans la base, posé librement par le joueur (pas l'infirmerie).
+const BATIMENTS := ["barricade", "atelier", "lampe", "jardin", "tourelle"]
+## Place d'origine des constructions de l'étape a (centre de l'emprise, monde), gardée par les anciennes
+## sauvegardes : nom -> place (la tourelle, venue après, n'en a pas : elle est toujours posée par le joueur).
 const PLACES_DEPART := {
 	"barricade": Vector2(1560, 1120),
 	"atelier": Vector2(1600, 680),
@@ -65,7 +73,10 @@ var inventaire := {}
 ## Constructions faites à la base (noms, voir CONSTRUCTIONS ; une seule fois chacun, même avec plusieurs barricades)
 var constructions := []
 ## Constructions posées dans la base, dans l'ordre : [nom, centre de l'emprise (monde)] ; une entrée par barricade
+## ou par tourelle
 var poses := []
+## Balles de chaque tourelle (dans l'ordre de pose des tourelles)
+var balles_tourelles := []
 ## Fioles versées dans la jauge du remède (au plus Reglages.REMEDE_FIOLES)
 var remede := 0
 ## Vrai quand l'écran « Remède trouvé ! » a été montré (une seule fois)
@@ -105,8 +116,7 @@ func terminer(victoire: bool, ramasses: Array, rescape := false, intact := false
 			perdus.append(rapportes.pop_back())
 	# Objectif rempli en sortant vivant : bonus d'objets au hasard (jamais de fiole, elle se mérite)
 	var mission := victoire and objectif_rempli(lieu, rapportes + avec_guerisons([], gueris))
-	var types := NOMS.keys()
-	types.erase("fiole")
+	var types := NOMS.keys().filter(func(t: String) -> bool: return not t in HORS_GAINS)
 	var bonus := []
 	if mission:
 		for i in Reglages.MISSION_BONUS:
@@ -356,6 +366,8 @@ func cout(construction: String) -> Dictionary:
 			return Reglages.INFIRMERIE_COUT
 		"jardin":
 			return Reglages.JARDIN_COUT
+		"tourelle":
+			return Reglages.TOURELLE_COUT
 	return {}
 
 
@@ -374,6 +386,8 @@ func effet(construction: String) -> String:
 			return "+%d bandage%s par mission" % [Reglages.INFIRMERIE_BANDAGES, "s" if Reglages.INFIRMERIE_BANDAGES > 1 else ""]
 		"jardin":
 			return "+%d conserve%s à chaque retour" % [Reglages.JARDIN_CONSERVES, "s" if Reglages.JARDIN_CONSERVES > 1 else ""]
+		"tourelle":
+			return "Tire seule sur les zombies"
 	return ""
 
 
@@ -381,7 +395,7 @@ func est_construit(construction: String) -> bool:
 	return construction in constructions
 
 
-## Combien de fois cette construction est faite (0 ou 1, jusqu'à BARRICADE_MAX pour la barricade).
+## Combien de fois cette construction est faite (0 ou 1, jusqu'à maximum() pour la barricade et la tourelle).
 func nombre_construit(construction: String) -> int:
 	if not est_construit(construction):
 		return 0
@@ -391,9 +405,14 @@ func nombre_construit(construction: String) -> int:
 	return maxi(n, 1)
 
 
-## Nombre de fois qu'on peut la faire : BARRICADE_MAX pour la barricade, 1 pour les autres.
+## Nombre de fois qu'on peut la faire : BARRICADE_MAX pour la barricade, TOURELLE_MAX pour la tourelle, 1 sinon.
 func maximum(construction: String) -> int:
-	return Reglages.BARRICADE_MAX if construction == "barricade" else 1
+	match construction:
+		"barricade":
+			return Reglages.BARRICADE_MAX
+		"tourelle":
+			return Reglages.TOURELLE_MAX
+	return 1
 
 
 ## Bâtiments des constructions dans la base, dans l'ordre de pose : [nom, centre de l'emprise]. Une construction
@@ -427,13 +446,44 @@ func construire(construction: String, centre := Vector2.INF) -> bool:
 	var c := cout(construction)
 	for type in c:
 		inventaire[type] -= c[type]
-	if PLACES_DEPART.has(construction):
+	if construction in BATIMENTS:
 		poses = poses_camp()   # une construction sans position garde sa place d'origine
-		poses.append([construction, centre if centre != Vector2.INF else PLACES_DEPART[construction]])
+		poses.append([construction, centre if centre != Vector2.INF else PLACES_DEPART.get(construction, Vector2.ZERO)])
+	if construction == "tourelle":
+		balles_tourelles.append(0)   # une tourelle neuve est vide
 	if not est_construit(construction):
 		constructions.append(construction)
 	sauvegarder()
 	return true
+
+
+# --- Tourelles ---
+
+## Nombre de tourelles posées.
+func nombre_tourelles() -> int:
+	return balles_tourelles.size()
+
+
+## Recharge la tourelle n° k (ordre de pose) avec les boîtes de balles de l'inventaire, jusqu'à
+## Reglages.TOURELLE_CAPACITE : une boîte est ouverte tant qu'il reste de la place (les balles de la dernière
+## qui ne rentrent pas sont perdues). Sauvegarde. Renvoie le nombre de boîtes utilisées.
+func recharger_tourelle(k: int) -> int:
+	if k < 0 or k >= balles_tourelles.size():
+		return 0
+	var boites := 0
+	while balles_tourelles[k] < Reglages.TOURELLE_CAPACITE and inventaire.get("balles", 0) > 0:
+		inventaire["balles"] -= 1
+		balles_tourelles[k] = mini(balles_tourelles[k] + Reglages.BALLES_PAR_BOITE, Reglages.TOURELLE_CAPACITE)
+		boites += 1
+	if boites > 0:
+		sauvegarder()
+	return boites
+
+
+## Recharger est utile : la tourelle n'est pas pleine et il y a des boîtes de balles.
+func peut_recharger(k: int) -> bool:
+	return k >= 0 and k < balles_tourelles.size() and balles_tourelles[k] < Reglages.TOURELLE_CAPACITE \
+		and inventaire.get("balles", 0) > 0
 
 
 ## Effets des constructions dans le niveau
@@ -468,10 +518,11 @@ func sauvegarder() -> void:
 	Fichier.ecrire_json(FICHIER, {"version": VERSION, "inventaire": inventaire, "constructions": constructions,
 		"remede": remede, "remede_annonce": remede_annonce, "skin": skin, "prenom": prenom,
 		"rescapes": rescapes, "lieux_sauves": lieux_sauves, "batiments_vus": batiments_vus, "etoiles": etoiles_lieux,
-		"poses": poses.map(func(p: Array) -> Dictionary: return {"nom": p[0], "x": p[1].x, "y": p[1].y})})
+		"poses": poses.map(func(p: Array) -> Dictionary: return {"nom": p[0], "x": p[1].x, "y": p[1].y}),
+		"tourelles": balles_tourelles})
 
 
-## Lit la sauvegarde (version 1 à 8). Une version plus ancienne est aussitôt réécrite en version 8
+## Lit la sauvegarde (version 1 à 9). Une version plus ancienne est aussitôt réécrite en version 9
 ## (les fioles déjà rangées remplissent la jauge du remède, les constructions restent à leur place d'origine).
 ## Fichier illisible : on reprend le .tmp.
 func charger() -> void:
@@ -506,8 +557,15 @@ func charger() -> void:
 	poses = []
 	if donnees.get("poses") is Array:
 		for pose in donnees["poses"]:
-			if pose is Dictionary and PLACES_DEPART.has(str(pose.get("nom", ""))):
+			if pose is Dictionary and str(pose.get("nom", "")) in BATIMENTS:
 				poses.append([str(pose["nom"]), Vector2(float(pose.get("x", 0.0)), float(pose.get("y", 0.0)))])
+	# Balles des tourelles : une valeur par tourelle posée (0 si elle manque, avant la version 9)
+	balles_tourelles = []
+	var balles: Array = donnees["tourelles"] if donnees.get("tourelles") is Array else []
+	for pose in poses:
+		if pose[0] == "tourelle":
+			var k := balles_tourelles.size()
+			balles_tourelles.append(clampi(int(balles[k]) if k < balles.size() else 0, 0, Reglages.TOURELLE_CAPACITE))
 	if int(donnees.get("version", 1)) < VERSION:
 		poses = poses_camp()
 		_remplir_remede()

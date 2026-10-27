@@ -131,7 +131,7 @@ func _physics_process(_d):
 				_verifier("tiroir, Heros, Reglages, joystick revenus", _ui("Tiroir").visible and _ui("Heros").visible and _ui("Reglages").visible
 					and _b().get_node("HUD/Joystick").visible)
 				var lu = _lire()
-				_verifier("sauvegarde sans pose", lu["version"] == 8.0 and lu["poses"].is_empty())
+				_verifier("sauvegarde sans pose", lu["version"] == partie.VERSION and lu["poses"].is_empty())
 				_aller("poser")
 		"poser":
 			# 3 barricades : la 1re en touchant le sol, les autres directement à leur place
@@ -241,7 +241,7 @@ func _physics_process(_d):
 				partie.charger()
 				var lu = _lire()
 				_verifier("v7 reprise : version %s, constructions %s" % [lu["version"], lu["constructions"]],
-					lu["version"] == 8.0 and lu["constructions"] == v7["constructions"] and lu["inventaire"]["conserve"] == 3.0 and lu["prenom"] == "Eliott")
+					lu["version"] == partie.VERSION and lu["constructions"] == v7["constructions"] and lu["inventaire"]["conserve"] == 3.0 and lu["prenom"] == "Eliott")
 				_verifier("v7 reprise : poses d'origine %s" % [lu["poses"]], lu["poses"].size() == 2
 					and lu["poses"][0]["nom"] == "barricade" and Vector2(lu["poses"][0]["x"], lu["poses"][0]["y"]) == partie.PLACES_DEPART["barricade"]
 					and lu["poses"][1]["nom"] == "atelier" and Vector2(lu["poses"][1]["x"], lu["poses"][1]["y"]) == partie.PLACES_DEPART["atelier"])

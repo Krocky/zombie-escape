@@ -100,6 +100,14 @@ static func icone_objet(ci: CanvasItem, type: String, pieds: Vector2, hauteur: f
 			for dx: float in [-7.0, 7.0]:
 				rect(ci, Rect2(dx - 5, -13, 10, 26), Palette.LAMPE * couleur)
 				ci.draw_rect(Rect2(dx - 5, 3, 10, 10), Palette.CONTOUR)
+		"balles":
+			# Boîte de balles de tourelle : caisse kaki à poignée, trois cartouches dorées qui dépassent
+			for dx: float in [-9.0, 0.0, 9.0]:
+				rect(ci, Rect2(dx - 3.5, -18, 7, 12), Palette.BALLES_CUIVRE * couleur)
+				ci.draw_circle(Vector2(dx, -18), 3.5, Palette.BALLES_CUIVRE * couleur)
+			rect(ci, Rect2(-17, -9, 34, 25), Palette.BALLES_BOITE * couleur)
+			ci.draw_rect(Rect2(-13, -2, 26, 8), Palette.BALLES_ETIQUETTE * couleur)
+			ci.draw_rect(Rect2(-17, 10, 34, 3), Palette.CONTOUR)
 		"clef":
 			# Anneau, tige à deux dents, étiquette colorée
 			ci.draw_line(Vector2(-6, 6), Vector2(20, 6), Palette.CONTOUR, 8.0)
