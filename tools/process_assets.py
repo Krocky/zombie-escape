@@ -92,6 +92,8 @@ ECHELLE_PLANCHE = {"base_turret_": 0.5}
 BORD_SOL = {"floor_asphalt": 0.012}
 # base_ dont l'ombre est dessinée détachée sous le tapis de terre (îlot qui flotte) : ombre effacée
 SANS_OMBRE_DESSOUS = {"base_infirmary"}
+# Objets dont la lueur peinte autour du contour s'est mêlée au magenta (halo rose) : halo effacé
+SANS_HALO = {"item_apple"}
 
 # Fond accepté : rouge et bleu au-dessus du vert d'au moins FOND_ECART (magenta pur, délavé, mauve)
 FOND_ECART = 100
@@ -409,6 +411,26 @@ def sans_ombre_pieds(image, res):
     return image
 
 
+def sans_halo(image):
+    """Halo rose (lueur mêlée au magenta) relié à l'extérieur, jusqu'au contour sombre : transparent."""
+    a = np.asarray(image).astype(float)
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    rose = (((b > g + 10) & (r > 120)) | ((r > 200) & (g > 105))) & (al > 0)
+    dehors = al < 30
+    dehors[0, :] = dehors[-1, :] = dehors[:, 0] = dehors[:, -1] = True   # bords de l'image : le halo y touche
+    etiquettes, _ = ndimage.label(rose | dehors)
+    relies = np.unique(etiquettes[dehors])
+    halo = np.isin(etiquettes, relies[relies > 0]) & rose
+    halo = dilater(halo, 1) & (a[..., :3].max(-1) > 90) & ~((r > g + 60) & (b < g + 10))
+    a[halo, 3] = 0
+    # Restes du bord du halo (fins anneaux détachés) : seule la plus grande tache est gardée
+    etiquettes, n = ndimage.label(a[..., 3] > 20)
+    if n > 1:
+        tailles = ndimage.sum(np.ones(etiquettes.shape), etiquettes, index=np.arange(1, n + 1))
+        a[(etiquettes != np.argmax(tailles) + 1)] = 0
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
 def sans_ombre_dessous(image):
     """Ombre noire semi-transparente sous l'objet (pixels sombres, pas opaques) effacée dans le tiers bas ; le
     contour noir, opaque, reste."""
@@ -586,6 +608,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
         image = redimensionner(image, (max(1, round(image.width * e)), max(1, round(image.height * e))))
         res["echelle"] = round(e, 4)
     res["taille"] = list(image.size)
+    if res["nom"] in SANS_HALO:
+        image = sans_halo(image)
     if cat == "floor":
         res["coins_sol"] = {"haut": [DALLE_LARGEUR // 2, 0], "gauche": [0, DALLE_HAUTEUR // 2],
                             "avant": [DALLE_LARGEUR // 2, DALLE_HAUTEUR], "droit": [DALLE_LARGEUR, DALLE_HAUTEUR // 2]}

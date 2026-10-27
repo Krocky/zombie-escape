@@ -59,6 +59,144 @@
    "teinte_violette_px": 2649,
    "traits_fins_px": 0
   },
+  "base_barricade_broken": {
+   "ancre_pieds": [
+    238,
+    314
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [231, 34, 199] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     236,
+     314
+    ],
+    "droit": [
+     479,
+     185
+    ],
+    "gauche": [
+     0,
+     185
+    ]
+   },
+   "defrange_px": 26198,
+   "echelle": 0.272,
+   "empreinte": "33ef4119322c0d5252a1847c23da798ad2d874a7",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_barricade_broken.png",
+   "fond": [
+    231,
+    34,
+    199
+   ],
+   "mauve_desature_px": 94785,
+   "nom": "base_barricade_broken",
+   "ombre_violette_px": 11117,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/base_barricade_broken.jpg",
+   "taille": [
+    480,
+    315
+   ],
+   "teinte_violette_px": 7813,
+   "traits_fins_px": 62
+  },
+  "base_barricade_damaged_1": {
+   "ancre_pieds": [
+    238,
+    319
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [232, 31, 205] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     236,
+     319
+    ],
+    "droit": [
+     479,
+     191
+    ],
+    "gauche": [
+     0,
+     191
+    ]
+   },
+   "defrange_px": 27393,
+   "echelle": 0.272,
+   "empreinte": "bee2be96b50c613a4abb48d3321f4d84dd733e13",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_barricade_damaged_1.png",
+   "fond": [
+    232,
+    31,
+    205
+   ],
+   "mauve_desature_px": 112533,
+   "nom": "base_barricade_damaged_1",
+   "ombre_violette_px": 10164,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/base_barricade_damaged_1.jpg",
+   "taille": [
+    480,
+    320
+   ],
+   "teinte_violette_px": 6985,
+   "traits_fins_px": 0
+  },
+  "base_barricade_damaged_2": {
+   "ancre_pieds": [
+    238,
+    320
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [230, 31, 202] : détouré sur cette couleur"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     235,
+     320
+    ],
+    "droit": [
+     479,
+     191
+    ],
+    "gauche": [
+     0,
+     191
+    ]
+   },
+   "defrange_px": 27413,
+   "echelle": 0.272,
+   "empreinte": "2825480a95a605f89de14fc4a4655b4c6b4b4068",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/base_barricade_damaged_2.png",
+   "fond": [
+    230,
+    31,
+    202
+   ],
+   "mauve_desature_px": 109589,
+   "nom": "base_barricade_damaged_2",
+   "ombre_violette_px": 10128,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/base_barricade_damaged_2.jpg",
+   "taille": [
+    480,
+    321
+   ],
+   "teinte_violette_px": 7343,
+   "traits_fins_px": 0
+  },
   "base_campfire": {
    "ancre_pieds": [
     238,
@@ -1589,6 +1727,30 @@
    ],
    "traits_fins_px": 1670
   },
+  "icon_repair": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 35243,
+   "echelle": 0.1651,
+   "empreinte": "71cc4167ba8f4e6397407bb73b2fcf28c23c0079",
+   "fichier": "images/v3/icon_repair.png",
+   "fond": [
+    251,
+    9,
+    244
+   ],
+   "nom": "icon_repair",
+   "ombre_violette_px": 23108,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/icon_repair.jpg",
+   "taille": [
+    192,
+    178
+   ],
+   "traits_fins_px": 0
+  },
   "icon_star": {
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
@@ -1612,6 +1774,55 @@
     189
    ],
    "traits_fins_px": 503
+  },
+  "item_ammo": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "item",
+   "defrange_px": 26331,
+   "echelle": 0.2119,
+   "empreinte": "f290d515e35620609020f4f34274a9e0531253ce",
+   "fichier": "images/v3/item_ammo.png",
+   "fond": [
+    252,
+    2,
+    247
+   ],
+   "nom": "item_ammo",
+   "ombre_violette_px": 16736,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/item_ammo.jpg",
+   "taille": [
+    128,
+    127
+   ],
+   "teinte_violette_px": 4028,
+   "traits_fins_px": 9225
+  },
+  "item_apple": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "item",
+   "defrange_px": 93114,
+   "echelle": 0.1221,
+   "empreinte": "80898f1fcb5447f27a04dba5360211a4b16a4813",
+   "fichier": "images/v3/item_apple.png",
+   "fond": [
+    251,
+    8,
+    241
+   ],
+   "nom": "item_apple",
+   "ombre_violette_px": 55311,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/item_apple.jpg",
+   "taille": [
+    118,
+    128
+   ],
+   "traits_fins_px": 6
   },
   "item_key": {
    "anomalies": [
@@ -1637,6 +1848,31 @@
    ],
    "teinte_violette_px": 2089,
    "traits_fins_px": 6353
+  },
+  "item_scrap": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "item",
+   "defrange_px": 31902,
+   "echelle": 0.1437,
+   "empreinte": "ad2e80660688b98f9cb3586d239970f86b381c8f",
+   "fichier": "images/v3/item_scrap.png",
+   "fond": [
+    251,
+    4,
+    242
+   ],
+   "nom": "item_scrap",
+   "ombre_violette_px": 14960,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/item_scrap.jpg",
+   "taille": [
+    128,
+    83
+   ],
+   "teinte_violette_px": 3823,
+   "traits_fins_px": 13104
   },
   "item_vial": {
    "anomalies": [
@@ -2984,6 +3220,51 @@
    ],
    "teinte_violette_px": 6777,
    "traits_fins_px": 1
+  },
+  "prop_wreck_yellow": {
+   "ancre_pieds": [
+    160,
+    357
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     159,
+     357
+    ],
+    "droit": [
+     477,
+     202
+    ],
+    "gauche": [
+     1,
+     252
+    ]
+   },
+   "defrange_px": 31637,
+   "echelle": 0.3783,
+   "empreinte": "3830deb75457fb8e4821188ddd0c80a18e5d7963",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_wreck_yellow.png",
+   "fond": [
+    252,
+    6,
+    231
+   ],
+   "mauve_desature_px": 85702,
+   "nom": "prop_wreck_yellow",
+   "ombre_violette_px": 92498,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/prop_wreck_yellow.jpg",
+   "taille": [
+    480,
+    363
+   ],
+   "teinte_violette_px": 8477,
+   "traits_fins_px": 0
   },
   "survivor_follow": {
    "ancre_pieds": [

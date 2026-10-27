@@ -29,8 +29,17 @@ static func cercle(ci: CanvasItem, centre: Vector2, rayon: float, couleur: Color
 
 
 ## Pomme rouge brillante (fruit du potager, HUD) : centre et rayon du fruit, queue et feuille au-dessus.
+## Image V5 POMME_IMAGE, sinon dessin en code.
+const POMME_IMAGE := "item_apple"
+
+
 static func pomme(ci: CanvasItem, centre: Vector2, rayon: float) -> void:
 	var r := rayon
+	if Images.v3_existe(POMME_IMAGE):
+		var texture := Images.v3_texture(POMME_IMAGE)
+		var t := texture.get_size() * (r * 2.5 / texture.get_size().y)
+		ci.draw_texture_rect(texture, Rect2(centre - Vector2(t.x / 2.0, t.y * 0.6), t), false)
+		return
 	ci.draw_line(centre + Vector2(0, -r * 0.7), centre + Vector2(r * 0.15, -r * 1.3), Palette.CONTOUR, r * 0.32, true)
 	ci.draw_line(centre + Vector2(0, -r * 0.7), centre + Vector2(r * 0.15, -r * 1.3), Palette.POMME_QUEUE, r * 0.16, true)
 	polygone(ci, PackedVector2Array([centre + Vector2(r * 0.15, -r * 1.05), centre + Vector2(r * 0.6, -r * 1.45),
@@ -81,7 +90,7 @@ static func ombre(ci: CanvasItem, r: Rect2, force := 1.0) -> void:
 ## Image V2 de chaque type d'objet.
 const IMAGES_OBJETS := {"conserve": "conserve", "eau": "eau", "bandage": "trousse", "piles": "piles"}
 ## Image V3 (images/v3) de la fiole et de la clef. Sans image : dessin en code.
-const IMAGES_V3_OBJETS := {"fiole": "item_vial", "clef": "item_key"}
+const IMAGES_V3_OBJETS := {"fiole": "item_vial", "clef": "item_key", "balles": "item_ammo", "ferraille": "item_scrap"}
 
 
 ## Icône d'un objet, posée sur « pieds » (milieu du bas), haute de « hauteur » pixels

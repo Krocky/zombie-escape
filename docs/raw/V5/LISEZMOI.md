@@ -13,3 +13,4 @@ Lots prévus :
 
 Lot 1 déposé et traité (7 images sur 8 : manque prop_wreck_yellow). La planche de la tourelle est recomposée par
 tools/tourelle_v5.py (même pied pour les 5 directions).
+Lot 2 déposé et traité (8 images). base_barricade_broken reste haute : à refaire plus tard en vrai tas au sol.

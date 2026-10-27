@@ -95,6 +95,20 @@ func _construire() -> void:
 	_sol.draw.connect(_dessiner_sol)
 
 
+## Remplace l'image (même emprise) : nouvelles bandes, état de la chute gardé. Pour la tourelle qui tourne et la
+## barricade qui s'abîme.
+func _rehabiller(nom: String) -> void:
+	for b in _bandes:
+		b[0].queue_free()
+	_bandes.clear()
+	image = nom
+	_image_ecran = Iso.habiller(image, emprise(), _vue, _miroir())
+	for bande in _vue.get_children():
+		if bande is Sprite2D and not bande.is_queued_for_deletion():
+			_bandes.append([bande, bande.offset, bande.scale])
+	_appliquer_chute()
+
+
 func _process(delta: float) -> void:
 	_temps += delta
 	if _chute >= 0.0:

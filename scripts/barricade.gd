@@ -6,6 +6,8 @@ extends "res://scripts/batiment.gd"
 ## poussière, elle s'affaisse) et ne bloque plus rien. Le bouton Réparer (le niveau appelle reparer) lui rend des
 ## points tant qu'elle n'est pas effondrée. La solidité n'est pas sauvegardée : chaque niveau (et la base) la
 ## retrouve entière.
+## Images V5 des stades (STADES : abîmée, très abîmée, effondrée) : l'image change avec la solidité, sans fissures en
+## code ; effondrée, l'image du tas est seulement tassée à RESTE_IMAGE. Sans elles : fissures et écrasement en code.
 
 ## Éclats de bois et tremblement après un coup, effondrement (s)
 const DUREE_ECLATS := 0.45
@@ -14,6 +16,9 @@ const DUREE_EFFONDREMENT := 0.8
 ## Effondrée, elle garde cette part de sa hauteur (un tas de planches), assombrie
 const RESTE := 0.28
 const TEINTE_EFFONDREE := Color(0.6, 0.58, 0.66)
+## Images V5 : abîmée (plus de la moitié de la solidité), très abîmée, effondrée ; tas tassé à cette part de sa hauteur
+const STADES := ["base_barricade_damaged_1", "base_barricade_damaged_2", "base_barricade_broken"]
+const RESTE_IMAGE := 0.7
 ## Nuage de l'effondrement : sans ombre (visible la nuit), donc plus léger que celui de la chute du ciel
 const OPACITE_POUSSIERE := 0.22
 ## Barre de solidité (pixels d'écran) : taille, écart au-dessus de l'image
@@ -24,6 +29,8 @@ var solidite := Reglages.BARRICADE_PV
 var _eclats := 0.0              # temps restant des éclats de bois
 var _effondrement := -1.0       # temps depuis l'effondrement (< 0 : debout)
 var _infos := Node2D.new()      # barre de solidité, éclats et poussière : sans ombre, par-dessus le décor
+var _entiere := ""              # image de la barricade entière ("" : dessin en code)
+var _stades := false            # images V5 des stades (STADES)
 
 
 func _ready() -> void:
@@ -52,6 +59,7 @@ func abimer() -> void:
 		return
 	solidite -= 1
 	_eclats = DUREE_ECLATS
+	_actualiser_image()
 	if solidite == 0:
 		_effondrement = 0.0
 		for enfant in get_children():
@@ -63,10 +71,14 @@ func abimer() -> void:
 func reparer() -> void:
 	if abimee():
 		solidite += 1
+		_actualiser_image()
 
 
 func _construire() -> void:
 	super()
+	if not _bandes.is_empty():
+		_entiere = image
+		_stades = STADES.all(func(nom: String) -> bool: return Images.existe(nom))
 	var sans_ombre := CanvasItemMaterial.new()
 	sans_ombre.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	_infos.material = sans_ombre
@@ -87,13 +99,26 @@ func _process(delta: float) -> void:
 	_infos.queue_redraw()
 
 
+## Image du stade de la solidité (images V5).
+func _actualiser_image() -> void:
+	if not _stades:
+		return
+	var nom := _entiere
+	if solidite <= 0:
+		nom = STADES[2]
+	elif solidite < solidite_max():
+		nom = STADES[0] if solidite * 2 > solidite_max() else STADES[1]
+	if nom != image:
+		_rehabiller(nom)
+
+
 ## Effondrement : le dessin s'écrase vers le sol (f de 0 à 1) jusqu'à RESTE de sa hauteur, et s'assombrit.
 func _affaisser(f: float) -> void:
-	var haut := lerpf(1.0, RESTE, f)
+	var haut := lerpf(1.0, RESTE_IMAGE if _stades else RESTE, f)
 	for b in _bandes:
 		b[0].scale.y = b[2].y * haut
 		b[0].offset.y = b[1].y
-		b[0].modulate = Color.WHITE.lerp(TEINTE_EFFONDREE, f)
+		b[0].modulate = Color.WHITE if _stades else Color.WHITE.lerp(TEINTE_EFFONDREE, f)
 	if _corps:
 		_corps.scale.y = haut   # écrasé vers ses pieds
 		_corps.modulate = Color.WHITE.lerp(TEINTE_EFFONDREE, f)
@@ -110,7 +135,7 @@ func _rect_ecran() -> Rect2:
 func _dessiner_effets() -> void:
 	super()
 	var perdus := solidite_max() - solidite
-	if perdus <= 0 or not solide():
+	if perdus <= 0 or not solide() or _stades:
 		return
 	var r := _rect_ecran()
 	_effets.draw_set_transform(-_effets.position)

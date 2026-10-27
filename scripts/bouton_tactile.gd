@@ -34,7 +34,7 @@ signal appuye
 
 const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette hauteur)
 ## Icônes en image V3 (images/v3), à TAILLE_IMAGE du diamètre du bouton rond. Sans image : dessin en code.
-const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide"}
+const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide", "reparer": "icon_repair"}
 const TAILLE_IMAGE := 0.7
 const DUREE_REBOND := 0.35
 const ECART_ICONE := 18.0   # bouton en pilule : entre l'icône et le texte

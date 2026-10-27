@@ -141,16 +141,8 @@ func _actualiser_pose() -> void:
 	var pose := _pose_visee()
 	if pose[0] == image and pose[1] == _gauche:
 		return
-	for b in _bandes:
-		b[0].queue_free()
-	_bandes.clear()
-	image = pose[0]
 	_gauche = pose[1]
-	_image_ecran = Iso.habiller(image, emprise(), _vue, _miroir())
-	for bande in _vue.get_children():
-		if bande is Sprite2D and not bande.is_queued_for_deletion():
-			_bandes.append([bande, bande.offset, bande.scale])
-	_appliquer_chute()
+	_rehabiller(pose[0])
 
 
 func _miroir() -> bool:
