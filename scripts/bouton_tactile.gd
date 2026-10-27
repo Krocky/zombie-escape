@@ -37,6 +37,7 @@ const PROFONDEUR := 8.0   # épaisseur du bouton (le dessus s'enfonce de cette h
 const IMAGES_ICONES := {"batte": "icon_hit", "cacher": "icon_hide", "reparer": "icon_repair", "soigner": "icon_heal",
 	"guerir": "icon_cure", "sortir": "icon_exit", "pause": "icon_pause", "jouer": "icon_play", "reglages": "icon_settings",
 	"heros": "icon_hero"}
+const ICONE_HEROINE := "icon_heroine"
 const TAILLE_IMAGE := 0.7
 const DUREE_REBOND := 0.35
 const ECART_ICONE := 18.0   # bouton en pilule : entre l'icône et le texte
@@ -110,7 +111,7 @@ func _draw() -> void:
 		draw_circle(haut, rayon - 5.0, fond)
 		# Reflet en haut à gauche
 		draw_arc(haut, rayon - 13.0, PI * 1.05, PI * 1.45, 12, fond.lightened(0.45) * Color(1, 1, 1, 0.8), 6.0, true)
-		var image: String = IMAGES_ICONES.get(icone, "")
+		var image: String = _image_icone()
 		if recharge > 0.0:
 			# Jauge circulaire autour du bouton (socle compris) : la partie remplie avance jusqu'au tour complet
 			var milieu := centre + Vector2(0, PROFONDEUR / 2.0)
@@ -149,7 +150,7 @@ func _draw() -> void:
 			var r_icone := 24.0
 			var largeur := ThemeDB.fallback_font.get_string_size(texte, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_texte).x
 			var gauche := -(2.0 * r_icone + ECART_ICONE + largeur) / 2.0
-			var image: String = IMAGES_ICONES.get(icone, "")
+			var image: String = _image_icone()
 			if image != "" and Images.v3_existe(image):
 				# Image dans un carré un peu plus grand que l'icône dessinée (elle a du vide autour)
 				var texture := Images.v3_texture(image) if actif else Images.v3_gris(image)
@@ -162,6 +163,13 @@ func _draw() -> void:
 			_texte(milieu + Vector2(gauche + 2.0 * r_icone + ECART_ICONE + largeur / 2.0, taille_texte * 0.35), taille_texte, couleur_texte)
 		else:
 			_texte(milieu + Vector2(0, taille_texte * 0.35), taille_texte, couleur_texte)
+
+
+## Image de l'icône ("" : dessin en code) ; le bouton Héros montre l'héroïne quand elle est choisie.
+func _image_icone() -> String:
+	if icone == "heros" and Partie.perso() == "heroine" and Images.v3_existe(ICONE_HEROINE):
+		return ICONE_HEROINE
+	return IMAGES_ICONES.get(icone, "")
 
 
 ## Texte centré horizontalement sur p (p = ligne de base). « contour » : texte clair cerclé de sombre, lisible sur une image.

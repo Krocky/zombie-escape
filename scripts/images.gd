@@ -160,6 +160,11 @@ const EMPRISES_V3 := {
 	"base_turret_right": [4.0, Vector2(118, 260), 232.0],
 	"base_turret_up_right": [4.0, Vector2(118, 280), 232.0],
 	"base_turret_up": [4.0, Vector2(118, 300), 232.0],
+	# V5 (restes V2 des lieux) : le cube de la caisse ou du carton, pas le socle ; porte fine (emprise 200x30)
+	"prop_crate": [75.0, Vector2(245, 372), 412.0],
+	"prop_crate_big": [2.0, Vector2(145, 365), 275.0],
+	"prop_cardboard": [8.0, Vector2(150, 312), 292.0],
+	"prop_door_locked": [37.0, Vector2(432, 607), 491.0],
 }
 ## Fenêtre peinte sur les pans de mur V3 (« <mur>_fenetre », voir v3_fenetre) : le long du pan (0 à 1)
 ## et en hauteur au-dessus du bas du pan (pixels de l'image).

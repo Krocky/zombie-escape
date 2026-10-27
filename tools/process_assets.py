@@ -94,6 +94,8 @@ BORD_SOL = {"floor_asphalt": 0.012}
 SANS_OMBRE_DESSOUS = {"base_infirmary"}
 # Objets dont la lueur peinte autour du contour s'est mêlée au magenta (halo rose) : halo effacé
 SANS_HALO = {"item_apple"}
+# Props dont des restes du contour du socle sont restés détachés : seule la plus grande tache opaque est gardée
+UNE_TACHE = {"prop_crate"}
 
 # Fond accepté : rouge et bleu au-dessus du vert d'au moins FOND_ECART (magenta pur, délavé, mauve)
 FOND_ECART = 100
@@ -102,7 +104,9 @@ SOCLE = {"prop_sofa_2c", "prop_bed_2c", "prop_fridge", "prop_kitchen_table_2c", 
          "prop_freezer", "prop_checkout_2c", "prop_pallet", "prop_neon",
          # V4 (pharmacie)
          "prop_pharmacy_counter_2c", "prop_pharmacy_shelf_2c", "prop_pharmacy_display", "prop_wheelchair",
-         "prop_waiting_chairs_2c", "prop_medical_cabinet", "prop_medical_cart", "prop_pharmacy_cross"}
+         "prop_waiting_chairs_2c", "prop_medical_cabinet", "prop_medical_cart", "prop_pharmacy_cross",
+         # V5 (restes V2 des lieux)
+         "prop_crate", "prop_crate_big", "prop_cardboard"}
 SOCLE_COULEUR = np.array([52.0, 57.0, 82.0])
 TACHE_PART = 0.02                        # personnages : taches détachées < 2 % de la surface effacées
 
@@ -411,6 +415,17 @@ def sans_ombre_pieds(image, res):
     return image
 
 
+def une_tache(image):
+    """Pixels opaques hors de la plus grande tache (restes du socle) effacés ; l'ombre douce, transparente, reste."""
+    a = np.asarray(image).astype(float)
+    opaque = a[..., 3] > 150
+    etiquettes, n = ndimage.label(opaque)
+    if n > 1:
+        tailles = ndimage.sum(np.ones(etiquettes.shape), etiquettes, index=np.arange(1, n + 1))
+        a[opaque & (etiquettes != np.argmax(tailles) + 1), 3] = 0
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
 def sans_halo(image):
     """Halo rose (lueur mêlée au magenta) relié à l'extérieur, jusqu'au contour sombre : transparent."""
     a = np.asarray(image).astype(float)
@@ -610,6 +625,8 @@ def mettre_a_taille(res, image, echelles_perso, hauteurs):
     res["taille"] = list(image.size)
     if res["nom"] in SANS_HALO:
         image = sans_halo(image)
+    if res["nom"] in UNE_TACHE:
+        image = une_tache(image)
     if cat == "floor":
         res["coins_sol"] = {"haut": [DALLE_LARGEUR // 2, 0], "gauche": [0, DALLE_HAUTEUR // 2],
                             "avant": [DALLE_LARGEUR // 2, DALLE_HAUTEUR], "droit": [DALLE_LARGEUR, DALLE_HAUTEUR // 2]}

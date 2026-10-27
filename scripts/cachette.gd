@@ -13,7 +13,7 @@ enum Style { CARTON, CONGELATEUR, ARMOIRE, LIT, BAIGNOIRE }
 
 ## Images de chaque style, la première qui existe est utilisée.
 const IMAGES := {
-	Style.CARTON: ["carton"],
+	Style.CARTON: ["prop_cardboard", "carton"],
 	Style.CONGELATEUR: ["prop_freezer", "congelateur"],
 	Style.ARMOIRE: ["prop_wardrobe"],
 	Style.LIT: ["prop_bed_2c"],
@@ -26,7 +26,10 @@ const YEUX := {
 	"prop_bed_2c": Vector2(455, 512),
 	"prop_bathtub_2c": Vector2(450, 960),
 	"prop_freezer": Vector2(228, 168),
+	"prop_cardboard": Vector2(200, 100),
 }
+## Images V5 qui gardent l'emprise de la scène (pas ses proportions : la collision ne change pas)
+const TAILLE_FIXE := ["prop_cardboard"]
 
 var _occupee := false
 var _temps := 0.0
@@ -61,7 +64,7 @@ func _ready() -> void:
 	for n: String in IMAGES[style]:
 		if nom == "" and Images.existe(n):
 			nom = n
-	if Images.v3_existe(nom):
+	if Images.v3_existe(nom) and not nom in TAILLE_FIXE:
 		taille = Iso.taille_image(nom, taille)[0]
 	var forme := RectangleShape2D.new()
 	forme.size = taille

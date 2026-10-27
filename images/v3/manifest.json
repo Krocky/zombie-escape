@@ -1776,6 +1776,30 @@
    ],
    "traits_fins_px": 653
   },
+  "icon_heroine": {
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "icon",
+   "defrange_px": 27092,
+   "echelle": 0.1296,
+   "empreinte": "85107be890235428f94451a76c0310a16ce62f71",
+   "fichier": "images/v3/icon_heroine.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "nom": "icon_heroine",
+   "ombre_violette_px": 14865,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/icon_heroine.jpg",
+   "taille": [
+    139,
+    192
+   ],
+   "traits_fins_px": 0
+  },
   "icon_hide": {
    "anomalies": [
     "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
@@ -2381,6 +2405,54 @@
    "teinte_violette_px": 1745,
    "traits_fins_px": 0
   },
+  "prop_cardboard": {
+   "ancre_pieds": [
+    151,
+    314
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (519210 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     151,
+     314
+    ],
+    "droit": [
+     296,
+     234
+    ],
+    "gauche": [
+     0,
+     230
+    ]
+   },
+   "defrange_px": 29583,
+   "echelle": 0.2369,
+   "empreinte": "8aa910ed7f3f27d6d1759031913bd8c5650b4927",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_cardboard.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "largeur_socle_source": 2026,
+   "mauve_desature_px": 8082,
+   "nom": "prop_cardboard",
+   "ombre_violette_px": 15705,
+   "poussieres_px": 0,
+   "socle_px": 519210,
+   "source": "docs/raw/V5/prop_cardboard.jpg",
+   "taille": [
+    298,
+    345
+   ],
+   "teinte_violette_px": 2616,
+   "traits_fins_px": 1
+  },
   "prop_cart": {
    "ancre_pieds": [
     275,
@@ -2517,6 +2589,149 @@
     470
    ],
    "teinte_violette_px": 1957,
+   "traits_fins_px": 0
+  },
+  "prop_crate": {
+   "ancre_pieds": [
+    239,
+    436
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "fond magenta délavé [233, 55, 231] : détouré sur cette couleur",
+    "socle de dalles effacé (308956 px), ombre elliptique ajoutée",
+    "touche le bord de l'image : sujet peut-être coupé"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     240,
+     436
+    ],
+    "droit": [
+     477,
+     280
+    ],
+    "gauche": [
+     3,
+     303
+    ]
+   },
+   "defrange_px": 21523,
+   "echelle": 0.2989,
+   "empreinte": "eae68649da5ca4d660eb99a59f78c39d0e0defb1",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_crate.png",
+   "fond": [
+    233,
+    55,
+    231
+   ],
+   "largeur_socle_source": 1606,
+   "mauve_desature_px": 8119,
+   "nom": "prop_crate",
+   "ombre_violette_px": 6999,
+   "poussieres_px": 0,
+   "socle_px": 308956,
+   "source": "docs/raw/V5/prop_crate.jpg",
+   "taille": [
+    479,
+    481
+   ],
+   "teinte_violette_px": 2813,
+   "traits_fins_px": 0
+  },
+  "prop_crate_big": {
+   "ancre_pieds": [
+    144,
+    367
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée",
+    "socle de dalles effacé (513076 px), ombre elliptique ajoutée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     144,
+     367
+    ],
+    "droit": [
+     277,
+     292
+    ],
+    "gauche": [
+     0,
+     284
+    ]
+   },
+   "defrange_px": 29926,
+   "echelle": 0.253,
+   "empreinte": "cc31ad31995f0cbb662587f25b56963d6aea0709",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_crate_big.png",
+   "fond": [
+    253,
+    1,
+    253
+   ],
+   "largeur_socle_source": 1897,
+   "mauve_desature_px": 8293,
+   "nom": "prop_crate_big",
+   "ombre_violette_px": 16109,
+   "poussieres_px": 0,
+   "socle_px": 513076,
+   "source": "docs/raw/V5/prop_crate_big.jpg",
+   "taille": [
+    278,
+    396
+   ],
+   "teinte_violette_px": 2621,
+   "traits_fins_px": 1
+  },
+  "prop_door_locked": {
+   "ancre_pieds": [
+    328,
+    619
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "prop",
+   "coins_sol": {
+    "avant": [
+     349,
+     619
+    ],
+    "droit": [
+     471,
+     573
+    ],
+    "gauche": [
+     10,
+     470
+    ]
+   },
+   "defrange_px": 54067,
+   "echelle": 0.4134,
+   "empreinte": "b9ef583df1c182b7002e0e199299f0929472a2f9",
+   "emprise_cases": 1.0,
+   "fichier": "images/v3/prop_door_locked.png",
+   "fond": [
+    253,
+    1,
+    252
+   ],
+   "mauve_desature_px": 7239,
+   "nom": "prop_door_locked",
+   "ombre_violette_px": 230998,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/prop_door_locked.jpg",
+   "taille": [
+    480,
+    628
+   ],
+   "teinte_violette_px": 2323,
    "traits_fins_px": 0
   },
   "prop_freezer": {
@@ -3922,6 +4137,49 @@
    "teinte_violette_px": 1915,
    "traits_fins_px": 0
   },
+  "wall_house_exit": {
+   "ancre_pieds": [
+    59,
+    524
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     58,
+     524
+    ],
+    "droit": [
+     348,
+     357
+    ],
+    "gauche": [
+     0,
+     490
+    ]
+   },
+   "defrange_px": 22971,
+   "echelle": 0.325,
+   "empreinte": "ef4e9e0326aaec389f986e4c6887a9276e98d28f",
+   "fichier": "images/v3/wall_house_exit.png",
+   "fond": [
+    245,
+    2,
+    218
+   ],
+   "nom": "wall_house_exit",
+   "ombre_violette_px": 11667,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/wall_house_exit.jpg",
+   "taille": [
+    349,
+    525
+   ],
+   "teinte_violette_px": 2131,
+   "traits_fins_px": 0
+  },
   "wall_market": {
    "ancre_pieds": [
     64,
@@ -4008,6 +4266,49 @@
    ],
    "teinte_violette_px": 2048,
    "traits_fins_px": 3
+  },
+  "wall_pharmacy_exit": {
+   "ancre_pieds": [
+    46,
+    449
+   ],
+   "anomalies": [
+    "JPEG (pas PNG) : fond magenta bruité, tolérance appliquée"
+   ],
+   "categorie": "wall",
+   "coins_sol": {
+    "avant": [
+     44,
+     449
+    ],
+    "droit": [
+     347,
+     290
+    ],
+    "gauche": [
+     0,
+     424
+    ]
+   },
+   "defrange_px": 21738,
+   "echelle": 0.3061,
+   "empreinte": "6d4bb30b019d465c75a88e1d8a6a475bda32a00f",
+   "fichier": "images/v3/wall_pharmacy_exit.png",
+   "fond": [
+    252,
+    0,
+    251
+   ],
+   "nom": "wall_pharmacy_exit",
+   "ombre_violette_px": 12653,
+   "poussieres_px": 0,
+   "source": "docs/raw/V5/wall_pharmacy_exit.jpg",
+   "taille": [
+    349,
+    450
+   ],
+   "teinte_violette_px": 2609,
+   "traits_fins_px": 7
   },
   "zombie_big_attack": {
    "ancre_pieds": [

@@ -1,10 +1,13 @@
 extends Node2D
 ## La sortie du supermarché : une porte ouverte dans le mur du fond, avec un panneau.
 ## Le niveau détecte quand le héros l'atteint. Origine = au sol, devant la porte (coordonnées monde).
-## Affichage isométrique : la porte (image V2) remplace un pan du mur du fond (voir Mur.portes).
+## Affichage isométrique : la porte (pan de mur V5 du lieu, sinon image V2) remplace un pan du mur du fond (voir Mur.portes).
 
 const LARGEUR := 200.0     # = Mur.LONGUEUR_PANNEAU
 const EPAISSEUR := 80.0    # épaisseur du mur du fond
+
+## Pan du mur du lieu avec la porte ouverte (images V5 wall_*_exit), sinon l'image V2 porte_ouverte
+@export var image := ""
 
 var _vue := Node2D.new()
 var _devant := Node2D.new()   # panneau « SORTIE », par-dessus la porte
@@ -23,11 +26,12 @@ func _ready() -> void:
 	var lumiere := _lumiere
 	lumiere.color = Palette.SORTIE
 	_vue.y_sort_enabled = true
-	if Images.existe("porte_ouverte"):
+	var nom := image if image != "" and Images.existe(image) else "porte_ouverte"
+	if Images.existe(nom):
 		# La porte remplace le pan de mur derrière elle (Mur.portes) : même longueur, même alignement
 		var emprise := Rect2(global_position.x - LARGEUR / 2.0, global_position.y - 5.0 - EPAISSEUR, LARGEUR, EPAISSEUR)
-		Iso.habiller("porte_ouverte", emprise, _vue, Iso.miroir_pour("porte_ouverte", true))
-		_hauteur = Iso.hauteur_image("porte_ouverte", emprise)
+		Iso.habiller(nom, emprise, _vue, Iso.miroir_pour(nom, true))
+		_hauteur = Iso.hauteur_image(nom, emprise)
 	else:
 		var porte := Node2D.new()
 		porte.position = Iso.ecran(global_position)

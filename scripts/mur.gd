@@ -27,6 +27,8 @@ const LONGUEUR_RAYON := 140.0     # longueur d'un rayon d'étagère (monde)
 const HAUTEUR_REBORD := 18.0
 const LONGUEUR_TRONCON := 40.0    # tronçons d'une cloison (voir `cloison`)
 const BLOC_IMAGE := "prop_concrete_block"   # image V5 du bloc de béton (posée sur l'emprise, sans en changer la taille)
+## Images V5 des caisses (à la place des images V2 « caisse » et « caisse_grande », même emprise)
+const CAISSES_V5 := {"caisse": "prop_crate", "caisse_grande": "prop_crate_big"}
 
 static var _texture_lune: GradientTexture2D
 
@@ -46,7 +48,8 @@ func _ready() -> void:
 	add_child(collision)
 	_vue.y_sort_enabled = true
 	# Ombre douce au sol (les images V3 ont déjà la leur)
-	if style != Style.MUR and not Images.v3_existe(image) and not (style == Style.BLOC and Images.existe(BLOC_IMAGE)):
+	var image_v5 := (style == Style.BLOC and Images.existe(BLOC_IMAGE)) or (style == Style.CAISSE and Images.existe(CAISSES_V5["caisse"]))
+	if style != Style.MUR and not Images.v3_existe(image) and not image_v5:
 		_sol.draw.connect(func() -> void: Iso.ombre(_sol, emprise(), 0.8))
 	_construire()
 
@@ -113,6 +116,8 @@ func _construire() -> void:
 			# Petite ou grande caisse, dans un sens ou l'autre : toujours pareil pour une même caisse
 			var h := hash(Vector2i(position))
 			var nom := "caisse_grande" if h % 3 == 0 else "caisse"
+			if Images.existe(CAISSES_V5[nom]):
+				nom = CAISSES_V5[nom]
 			_habiller(nom, emprise(), h % 2 == 0, Palette.CAISSE_BOIS, Palette.CAISSE_BOIS_FACE, Palette.CAISSE_BOIS_COTE)
 		Style.BLOC:
 			if Images.existe(BLOC_IMAGE):

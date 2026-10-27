@@ -12,6 +12,8 @@ extends StaticBody2D
 
 const DUREE_OUVERTURE := 0.5   # la porte s'efface
 const HAUTEUR_SECOURS := 120.0
+## Image V5 (double porte au cadenas rouge), sinon l'image V2 porte_fermee, sinon dessin en code
+const IMAGE_V5 := "prop_door_locked"
 
 var _ouverte := false
 var _vue := Node2D.new()      # dans le calque Vue (trié en profondeur)
@@ -31,9 +33,10 @@ func _ready() -> void:
 	add_child(_collision)
 	_vue.y_sort_enabled = true
 	var long_en_x := taille.x >= taille.y
-	if Images.existe("porte_fermee"):
-		_image_ecran = Iso.habiller("porte_fermee", emprise(), _vue, Iso.miroir_pour("porte_fermee", long_en_x))
-		_hauteur = Iso.hauteur_image("porte_fermee", emprise())
+	var nom := IMAGE_V5 if Images.existe(IMAGE_V5) else "porte_fermee"
+	if Images.existe(nom):
+		_image_ecran = Iso.habiller(nom, emprise(), _vue, Iso.miroir_pour(nom, long_en_x))
+		_hauteur = Iso.hauteur_image(nom, emprise())
 	else:
 		var boite := Node2D.new()
 		var c := Iso.coins(emprise())
